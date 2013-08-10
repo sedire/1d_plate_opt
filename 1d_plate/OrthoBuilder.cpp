@@ -252,7 +252,7 @@ void OrthoBuilderGodunov::buildSolution( vector<VarVect>* _mesh )
 		int found = 0;
 		for(int j = 0; j < msize; ++j )
 		{
-			if( sqrt( M[i * msize + j].real() * M[i * msize + j].real() + M[i * msize + j].imag() * M[i * msize + j].imag() ) >= 0.0000000001 )
+			if( M[i * msize + j].real() >= 0.0000000001 )
 			{
 				found = 1;
 				posI = i;
