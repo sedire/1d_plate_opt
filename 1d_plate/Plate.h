@@ -18,8 +18,8 @@ public:
 	PL_NUM sigma_x;			//electric conductivity
 	PL_NUM sigma_x_mu;
 
-	PL_NUM h;				//thickness of the plate
-	PL_NUM a;				//width of the plate
+	N_PRES h;				//thickness of the plate
+	N_PRES a;				//width of the plate
 
 	Plate();
 	~Plate();
