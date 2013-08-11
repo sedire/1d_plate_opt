@@ -447,8 +447,7 @@ void OrthoBuilderGSh::orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM, 1>* Nt
 		}
 		solInfoMap[n + 1].o[1 * eq_num + 1] = sqrt( solInfoMap[n + 1].o[1 * eq_num + 1] );
 
-		if( sqrt( ( norm / solInfoMap[n + 1].o[1 * eq_num + 1] ).real() * ( norm / solInfoMap[n + 1].o[1 * eq_num + 1] ).real() +
-			( norm / solInfoMap[n + 1].o[1 * eq_num + 1] ).imag() * ( norm / solInfoMap[n + 1].o[1 * eq_num + 1] ).imag() ) <= k11 )
+		if( ( norm / solInfoMap[n + 1].o[1 * eq_num + 1] ).real() <= k11 )
 		{
 			for( int i = 0; i < eq_num; ++i )
 			{
@@ -507,8 +506,7 @@ void OrthoBuilderGSh::orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM, 1>* Nt
 		}
 		solInfoMap[n + 1].o[2 * eq_num + 2] = sqrt( solInfoMap[n + 1].o[2 * eq_num + 2] );
 
-		if( sqrt( ( norm / solInfoMap[n + 1].o[2 * eq_num + 2] ).real() * ( norm / solInfoMap[n + 1].o[2 * eq_num + 2] ).real()
-			+ ( norm / solInfoMap[n + 1].o[2 * eq_num + 2] ).imag() * ( norm / solInfoMap[n + 1].o[2 * eq_num + 2] ).imag() ) <= k11 )
+		if( ( norm / solInfoMap[n + 1].o[2 * eq_num + 2] ).real() <= k11 )
 		{
 			for( int i = 0; i < eq_num; ++i )
 			{
@@ -584,8 +582,7 @@ void OrthoBuilderGSh::orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM, 1>* Nt
 		}
 		solInfoMap[n + 1].o[3 * eq_num + 3] = sqrt( solInfoMap[n + 1].o[3 * eq_num + 3] );
 		
-		if( sqrt( ( norm / solInfoMap[n + 1].o[3 * eq_num + 3] ).real() * ( norm / solInfoMap[n + 1].o[3 * eq_num + 3] ).real()
-			+ ( norm / solInfoMap[n + 1].o[3 * eq_num + 3] ).imag() * ( norm / solInfoMap[n + 1].o[3 * eq_num + 3] ).imag() ) <= k11 )
+		if( ( norm / solInfoMap[n + 1].o[3 * eq_num + 3] ).real() <= k11 )
 		{
 			for( int i = 0; i < eq_num; ++i )
 			{
