@@ -23,7 +23,7 @@ public:
 
 	Plate();
 	~Plate();
-	void loadVals( PL_NUM _E1, PL_NUM _E2, PL_NUM _nu21, PL_NUM _rho, PL_NUM _h, PL_NUM _sigma_x, PL_NUM _a );
+	void loadVals( PL_NUM _E1, PL_NUM _E2, PL_NUM _nu21, PL_NUM _rho, N_PRES _h, PL_NUM _sigma_x, N_PRES _a );
 };
 
 #endif
