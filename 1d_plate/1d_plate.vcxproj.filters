@@ -30,9 +30,6 @@
     <ClCompile Include="VarVect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AdamsBashforth.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="OrthoBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -54,9 +51,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VarVect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AdamsBashforth.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OrthoBuilder.h">

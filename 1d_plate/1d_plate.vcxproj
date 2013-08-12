@@ -115,7 +115,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AdamsBashforth.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Optimizer.cpp" />
     <ClCompile Include="OrthoBuilder.cpp" />
@@ -125,7 +124,6 @@
     <ClCompile Include="VarVect.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AdamsBashforth.h" />
     <ClInclude Include="Optimizer.h" />
     <ClInclude Include="OrthoBuilder.h" />
     <ClInclude Include="Plate.h" />
