@@ -3,6 +3,7 @@
 #include "Solver.h"
 #include "Plate.h"
 #include "Optimizer.h"
+#include "hyperDual.h"
 #include <omp.h>
 
 using std::cout;
@@ -12,7 +13,26 @@ int main()
 {
 	cout << "hello\n";
 
+	HPD<N_PRES, 4> item1;
+	item1.elems[0] = 11.1;
+	item1.elems[1] = 1.4;
+	item1.elems[2] = 6.6;
+	item1.elems[3] = 0.1;
+	item1.elems[4] = 0;
 
+	HPD<N_PRES, 4> item2;
+	item2.elems[0] = 1.1;
+	item2.elems[1] = 0.4;
+	item2.elems[2] = 2.4;
+	item2.elems[3] = 0;
+	item2.elems[4] = 0.1;
+
+	cout << item1 - 1.1l << endl;
+	cout << item1 << endl;
+	item1 = 0.2l - item2;
+	cout << item1 << endl;
+	item1 = 0.01l;
+	cout << item1 << endl;
 
 	std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 	return 0;

@@ -59,5 +59,8 @@
     <ClInclude Include="Optimizer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="hyperDual.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

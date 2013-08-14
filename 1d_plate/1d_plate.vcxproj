@@ -124,6 +124,7 @@
     <ClCompile Include="VarVect.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="hyperDual.h" />
     <ClInclude Include="Optimizer.h" />
     <ClInclude Include="OrthoBuilder.h" />
     <ClInclude Include="Plate.h" />
