@@ -12,6 +12,11 @@ int main()
 {
 	cout << "hello\n";
 
+
+
+	std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+	return 0;
+
 	omp_set_num_threads( 2 );
 
 	cout << sizeof( float ) << " " << sizeof( double ) << " " << sizeof( long double ) << endl;
