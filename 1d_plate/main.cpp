@@ -14,11 +14,16 @@ int main()
 	cout << "hello\n";
 
 	HPD<N_PRES, 4> item1;
-	item1.elems[0] = 11.1;
+	item1.elems[0] = 11.00001;
 	item1.elems[1] = 1.4;
 	item1.elems[2] = 6.6;
 	item1.elems[3] = 0.1;
 	item1.elems[4] = 0;
+
+	item1.elems[1] = 0.0000000001;
+	//item1.elems[2] = 0;
+	//item1.elems[3] = 0;
+	//item1.elems[4] = 0;
 
 	HPD<N_PRES, 4> item2;
 	item2.elems[0] = 1.1;
@@ -27,15 +32,8 @@ int main()
 	item2.elems[3] = 0;
 	item2.elems[4] = 0.1;
 
-	cout << item1 - 1.1l << endl;
-	cout << item1 << endl;
-	item1 = 0.2l - item2;
-	cout << item1 << endl;
-	item1 = 0.01l;
-	cout << item1 << endl;
-
-	std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-	return 0;
+	HPD<N_PRES, 4> item3;
+	item3 = item2;
 
 	omp_set_num_threads( 2 );
 

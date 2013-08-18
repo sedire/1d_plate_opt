@@ -144,6 +144,10 @@ void Optimizer<PL_NUM>::optimize( N_PRES Jstart, N_PRES tauStart )
 		cout << " optimization step " << count << endl;
 
 		calc1stOrdOptInfo( parVect( 0 ), parVect( 1 ), &objVal, &gk1 );
+
+		//TODO: delete me
+		return;
+
 		if( count != 0 )
 		{
 			dk1 = -gk1 + calcBettaN_() * dk;
@@ -372,6 +376,8 @@ void Optimizer<PL_NUM>::update( N_PRES a, N_PRES b, N_PRES c, N_PRES* _a, N_PRES
 template<class PL_NUM>
 void Optimizer<PL_NUM>::calc1stOrdOptInfo( long double J0, long double tau, long double* _objVal, Matrix<N_PRES, 2, 1>* _gk )
 {
+	time_t begin = time( 0 );
+
 	PL_NUM J0begin;
 	PL_NUM tauBegin;
 
@@ -401,6 +407,10 @@ void Optimizer<PL_NUM>::calc1stOrdOptInfo( long double J0, long double tau, long
 		}
 		*_objVal = funcVal.real() + J0 * weight;
 	}
+
+	time_t endtime = time( 0 );
+	cout << " ====\n done in " << endtime - begin << endl;
+	cout << " derivatives: " << ( *_gk )( 0 ) << " " << ( *_gk )( 1 ) << endl; 
 }
 
 template<class PL_NUM>

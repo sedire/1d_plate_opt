@@ -92,6 +92,87 @@ const HPD<D_PRES, NN> operator-( const HPD<D_PRES, NN>& lhs, const D_PRES& rhs )
 	return ret;
 }
 
+//--------------------------------------------------------------------
+// multiplication
+
+template<class D_PRES, int NN>
+const HPD<D_PRES, NN> operator*( const HPD<D_PRES, NN>& lhs, const HPD<D_PRES, NN>& rhs )
+{
+	HPD<D_PRES, NN> ret;
+
+	ret.elems[0] = lhs.elems[0] * rhs.elems[0];
+	for( int i = 1; i < NN + 1; ++i )
+	{
+		ret.elems[i] = lhs.elems[0] * rhs.elems[i] + lhs.elems[i] * rhs.elems[0];
+	}
+	return ret;
+}
+
+template<class D_PRES, int NN>
+const HPD<D_PRES, NN> operator*( const D_PRES& lhs, const HPD<D_PRES, NN>& rhs )
+{
+	HPD<D_PRES, NN> ret;
+
+	for( int i = 0; i < NN + 1; ++i )
+	{
+		ret.elems[i] = rhs.elems[i] * lhs;
+	}
+	return ret;
+}
+
+template<class D_PRES, int NN>
+const HPD<D_PRES, NN> operator*( const HPD<D_PRES, NN>& lhs, const D_PRES& rhs )
+{
+	HPD<D_PRES, NN> ret;
+
+	for( int i = 0; i < NN + 1; ++i )
+	{
+		ret.elems[i] = lhs.elems[i] * rhs;
+	}
+	return ret;
+}
+
+//--------------------------------------------------------------------
+// division
+
+template<class D_PRES, int NN>
+const HPD<D_PRES, NN> operator/( const HPD<D_PRES, NN>& lhs, const HPD<D_PRES, NN>& rhs )
+{
+	HPD<D_PRES, NN> ret;
+
+	ret.elems[0] = lhs.elems[0] / rhs.elems[0];
+	for( int i = 1; i < NN + 1; ++i )
+	{
+		ret.elems[i] = ( lhs.elems[i] * rhs.elems[0] - lhs.elems[0] * rhs.elems[i] ) / ( rhs.elems[0] * rhs.elems[0] ); 
+	}
+	return ret;
+}
+
+template<class D_PRES, int NN>
+const HPD<D_PRES, NN> operator/( const D_PRES& lhs, const HPD<D_PRES, NN>& rhs )
+{
+	HPD<D_PRES, NN> ret;
+
+	ret.elems[0] = lhs / rhs.elems[0];
+	for( int i = 1; i < NN + 1; ++i )
+	{
+		ret.elems[i] = ( -lhs * rhs.elems[i] ) / ( rhs.elems[0] * rhs.elems[0] ); 
+	}
+	return ret;
+}
+
+template<class D_PRES, int NN>
+const HPD<D_PRES, NN> operator/( const HPD<D_PRES, NN>& lhs, const D_PRES& rhs )
+{
+	HPD<D_PRES, NN> ret;
+
+	for( int i = 0; i < NN + 1; ++i )
+	{
+		ret.elems[i] = lhs.elems[i] / rhs;
+	}
+	return ret;
+}
+
 //----------------------------------------------------------------
 // cout
 
@@ -125,6 +206,18 @@ public:
 	HPD& operator=( const HPD& rhs );
 	HPD& operator=( const D_PRES& rhs );
 
+	HPD& operator+=( const HPD& rhs );
+	HPD& operator+=( const D_PRES& rhs );
+
+	HPD& operator-=( const HPD& rhs );
+	HPD& operator-=( const D_PRES& rhs );
+
+	HPD& operator*=( const HPD& rhs );
+	HPD& operator*=( const D_PRES& rhs );
+
+	HPD& operator/=( const HPD& rhs );
+	HPD& operator/=( const D_PRES& rhs );
+
 	friend const HPD operator+<>( const HPD& lhs, const HPD& rhs );
 	friend const HPD operator+<>( const D_PRES& lhs, const HPD& rhs );
 	friend const HPD operator+<>( const HPD& lhs, const D_PRES& rhs );
@@ -133,15 +226,23 @@ public:
 	friend const HPD operator-<>( const D_PRES& lhs, const HPD& rhs );
 	friend const HPD operator-<>( const HPD& lhs, const D_PRES& rhs );
 
-private:
-	HPD( const HPD& rhs );
+	friend const HPD operator*<>( const HPD& lhs, const HPD& rhs );
+	friend const HPD operator*<>( const D_PRES& lhs, const HPD& rhs );
+	friend const HPD operator*<>( const HPD& lhs, const D_PRES& rhs );
+
+	friend const HPD operator/<>( const HPD& lhs, const HPD& rhs );
+	friend const HPD operator/<>( const D_PRES& lhs, const HPD& rhs );
+	friend const HPD operator/<>( const HPD& lhs, const D_PRES& rhs );
+
+//private:
+	//HPD( const HPD& rhs );
 };
 
-template<class D_PRES, int NN>
-HPD<D_PRES, NN>::HPD( const HPD& rhs )
-{
-	cout << " d-----\n";
-}
+//template<class D_PRES, int NN>
+//HPD<D_PRES, NN>::HPD( const HPD& rhs )
+//{
+//	cout << " d-----\n";
+//}
 
 template<class D_PRES, int NN>
 HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator=( const HPD& rhs )
@@ -165,6 +266,111 @@ HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator=( const D_PRES& rhs )
 	}
 	elems[0] = rhs;
 	return *this;
+}
+
+template<class D_PRES, int NN>
+HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator+=( const HPD& rhs )
+{
+	if( this != &rhs )
+	{
+		for( int i = 0; i < NN + 1; ++i )
+		{
+			elems[i] += rhs.elems[i];
+		}
+	}
+	return *this;
+}
+
+template<class D_PRES, int NN>
+HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator+=( const D_PRES& rhs )
+{
+	elems[0] += rhs;
+	return *this;
+}
+
+template<class D_PRES, int NN>
+HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator-=( const HPD& rhs )
+{
+	if( this != &rhs )
+	{
+		for( int i = 0; i < NN + 1; ++i )
+		{
+			elems[i] -= rhs.elems[i];
+		}
+	}
+	return *this;
+}
+
+template<class D_PRES, int NN>
+HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator-=( const D_PRES& rhs )
+{
+	elems[0] -= rhs;
+	return *this;
+}
+
+template<class D_PRES, int NN>
+HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator*=( const HPD& rhs )
+{
+	//HPD<D_PRES, NN> tmp;
+	//tmp = ( *this ) * rhs;
+	( *this ) = ( *this ) * rhs;
+
+	return *this;
+}
+
+template<class D_PRES, int NN>
+HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator*=( const D_PRES& rhs )
+{
+	for( int i = 0; i < NN; ++i )
+	{
+		elems[i] *= rhs;
+	}
+	return *this;
+}
+
+template<class D_PRES, int NN>
+HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator/=( const HPD& rhs )
+{
+	( *this ) = ( *this ) / rhs;
+
+	return *this;
+}
+
+template<class D_PRES, int NN>
+HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator/=( const D_PRES& rhs )
+{
+	for( int i = 0; i < NN; ++i )
+	{
+		elems[i] /= rhs;
+	}
+	return *this;
+}
+
+template<class D_PRES, int NN>
+HPD<D_PRES, NN> sin( const HPD<D_PRES, NN>& arg )
+{
+	HPD<D_PRES, NN> ret;
+	D_PRES x0 = arg.elems[0];
+	ret = sin( x0 ) + cos( x0 ) * ( arg - x0 );
+	return ret;
+}
+
+template<class D_PRES, int NN>
+HPD<D_PRES, NN> cos( const HPD<D_PRES, NN>& arg )
+{
+	HPD<D_PRES, NN> ret;
+	D_PRES x0 = arg.elems[0];
+	ret = cos( x0 ) - sin( x0 ) * ( arg - x0 );
+	return ret;
+}
+
+template<class D_PRES, int NN>
+HPD<D_PRES, NN> exp( const HPD<D_PRES, NN>& arg )
+{
+	HPD<D_PRES, NN> ret;
+	D_PRES x0 = arg.elems[0];
+	ret = exp( x0 ) + exp( x0 ) * ( arg - x0 );
+	return ret;
 }
 
 #endif
