@@ -37,12 +37,12 @@ int main()
 
 	omp_set_num_threads( 2 );
 
-	cout << sizeof( float ) << " " << sizeof( double ) << " " << sizeof( long double ) << endl;
+	//Plate<complex<N_PRES> >* plate = new Plate<complex<N_PRES> >();
+	Plate<HPD<N_PRES, 2> >* plate = new Plate<HPD<N_PRES, 2> >();
 
-	Plate<complex<N_PRES> >* plate = new Plate<complex<N_PRES> >();
 	plate->loadVals( 102970000000.0, 7550000000.0, 0.3, 1594.0, 0.0021, 39000.0, 0.1524 );
 
-	Solver<complex<N_PRES> >* solver = new Solver<complex<N_PRES> >();
+	Solver<HPD<N_PRES, 2> >* solver = new Solver<HPD<N_PRES, 2> >();
 	solver->loadPlate( plate );
 
 	N_PRES weight = 1.0l / 6.0 / 6.0 / 6.0;
@@ -50,7 +50,7 @@ int main()
 	N_PRES tauh = 0.00001;
 	N_PRES J0start =  44000.0 / J0_SCALE;
 	N_PRES tauStart = 0.0048;
-	Optimizer<complex<N_PRES> > optimizer( solver, weight, J0h, tauh, 0.05 );
+	Optimizer<HPD<N_PRES, 2> > optimizer( solver, weight, J0h, tauh, 0.05 );
 	optimizer.optimize( J0start, tauStart );
 
 	free( solver );

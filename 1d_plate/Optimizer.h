@@ -5,6 +5,7 @@
 #include <fstream>
 #include "Eigen/Eigen"
 #include "plate_var_types.h"
+#include "hyperDual.h"
 #include "Solver.h"
 
 using namespace Eigen;
@@ -146,7 +147,7 @@ void Optimizer<PL_NUM>::optimize( N_PRES Jstart, N_PRES tauStart )
 		calc1stOrdOptInfo( parVect( 0 ), parVect( 1 ), &objVal, &gk1 );
 
 		//TODO: delete me
-		return;
+		//return;
 
 		if( count != 0 )
 		{
@@ -376,47 +377,85 @@ void Optimizer<PL_NUM>::update( N_PRES a, N_PRES b, N_PRES c, N_PRES* _a, N_PRES
 template<class PL_NUM>
 void Optimizer<PL_NUM>::calc1stOrdOptInfo( long double J0, long double tau, long double* _objVal, Matrix<N_PRES, 2, 1>* _gk )
 {
+	cout << "calc 1st order\n";
 	time_t begin = time( 0 );
 
 	PL_NUM J0begin;
 	PL_NUM tauBegin;
 
-	for( int i = 0; i < 2; ++i )
-	{
-		if( i == 0 )
-		{
-			J0begin = PL_NUM( J0, J0h );
-			tauBegin = PL_NUM( tau, 0.0 );
-		}
-		else if( i == 1 )
-		{
-			J0begin = PL_NUM( J0, 0.0 );
-			tauBegin = PL_NUM( tau, tauh );
-		}
-		solver->setTask( J0begin, tauBegin );
-		solver->calcConsts();
-		PL_NUM funcVal = calcFuncVal();
+	J0begin.elems[0] = J0;
+	J0begin.elems[1] = J0h;
+	J0begin.elems[2] = 0.0l;
 
-		if( i == 0 )
-		{
-			( *_gk )( 0 ) = funcVal.imag() / J0h * J0_SCALE + weight;
-		}
-		else if( i == 1 )
-		{
-			( *_gk )( 1 ) = funcVal.imag() / tauh;
-		}
-		*_objVal = funcVal.real() + J0 * weight;
-	}
+	tauBegin.elems[0] = tau;
+	tauBegin.elems[1] = 0.0l;
+	tauBegin.elems[2] = tauh;
+		
+	solver->setTask( J0begin, tauBegin );
+	solver->calcConsts();
+
+	cout << " calculating func val\n";
+
+	PL_NUM funcVal = calcFuncVal();
+
+	cout << " func val done " << funcVal << endl;
+
+	( *_gk )( 0 ) = funcVal.elems[1] / J0h * J0_SCALE + weight;
+	( *_gk )( 1 ) = funcVal.elems[2] / tauh;
+
+	*_objVal = funcVal.real() + J0 * weight;
 
 	time_t endtime = time( 0 );
 	cout << " ====\n done in " << endtime - begin << endl;
 	cout << " derivatives: " << ( *_gk )( 0 ) << " " << ( *_gk )( 1 ) << endl; 
 }
 
+//
+//template<class PL_NUM>
+//void Optimizer<PL_NUM>::calc1stOrdOptInfo( long double J0, long double tau, long double* _objVal, Matrix<N_PRES, 2, 1>* _gk )
+//{
+//	time_t begin = time( 0 );
+//
+//	PL_NUM J0begin;
+//	PL_NUM tauBegin;
+//
+//	for( int i = 0; i < 2; ++i )
+//	{
+//		if( i == 0 )
+//		{
+//			J0begin = PL_NUM( J0, J0h );
+//			tauBegin = PL_NUM( tau, 0.0 );
+//		}
+//		else if( i == 1 )
+//		{
+//			J0begin = PL_NUM( J0, 0.0 );
+//			tauBegin = PL_NUM( tau, tauh );
+//		}
+//		solver->setTask( J0begin, tauBegin );
+//		solver->calcConsts();
+//		PL_NUM funcVal = calcFuncVal();
+//
+//		if( i == 0 )
+//		{
+//			( *_gk )( 0 ) = funcVal.imag() / J0h * J0_SCALE + weight;
+//		}
+//		else if( i == 1 )
+//		{
+//			( *_gk )( 1 ) = funcVal.imag() / tauh;
+//		}
+//		*_objVal = funcVal.real() + J0 * weight;
+//	}
+//
+//	time_t endtime = time( 0 );
+//	cout << " ====\n done in " << endtime - begin << endl;
+//	cout << " derivatives: " << ( *_gk )( 0 ) << " " << ( *_gk )( 1 ) << endl; 
+//}
+
 template<class PL_NUM>
 PL_NUM Optimizer<PL_NUM>::calcFuncVal()
 {
-	PL_NUM funcVal( 0.0, 0.0 );
+	//PL_NUM funcVal( 0.0, 0.0 );
+	PL_NUM funcVal;
 
 	while( solver->cur_t.real() <= charTime )
 	{

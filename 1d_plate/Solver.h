@@ -207,7 +207,7 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauJ )
 	of1.close();
 
 	tauP = 0.01;
-	if( _tauJ != 0.0l )
+	if( _tauJ.real() != 0.0l )
 	{
 		tauJ = _tauJ;
 	}
@@ -221,7 +221,9 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauJ )
 	cur_t = 0.0;
 	curTimeStep = 0;
 
-	J0 = complex<long double>( _J0.real() * 100000000/*/ plate->a.real() / plate->h.real() * 1000.0l*/, _J0.imag() );
+	J0 = _J0;
+	J0.elems[0] *= 100000000;
+	//J0 = complex<long double>( _J0.real() * 100000000/*/ plate->a.real() / plate->h.real() * 1000.0l*/, _J0.imag() );
 	omega = (long double)M_PI / tauJ;
 	p0 = 100.0;
 	stress_type = stress_whole;
@@ -392,7 +394,7 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 	{
 		if( ( cur_t + dt ).real() < tauP.real() && fabs( (long double)_x * dx.real() - plate->a / 2.0 ) < rad.real() )
 		{
-			Pimp = p0 * sqrt( 1 - fabs( (long double)_x * dx.real() - plate->a / 2.0l ) * fabs( (long double)_x * dx.real() - plate->a / 2.0 ) / rad.real() / rad.real()	) 
+			Pimp = p0 * sqrt( 1.0l - fabs( (long double)_x * dx.real() - plate->a / 2.0l ) * fabs( (long double)_x * dx.real() - plate->a / 2.0 ) / rad.real() / rad.real()	) 
 				* sin( (long double)M_PI * ( cur_t + dt ) / tauP );
 		}
 	}
@@ -519,7 +521,7 @@ PL_NUM Solver<PL_NUM>::do_step()
 		else
 		{
 			N5( 6 ) = ( newmark_B[0] * mesh[0].Nk1[7] - newmark_B[1] * By0 );
-			N5( 7 ) = -mesh[0].Nk1[7];
+			N5( 7 ) = 0.0l - mesh[0].Nk1[7];
 		}
 
 		/*for( int i = 0; i < eq_num; ++i )
@@ -560,7 +562,9 @@ PL_NUM Solver<PL_NUM>::do_step()
 			orthoBuilder->orthonorm( 4, x, &N4 );
 			orthoBuilder->orthonorm( 5, x, &N5 );
 		}
+		cout << " building solution\n";
 		orthoBuilder->buildSolution( &mesh );
+		cout << " sol built\n";
 
 		if( preLin != 0 )
 		{

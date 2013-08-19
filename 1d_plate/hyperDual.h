@@ -92,6 +92,18 @@ const HPD<D_PRES, NN> operator-( const HPD<D_PRES, NN>& lhs, const D_PRES& rhs )
 	return ret;
 }
 
+template<class D_PRES, int NN>
+const HPD<D_PRES, NN> operator-( const HPD<D_PRES, NN>& rhs )
+{
+	HPD<D_PRES, NN> ret;
+
+	for( int i = 0; i < NN + 1; ++i )
+	{
+		ret.elems[i] = -rhs.elems[i];
+	}
+	return ret;
+}
+
 //--------------------------------------------------------------------
 // multiplication
 
@@ -194,11 +206,27 @@ template<class D_PRES, int NN>
 class HPD		//HPD = hyper dual
 {
 public:
-	vector<D_PRES> elems;
+	//vector<D_PRES> elems;
+	D_PRES elems[NN + 1];
 
-	HPD() {	elems.resize( NN + 1, 0.0 ); }
-	HPD( D_PRES a ) {	elems.resize( NN + 1, 0.0 ); elems[0] = a; }
-	D_PRES real() { return elems[0]; }
+	HPD() 
+	{	
+		for( int i = 0; i < NN + 1; ++i )
+		{
+			elems[i] = 0.0;
+		}
+	}
+	//	elems.resize( NN + 1, 0.0 ); }
+	HPD( D_PRES a )
+	//{	elems.resize( NN + 1, 0.0 ); elems[0] = a; }
+	{
+		for( int i = 0; i < NN + 1; ++i )
+		{
+			elems[i] = 0.0;
+		}
+		elems[0] = a;
+	}
+	D_PRES real() const { return elems[0]; }
 
 	template<class D_PRES_, int NN_>
 	friend ostream& operator<<( ostream& os, const HPD& item );
@@ -225,6 +253,8 @@ public:
 	friend const HPD operator-<>( const HPD& lhs, const HPD& rhs );
 	friend const HPD operator-<>( const D_PRES& lhs, const HPD& rhs );
 	friend const HPD operator-<>( const HPD& lhs, const D_PRES& rhs );
+
+	friend const HPD operator-<>( const HPD& rhs );
 
 	friend const HPD operator*<>( const HPD& lhs, const HPD& rhs );
 	friend const HPD operator*<>( const D_PRES& lhs, const HPD& rhs );
@@ -370,6 +400,15 @@ HPD<D_PRES, NN> exp( const HPD<D_PRES, NN>& arg )
 	HPD<D_PRES, NN> ret;
 	D_PRES x0 = arg.elems[0];
 	ret = exp( x0 ) + exp( x0 ) * ( arg - x0 );
+	return ret;
+}
+
+template<class D_PRES, int NN>
+HPD<D_PRES, NN> sqrt( const HPD<D_PRES, NN>& arg )
+{
+	HPD<D_PRES, NN> ret;
+	D_PRES x0 = arg.elems[0];
+	ret = sqrt( x0 ) + 0.5 / sqrt( x0 ) * ( arg - x0 );
 	return ret;
 }
 
