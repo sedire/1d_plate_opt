@@ -562,9 +562,7 @@ PL_NUM Solver<PL_NUM>::do_step()
 			orthoBuilder->orthonorm( 4, x, &N4 );
 			orthoBuilder->orthonorm( 5, x, &N5 );
 		}
-		cout << " building solution\n";
 		orthoBuilder->buildSolution( &mesh );
-		cout << " sol built\n";
 
 		if( preLin != 0 )
 		{
