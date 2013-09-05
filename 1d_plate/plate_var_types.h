@@ -8,5 +8,7 @@
 #define EQ_NUM 8
 #define ALMOST_ZERO 0.0000000001 
 #define J0_SCALE 100000000.0
+#define BY0_SCALE 1.0l
+#define GRAD_SIZE 3
 
 #endif

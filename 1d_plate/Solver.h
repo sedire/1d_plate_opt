@@ -53,7 +53,7 @@ public:
 	~Solver();
 
 	void loadPlate( Plate<PL_NUM>* _plate );
-	void setTask( PL_NUM _J0, PL_NUM _tauJ );
+	void setTask( PL_NUM _J0, PL_NUM _tauJ, PL_NUM _By0 );
 	void endTask();
 	void calcConsts();
 
@@ -201,7 +201,7 @@ void Solver<PL_NUM>::endTask()
 }
 
 template<class PL_NUM>
-void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauJ )
+void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauJ, PL_NUM _By0 )
 {
 	ofstream of1( "test_sol.txt" );
 	of1.close();
@@ -229,7 +229,7 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauJ )
 	stress_type = stress_whole;
 	current_type = current_sin;
 
-	By0 = 0.1l;
+	By0 = _By0;
 	eps_0 = 0.000000000008854;
 	eps_x = 0.0000000002501502912;
 
@@ -477,7 +477,7 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 template<class PL_NUM>
 PL_NUM Solver<PL_NUM>::do_step()
 {	
-	cout << "cur time is " << cur_t.real() << endl;
+	//cout << "cur time is " << cur_t.real() << endl;
 	//cout << "time step number " << curTimeStep << endl;
 	//cout << "calculating solution for the next time step\n\n";
 
@@ -569,9 +569,9 @@ PL_NUM Solver<PL_NUM>::do_step()
 			cont = checkConv();
 		}
 		++iter;
-		cout << " : " << iter << endl;
+		//cout << " : " << iter << endl;
 	}while( cont == 1 );
-	cout << "approximation to the solution on the time step done in " << iter << " steps\n";
+	//cout << "approximation to the solution on the time step done in " << iter << " steps\n";
 
 	//#pragma omp parallel for
 	for( int x = 0; x < Km; ++x )

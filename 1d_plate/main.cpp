@@ -13,45 +13,24 @@ int main()
 {
 	cout << "hello\n";
 
-	HPD<N_PRES, 4> item1;
-	item1.elems[0] = 11.00001;
-	item1.elems[1] = 1.4;
-	item1.elems[2] = 6.6;
-	item1.elems[3] = 0.1;
-	item1.elems[4] = 0;
-
-	item1.elems[1] = 0.0000000001;
-	//item1.elems[2] = 0;
-	//item1.elems[3] = 0;
-	//item1.elems[4] = 0;
-
-	HPD<N_PRES, 4> item2;
-	item2.elems[0] = 1.1;
-	item2.elems[1] = 0.4;
-	item2.elems[2] = 2.4;
-	item2.elems[3] = 0;
-	item2.elems[4] = 0.1;
-
-	HPD<N_PRES, 4> item3;
-	item3 = item2;
-
 	omp_set_num_threads( 2 );
 
 	//Plate<complex<N_PRES> >* plate = new Plate<complex<N_PRES> >();
-	Plate<HPD<N_PRES, 2> >* plate = new Plate<HPD<N_PRES, 2> >();
+	Plate<HPD<N_PRES, GRAD_SIZE> >* plate = new Plate<HPD<N_PRES, GRAD_SIZE> >();
 
 	plate->loadVals( 102970000000.0, 7550000000.0, 0.3, 1594.0, 0.0021, 39000.0, 0.1524 );
 
-	Solver<HPD<N_PRES, 2> >* solver = new Solver<HPD<N_PRES, 2> >();
+	Solver<HPD<N_PRES, GRAD_SIZE> >* solver = new Solver<HPD<N_PRES, GRAD_SIZE> >();
 	solver->loadPlate( plate );
 
 	N_PRES weight = 1.0l / 6.0 / 6.0 / 6.0;
-	N_PRES J0h = 0.00001;
-	N_PRES tauh = 0.00001;
+
 	N_PRES J0start =  44000.0 / J0_SCALE;
 	N_PRES tauStart = 0.0048;
-	Optimizer<HPD<N_PRES, 2> > optimizer( solver, weight, J0h, tauh, 0.05 );
-	optimizer.optimize( J0start, tauStart );
+	N_PRES ByStart = 0.1 / BY0_SCALE;
+
+	Optimizer<HPD<N_PRES, GRAD_SIZE> > optimizer( solver, weight, 0.05 );
+	optimizer.optimize( J0start, tauStart, ByStart );
 
 	free( solver );
 	free( plate );

@@ -17,11 +17,11 @@ template<class PL_NUM>
 class Optimizer
 {
 public:
-	Optimizer( Solver<PL_NUM>* _solver, N_PRES _weight, N_PRES _J0h, N_PRES _tauh, N_PRES charTime );
-	void optimize( N_PRES Jstart, N_PRES tauStart );
+	Optimizer( Solver<PL_NUM>* _solver, N_PRES _weight, N_PRES charTime );
+	void optimize( N_PRES Jstart, N_PRES tauStart, N_PRES ByStart );
 
 private:
-	void calc1stOrdOptInfo( long double J0, long double tau, long double* _objVal, Matrix<N_PRES, 2, 1>* _gk );
+	void calc1stOrdOptInfo( const Matrix<N_PRES, GRAD_SIZE, 1>& curVal, long double* _objVal, Matrix<N_PRES, GRAD_SIZE, 1>* _gk );
 	PL_NUM calcFuncVal();
 	N_PRES calcBettaN();
 	N_PRES calcBettaN_();
@@ -36,22 +36,19 @@ private:
 
 	N_PRES weight;
 
-	N_PRES J0h;
-	N_PRES tauh;
-
 	N_PRES charTime;
 
-	Matrix<N_PRES, 2, 1> parVect;
-	Matrix<N_PRES, 2, 1> parVectPrev;
+	Matrix<N_PRES, GRAD_SIZE, 1> parVect;
+	Matrix<N_PRES, GRAD_SIZE, 1> parVectPrev;
 
 	N_PRES objVal;
 	N_PRES objValPrev;
 	
-	Matrix<N_PRES, 2, 1> gk1;		//new gradient
-	Matrix<N_PRES, 2, 1> gk;		//gradient from prev step
+	Matrix<N_PRES, GRAD_SIZE, 1> gk1;		//new gradient
+	Matrix<N_PRES, GRAD_SIZE, 1> gk;		//gradient from prev step
 
-	Matrix<N_PRES, 2, 1> dk1;		//new descent direction
-	Matrix<N_PRES, 2, 1> dk;		//descent direction from previous step
+	Matrix<N_PRES, GRAD_SIZE, 1> dk1;		//new descent direction
+	Matrix<N_PRES, GRAD_SIZE, 1> dk;		//descent direction from previous step
 
 	N_PRES alphak;
 
@@ -86,33 +83,24 @@ private:
 };
 
 template<class PL_NUM>
-Optimizer<PL_NUM>::Optimizer( Solver<PL_NUM>* _solver, N_PRES _weight, N_PRES _J0h, N_PRES _tauh, N_PRES _charTime ):
+Optimizer<PL_NUM>::Optimizer( Solver<PL_NUM>* _solver, N_PRES _weight, N_PRES _charTime ):
 	solver( _solver ),
 	weight( _weight ),
-	J0h( _J0h ),
-	tauh( _tauh ),
 	charTime( _charTime )
 {
-	parVect( 0 ) = 0.0;
-	parVect( 1 ) = 0.0;
+	for( int i = 0; i < GRAD_SIZE; ++i )
+	{
+		parVect( i ) = 0.0;
+		parVectPrev( i ) = 0.0;
 
-	parVectPrev( 0 ) = 0.0;
-	parVectPrev( 1 ) = 0.0;
+		gk1( i ) = 1.0;
+		gk( i ) = 1.0;
+		dk1( i ) = 0.0;
+		dk( i ) = 0.0;
+	}
 
 	objVal = 0.0;
 	objValPrev = 0.0;
-
-	gk1( 0 ) = 1.0;
-	gk1( 1 ) = 1.0;
-
-	gk( 0 ) = 1.0;
-	gk( 1 ) = 1.0;
-
-	dk1( 0 ) = 0.0;
-	dk1( 1 ) = 0.0;
-
-	dk( 0 ) = 0.0;
-	dk( 1 ) = 0.0;
 
 	alphak = 0.0;
 
@@ -133,18 +121,21 @@ Optimizer<PL_NUM>::Optimizer( Solver<PL_NUM>* _solver, N_PRES _weight, N_PRES _J
 }
 
 template<class PL_NUM>
-void Optimizer<PL_NUM>::optimize( N_PRES Jstart, N_PRES tauStart )
+void Optimizer<PL_NUM>::optimize( N_PRES Jstart, N_PRES tauStart, N_PRES ByStart )
 {
 	int count = 0;
 	const N_PRES threshold = 0.000000000000001;
 	parVect( 0 ) = Jstart;
 	parVect( 1 ) = tauStart;
+	parVect( 2 ) = ByStart;
 
 	while( gk1.norm() >= threshold )
 	{
+		cout << " =======\n";
 		cout << " optimization step " << count << endl;
+		cout << " =======\n";
 
-		calc1stOrdOptInfo( parVect( 0 ), parVect( 1 ), &objVal, &gk1 );
+		calc1stOrdOptInfo( parVect, &objVal, &gk1 );
 
 		//TODO: delete me
 		//return;
@@ -158,11 +149,9 @@ void Optimizer<PL_NUM>::optimize( N_PRES Jstart, N_PRES tauStart )
 			dk1 = -gk1;
 		}
 
-		dmpo << parVect( 0 ) << " " << parVect( 1 ) << " " << objVal << " " << gk1( 0 ) << " " << gk1( 1 ) << " " << dk1( 0 ) << " " << dk1( 1 ) << " " << calcBettaN_() << " " << gk1.norm() << " " << threshold << endl;
-		cout << " objVal " << objVal << endl;
-		cout << " grad " << gk1 << endl;
-		cout << " dir " << dk1 << endl;
-		cout << " betta " << calcBettaN_() << endl;
+		dmpo << " -- par: " << parVect( 0 ) << " " << parVect( 1 ) << " " << parVect( 2 ) << " -- obj: " << objVal << " -- grad: "; 
+		dmpo << gk1( 0 ) << " " << gk1( 1 ) << " " << gk1( 2 ) << " -- dir: ";
+		dmpo << dk1( 0 ) << " " << dk1( 1 ) << " " << dk1( 2 ) << " --- " << calcBettaN_() << " " << gk1.norm() << " " << threshold << endl;
 
 		if( gk1.norm() < threshold )
 		{
@@ -202,30 +191,31 @@ int Optimizer<PL_NUM>::lineSearch()
 		cout << " something weird happened: (gk1, dk1) >= 0\n";
 		return 0;
 	}
-	Matrix<N_PRES, 2, 1> newPar;
+	Matrix<N_PRES, GRAD_SIZE, 1> newPar;
 	N_PRES al = 0.1;
 	newPar = parVect + al * dk1;
 
-	while( newPar( 1 ) > 0.0064 || newPar( 1 ) < 0.0048 || 
-		newPar( 0 ) <= 0.0 )
+	while( newPar( 1 ) > 0.0064 || newPar( 1 ) < 0.0048 /*|| 
+		newPar( 0 ) <= 0.0000000001 ||
+		newPar( 2 ) <= 0.0000000001 || newPar( 2 ) >= 5.0*/ )
 	{
 		al /= 2.0;
 		newPar = parVect + al * dk1;
+		cout << "lin search " << al << " " << newPar << endl;
 	}
 	
 	N_PRES objValFora = 0.0;
-	Matrix<N_PRES, 2, 1> gradFora;
+	Matrix<N_PRES, GRAD_SIZE, 1> gradFora;
 
 	N_PRES objValForb = 0.0;
-	Matrix<N_PRES, 2, 1> gradForb;
+	Matrix<N_PRES, GRAD_SIZE, 1> gradForb;
 	al /= 1.1;
 	do
 	{
 		al *= 1.1;
 		newPar = parVect + al * dk1;
-		calc1stOrdOptInfo( newPar( 0 ), newPar( 1 ), &objValForb, &gradForb );
-
-		cout << " ===\n";
+		cout << " === looking for b at\n" << newPar << "\n\n";
+		calc1stOrdOptInfo( newPar, &objValForb, &gradForb );
 	}while( gradForb.transpose() * dk1 < 0 );
 
 	if( gradForb.transpose() * dk1 < 0 )
@@ -265,12 +255,12 @@ int Optimizer<PL_NUM>::lineSearch()
 		linSb = newb;
 
 		newPar = parVect + linSb * dk1;
-		calc1stOrdOptInfo( newPar( 0 ), newPar( 1 ), &objValForb, &gradForb );
+		calc1stOrdOptInfo( newPar, &objValForb, &gradForb );
 		phiB = objValForb;
 		phiPrB = gradForb.transpose() * dk1;
 
 		newPar = parVect + linSa * dk1;
-		calc1stOrdOptInfo( newPar( 0 ), newPar( 1 ), &objValFora, &gradFora );
+		calc1stOrdOptInfo( newPar, &objValFora, &gradFora );
 		phiA = objValFora;
 		phiPrA = gradFora.transpose() * dk1;
 	}
@@ -318,10 +308,10 @@ void Optimizer<PL_NUM>::update( N_PRES a, N_PRES b, N_PRES c, N_PRES* _a, N_PRES
 	}
 
 	N_PRES objValForc;
-	Matrix<N_PRES, 2, 1> gradForc;
-	Matrix<N_PRES, 2, 1> newParc = parVect + c * dk1;
+	Matrix<N_PRES, GRAD_SIZE, 1> gradForc;
+	Matrix<N_PRES, GRAD_SIZE, 1> newParc = parVect + c * dk1;
 
-	calc1stOrdOptInfo( newParc( 0 ), newParc( 1 ), &objValForc, &gradForc );
+	calc1stOrdOptInfo( newParc, &objValForc, &gradForc );
 	phiC = objValForc;
 	phiPrC = gradForc.transpose() * dk1;
 
@@ -345,12 +335,13 @@ void Optimizer<PL_NUM>::update( N_PRES a, N_PRES b, N_PRES c, N_PRES* _a, N_PRES
 
 		while( 1 )
 		{
+			cout << " !!! upd while\n";
 			linSd = ( 1.0 - thetaUpdate ) * aa + thetaUpdate * bb;
 
 			N_PRES objValFord;
-			Matrix<N_PRES, 2, 1> gradFord;
-			Matrix<N_PRES, 2, 1> newPard = parVect + linSd * dk1;
-			calc1stOrdOptInfo( newPard( 0 ), newPard( 1 ), &objValFord, &gradFord );
+			Matrix<N_PRES, GRAD_SIZE, 1> gradFord;
+			Matrix<N_PRES, GRAD_SIZE, 1> newPard = parVect + linSd * dk1;
+			calc1stOrdOptInfo( newPard, &objValFord, &gradFord );
 			phiD = objValFord;
 			phiPrD = gradFord.transpose() * dk1;
 			if( phiPrD >= 0.0 )
@@ -375,23 +366,31 @@ void Optimizer<PL_NUM>::update( N_PRES a, N_PRES b, N_PRES c, N_PRES* _a, N_PRES
 }
 
 template<class PL_NUM>
-void Optimizer<PL_NUM>::calc1stOrdOptInfo( long double J0, long double tau, long double* _objVal, Matrix<N_PRES, 2, 1>* _gk )
+void Optimizer<PL_NUM>::calc1stOrdOptInfo( const Matrix<N_PRES, GRAD_SIZE, 1>& curVal, long double* _objVal, Matrix<N_PRES, GRAD_SIZE, 1>* _gk )
 {
 	cout << "calc 1st order\n";
 	time_t begin = time( 0 );
 
 	PL_NUM J0begin;
 	PL_NUM tauBegin;
+	PL_NUM B0begin;
 
-	J0begin.elems[0] = J0;
-	J0begin.elems[1] = J0h;
+	J0begin.elems[0] = curVal( 0 );
+	J0begin.elems[1] = 1.0l;
 	J0begin.elems[2] = 0.0l;
+	J0begin.elems[3] = 0.0l;
 
-	tauBegin.elems[0] = tau;
+	tauBegin.elems[0] = curVal( 1 );
 	tauBegin.elems[1] = 0.0l;
-	tauBegin.elems[2] = tauh;
+	tauBegin.elems[2] = 1.0l;
+	tauBegin.elems[3] = 0.0l;
+
+	B0begin.elems[0] = curVal( 2 );
+	B0begin.elems[1] = 0.0l;
+	B0begin.elems[2] = 0.0l;
+	B0begin.elems[3] = 1.0l;
 		
-	solver->setTask( J0begin, tauBegin );
+	solver->setTask( J0begin, tauBegin, B0begin );
 	solver->calcConsts();
 
 	cout << " calculating func val\n";
@@ -400,14 +399,14 @@ void Optimizer<PL_NUM>::calc1stOrdOptInfo( long double J0, long double tau, long
 
 	cout << " func val done " << funcVal << endl;
 
-	( *_gk )( 0 ) = funcVal.elems[1] / J0h * J0_SCALE + weight;
-	( *_gk )( 1 ) = funcVal.elems[2] / tauh;
+	( *_gk )( 0 ) = funcVal.elems[1] * J0_SCALE + weight;
+	( *_gk )( 1 ) = funcVal.elems[2];
+	( *_gk )( 2 ) = funcVal.elems[3] * BY0_SCALE + weight;
 
-	*_objVal = funcVal.real() + J0 * weight;
+	*_objVal = funcVal.real() + ( curVal( 0 ) + curVal( 2 ) ) * weight;
 
 	time_t endtime = time( 0 );
 	cout << " ====\n done in " << endtime - begin << endl;
-	cout << " derivatives: " << ( *_gk )( 0 ) << " " << ( *_gk )( 1 ) << endl; 
 }
 
 //
@@ -473,7 +472,7 @@ PL_NUM Optimizer<PL_NUM>::calcFuncVal()
 template<class PL_NUM>
 N_PRES Optimizer<PL_NUM>::calcBettaN()
 {
-	Matrix<N_PRES, 2, 1> yk = gk1 - gk;
+	Matrix<N_PRES, GRAD_SIZE, 1> yk = gk1 - gk;
 
 	return 1.0 / ( dk.transpose() * yk ) * ( yk - 2.0 * dk * ( yk.transpose() * yk ) / ( dk.transpose() * yk ) ).transpose() * gk1;
 }
