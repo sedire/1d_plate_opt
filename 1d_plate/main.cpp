@@ -25,9 +25,9 @@ int main()
 
 	N_PRES weight = 1.0l / 6.0 / 6.0 / 6.0;
 
-	N_PRES J0start =  44000.0 / J0_SCALE;
+	N_PRES J0start =  1000000.0 / J0_SCALE;
 	N_PRES tauStart = 0.0048;
-	N_PRES ByStart = 0.1 / BY0_SCALE;
+	N_PRES ByStart = 1.0 / BY0_SCALE;
 
 	Optimizer<HPD<N_PRES, GRAD_SIZE> > optimizer( solver, weight, 0.05 );
 	optimizer.optimize( J0start, tauStart, ByStart );

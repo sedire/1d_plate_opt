@@ -225,9 +225,9 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauJ, PL_NUM _By0 )
 	J0.elems[0] *= 100000000;
 	//J0 = complex<long double>( _J0.real() * 100000000/*/ plate->a.real() / plate->h.real() * 1000.0l*/, _J0.imag() );
 	omega = (long double)M_PI / tauJ;
-	p0 = 100.0;
-	stress_type = stress_whole;
-	current_type = current_sin;
+	p0 = 10000000;
+	stress_type = stress_centered;
+	current_type = current_exp_sin;
 
 	By0 = _By0;
 	eps_0 = 0.000000000008854;
@@ -242,6 +242,15 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauJ, PL_NUM _By0 )
 	++Km;
 
 	betta = 0.25;
+
+	if( rungeKutta != 0 )
+	{
+		delete rungeKutta;
+	}
+	if( orthoBuilder != 0 )
+	{
+		delete orthoBuilder;
+	}
 
 	rungeKutta = new RungeKutta<PL_NUM>( eq_num );
 	orthoBuilder = new OrthoBuilderGSh<PL_NUM>();
