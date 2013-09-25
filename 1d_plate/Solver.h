@@ -145,7 +145,10 @@ private:
 };
 
 template<class PL_NUM>
-Solver<PL_NUM>::Solver()
+Solver<PL_NUM>::Solver() :
+	plate( 0 ),
+	rungeKutta( 0 ),
+	orthoBuilder( 0 )
 {
 
 }
@@ -162,8 +165,8 @@ void Solver<PL_NUM>::loadPlate( Plate<PL_NUM>* _plate )
 template<class PL_NUM>
 Solver<PL_NUM>::~Solver()
 {
-	free( rungeKutta );
-	free( orthoBuilder );
+	delete rungeKutta;
+	delete orthoBuilder;
 }
 
 //SolInfo::SolInfo()
@@ -196,8 +199,8 @@ Solver<PL_NUM>::~Solver()
 template<class PL_NUM>
 void Solver<PL_NUM>::endTask()
 {
-	free( rungeKutta );
-	free( orthoBuilder );
+	delete rungeKutta;
+	delete orthoBuilder;
 }
 
 template<class PL_NUM>
@@ -254,7 +257,6 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauJ, PL_NUM _By0 )
 
 	rungeKutta = new RungeKutta<PL_NUM>( eq_num );
 	orthoBuilder = new OrthoBuilderGSh<PL_NUM>();
-	//orthoBuilder = new OrthoBuilderGodunov();
 	orthoBuilder->setParams( Km );
 
 	mesh.resize( 0 );

@@ -41,7 +41,7 @@ public:
 	virtual ~OrthoBuilder();
 	virtual void setParams( int _Km );
 	//virtual void orthonorm( int baseV, int n, vector<PL_NUM>* NtoOrt ) {};
-	virtual void orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM, 1>* NtoOrt ) {};
+	inline virtual void orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM, 1>* NtoOrt ) {};
 	virtual void buildSolution( vector<VarVect<PL_NUM> >* _mesh ) {};
 	virtual void flushO( int x );
 	virtual void setInitVects( const Matrix<PL_NUM, EQ_NUM, 1> &N1, const Matrix<PL_NUM, EQ_NUM, 1> &N2, const Matrix<PL_NUM, EQ_NUM, 1> &N3, const Matrix<PL_NUM, EQ_NUM, 1> &N4, const Matrix<PL_NUM, EQ_NUM, 1> &N5 );
@@ -59,7 +59,7 @@ public:
 	OrthoBuilderGSh() {};
 	~OrthoBuilderGSh() {};
 	//void orthonorm( int baseV, int n, vector<PL_NUM>* NtoOrt );
-	void orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM, 1>* NtoOrt );
+	inline void orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM, 1>* NtoOrt );
 	void buildSolution( vector<VarVect<PL_NUM> >* _mesh );
 };
 

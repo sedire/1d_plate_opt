@@ -19,11 +19,11 @@ class RungeKutta
 {
 public:
 	RungeKutta( int _eq_num );
-	~RungeKutta();
-	void calc( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &A, const Matrix<PL_NUM, EQ_NUM, 1> &f, PL_NUM dx, int hom, Matrix<PL_NUM, EQ_NUM, 1>* x );			//method for solving a system of ODE like dy/dx = Ax + f
-
-private:
+	~RungeKutta() {};
+	inline void calc( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &A, const Matrix<PL_NUM, EQ_NUM, 1> &f, PL_NUM dx, int hom, Matrix<PL_NUM, EQ_NUM, 1>* x );			//method for solving a system of ODE like dy/dx = Ax + f
 	int eq_num;
+private:
+	//int eq_num;
 	PL_NUM rgk_u;
 	PL_NUM rgk_v;
 	PL_NUM rgk_C1, rgk_C2, rgk_C3, rgk_C4;
