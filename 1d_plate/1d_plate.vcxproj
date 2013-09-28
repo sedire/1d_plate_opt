@@ -125,6 +125,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hyperDual.h" />
+    <ClInclude Include="hyperDual2.h" />
     <ClInclude Include="Optimizer.h" />
     <ClInclude Include="OrthoBuilder.h" />
     <ClInclude Include="Plate.h" />
