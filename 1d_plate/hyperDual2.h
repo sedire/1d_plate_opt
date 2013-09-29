@@ -293,15 +293,15 @@ public:
 
 	HPD2() 
 	{	
-		for( int i = 0; i < NN + 1; ++i )
-		{
-			elems[i] = 0.0;
-			elems2[i] = 0.0;
-		}
-		for( int i = NN + 1; i < ( NN + 1 ) * NN / 2; ++i )
-		{
-			elems2[i] = 0.0;
-		}
+		//for( int i = 0; i < NN + 1; ++i )
+		//{
+		//	elems[i] = 0.0;
+		//	elems2[i] = 0.0;
+		//}
+		//for( int i = NN + 1; i < ( NN + 1 ) * NN / 2; ++i )
+		//{
+		//	elems2[i] = 0.0;
+		//}
 	}
 	//	elems.resize( NN + 1, 0.0 ); }
 	HPD2( D_PRES a )

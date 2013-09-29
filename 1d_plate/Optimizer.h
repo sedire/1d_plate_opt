@@ -18,10 +18,13 @@ class Optimizer
 {
 public:
 	Optimizer( Solver<PL_NUM>* _solver, N_PRES _weight, N_PRES charTime );
-	void optimize( N_PRES Jstart, N_PRES tauStart, N_PRES ByStart );
+	void optimize( const Matrix<N_PRES, GRAD_SIZE, 1>& params );
+	void optimizeNewton( const Matrix<N_PRES, GRAD_SIZE, 1>& params );
 
 private:
 	void calc1stOrdOptInfo( const Matrix<N_PRES, GRAD_SIZE, 1>& curVal, long double* _objVal, Matrix<N_PRES, GRAD_SIZE, 1>* _gk );
+	void calc2ndOrdOptInfo( const Matrix<N_PRES, GRAD_SIZE, 1>& curVal, long double* _objVal, Matrix<N_PRES, GRAD_SIZE, 1>* _gk, Matrix<N_PRES, GRAD_SIZE, GRAD_SIZE>* _hess );
+
 	PL_NUM calcFuncVal();
 	N_PRES calcBettaN();
 	N_PRES calcBettaN_();
@@ -121,13 +124,14 @@ Optimizer<PL_NUM>::Optimizer( Solver<PL_NUM>* _solver, N_PRES _weight, N_PRES _c
 }
 
 template<class PL_NUM>
-void Optimizer<PL_NUM>::optimize( N_PRES Jstart, N_PRES tauStart, N_PRES ByStart )
+void Optimizer<PL_NUM>::optimize( const Matrix<N_PRES, GRAD_SIZE, 1>& params )
 {
 	int count = 0;
-	const N_PRES threshold = 0.000000000000001;
-	parVect( 0 ) = Jstart;
-	parVect( 1 ) = tauStart;
-	parVect( 2 ) = ByStart;
+	const N_PRES threshold = 0.000000000001;
+	for( int i = 0; i < GRAD_SIZE; ++i )
+	{
+		parVect( i ) = params( i );
+	}
 
 	while( gk1.norm() >= threshold )
 	{
@@ -172,6 +176,39 @@ void Optimizer<PL_NUM>::optimize( N_PRES Jstart, N_PRES tauStart, N_PRES ByStart
 		gk = gk1;
 
 		parVect = parVect  + linSb * dk1; 
+
+		++count;
+	}
+}
+
+template<class PL_NUM>
+void Optimizer<PL_NUM>::optimizeNewton( const Matrix<N_PRES, GRAD_SIZE, 1>& params )
+{
+	int count = 0;
+	const N_PRES threshold = 0.000000000000001;
+
+	Matrix<N_PRES, GRAD_SIZE, 1> gradient;
+	for( int i = 0; i < GRAD_SIZE; ++i )
+	{
+		gradient( i ) = 1.0l;
+		parVect( i ) = params( i );
+	}
+
+	Matrix<N_PRES, GRAD_SIZE, GRAD_SIZE> hessian;
+
+	while( gradient.norm() >= threshold )
+	{
+		cout << " =======\n";
+		cout << " optimization step " << count << endl;
+		cout << " =======\n";
+
+		calc2ndOrdOptInfo( parVect, &objVal, &gradient, &hessian );
+
+		dmpo << " -- par: " << parVect( 0 ) << " " << parVect( 1 ) << " " << parVect( 2 ) << " -- obj: " << objVal << " -- grad: "; 
+		dmpo << gradient( 0 ) << " " << gradient( 1 ) << " " << gradient( 2 ) << " -- dir: ";
+		dmpo << " " << gradient.norm() << " " << threshold << endl;
+
+		parVect -= 0.0001 * hessian.inverse() * gradient;
 
 		++count;
 	}
@@ -405,6 +442,67 @@ void Optimizer<PL_NUM>::calc1stOrdOptInfo( const Matrix<N_PRES, GRAD_SIZE, 1>& c
 	( *_gk )( 2 ) = funcVal.elems[3] * BY0_SCALE + weight * curVal( 2 ) / sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) );
 
 	*_objVal = funcVal.real() + sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) ) * weight;
+
+	time_t endtime = time( 0 );
+	cout << "\tdone in " << endtime - begin << endl;
+}
+
+template<class PL_NUM>
+void Optimizer<PL_NUM>::calc2ndOrdOptInfo( const Matrix<N_PRES, GRAD_SIZE, 1>& curVal, long double* _objVal, Matrix<N_PRES, GRAD_SIZE, 1>* _gk, Matrix<N_PRES, GRAD_SIZE, GRAD_SIZE>* _hess )
+{
+	cout << "\tcalc 1st order\n";
+	time_t begin = time( 0 );
+
+	PL_NUM J0begin;
+	PL_NUM tauBegin;
+	PL_NUM B0begin;
+
+	J0begin.elems[0] = curVal( 0 );
+	J0begin.elems[1] = 1.0l;
+	J0begin.elems[2] = 0.0l;
+	J0begin.elems[3] = 0.0l;
+
+	tauBegin.elems[0] = curVal( 1 );
+	tauBegin.elems[1] = 0.0l;
+	tauBegin.elems[2] = 1.0l;
+	tauBegin.elems[3] = 0.0l;
+
+	B0begin.elems[0] = curVal( 2 );
+	B0begin.elems[1] = 0.0l;
+	B0begin.elems[2] = 0.0l;
+	B0begin.elems[3] = 1.0l;
+		
+	solver->setTask( J0begin, tauBegin, B0begin );
+	solver->calcConsts();
+
+	cout << "\tcalculating func val\n";
+
+	PL_NUM funcVal = calcFuncVal();
+
+	cout << "\tfunc val done " << funcVal << endl;
+
+	( *_gk )( 0 ) = funcVal.elems[1] + weight * curVal( 0 ) / sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) );
+	( *_gk )( 1 ) = funcVal.elems[2];
+	( *_gk )( 2 ) = funcVal.elems[3] + weight * curVal( 2 ) / sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) );
+
+	*_objVal = funcVal.real() + sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) ) * weight;
+
+	cout << " =-=- " << funcVal.real() << " " << sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) ) << " " << weight << endl;
+
+	( *_hess )( 0, 0 ) = funcVal.elems2[0] + weight / sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) )
+						* ( -curVal( 0 ) * curVal( 0 ) / ( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) ) + 1.0l );
+	( *_hess )( 0, 1 ) = funcVal.elems2[1];
+	( *_hess )( 0, 2 ) = funcVal.elems2[2] + weight * ( -curVal( 0 ) * curVal( 2 ) / sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) )
+						/ sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) ) / sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) ) );
+
+	( *_hess )( 1, 0 ) = funcVal.elems2[1];
+	( *_hess )( 1, 1 ) = funcVal.elems2[3];
+	( *_hess )( 1, 2 ) = funcVal.elems2[4];
+
+	( *_hess )( 2, 0 ) = ( *_hess )( 0, 2 );
+	( *_hess )( 2, 1 ) = funcVal.elems2[4];
+	( *_hess )( 2, 2 ) = funcVal.elems2[5] + weight / sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) )
+						* ( -curVal( 2 ) * curVal( 2 ) / ( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) ) + 1.0l );
 
 	time_t endtime = time( 0 );
 	cout << "\tdone in " << endtime - begin << endl;

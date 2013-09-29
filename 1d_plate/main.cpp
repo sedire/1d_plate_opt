@@ -14,7 +14,7 @@ int main()
 {
 	cout << "hello\n";
 
-	HPD2<N_PRES, 4> xx1;
+	/*HPD2<N_PRES, 4> xx1;
 	HPD2<N_PRES, 4> xx2;
 	HPD2<N_PRES, 4> xx3;
 	HPD2<N_PRES, 4> xx4;
@@ -37,17 +37,16 @@ int main()
 	cout << yy << endl;
 
 	std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-	return 0;
-
+	return 0;*/
 
 	omp_set_num_threads( 2 );
 
 	//Plate<complex<N_PRES> >* plate = new Plate<complex<N_PRES> >();
-	Plate<HPD<N_PRES, GRAD_SIZE> >* plate = new Plate<HPD<N_PRES, GRAD_SIZE> >();
+	Plate<HPD2<N_PRES, GRAD_SIZE> >* plate = new Plate<HPD2<N_PRES, GRAD_SIZE> >();
 
 	plate->loadVals( 102970000000.0, 7550000000.0, 0.3, 1594.0, 0.0021, 39000.0, 0.1524 );
 
-	Solver<HPD<N_PRES, GRAD_SIZE> >* solver = new Solver<HPD<N_PRES, GRAD_SIZE> >();
+	Solver<HPD2<N_PRES, GRAD_SIZE> >* solver = new Solver<HPD2<N_PRES, GRAD_SIZE> >();
 	solver->loadPlate( plate );
 
 	N_PRES weight = 1.0l / 6.0 / 6.0 / 6.0;
@@ -56,8 +55,12 @@ int main()
 	N_PRES tauStart = 44.9132;
 	N_PRES ByStart = 11.0971;
 
-	Optimizer<HPD<N_PRES, GRAD_SIZE> > optimizer( solver, weight, 0.05 );
-	optimizer.optimize( J0start, tauStart, ByStart );
+	Matrix<N_PRES, GRAD_SIZE, 1> params;
+	params << 0.44553, 44.9132, 11.0971;
+
+	Optimizer<HPD2<N_PRES, GRAD_SIZE> > optimizer( solver, weight, 0.05 );
+	//optimizer.optimize( params );
+	optimizer.optimizeNewton( params );
 
 	delete solver;
 	delete plate;
