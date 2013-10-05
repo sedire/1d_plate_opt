@@ -42,14 +42,15 @@ int main()
 	omp_set_num_threads( 2 );
 
 	//Plate<complex<N_PRES> >* plate = new Plate<complex<N_PRES> >();
-	Plate<HPD2<N_PRES, GRAD_SIZE> >* plate = new Plate<HPD2<N_PRES, GRAD_SIZE> >();
+	Plate<HPD<N_PRES, GRAD_SIZE> >* plate = new Plate<HPD<N_PRES, GRAD_SIZE> >();
 
 	plate->loadVals( 102970000000.0, 7550000000.0, 0.3, 1594.0, 0.0021, 39000.0, 0.1524 );
 
-	Solver<HPD2<N_PRES, GRAD_SIZE> >* solver = new Solver<HPD2<N_PRES, GRAD_SIZE> >();
+	Solver<HPD<N_PRES, GRAD_SIZE> >* solver = new Solver<HPD<N_PRES, GRAD_SIZE> >();
 	solver->loadPlate( plate );
 
-	N_PRES weight = 1.0l / 6.0 / 6.0 / 6.0;
+	N_PRES weightJ = 1.0l / 6.0 / 6.0 / 6.0;
+	N_PRES weightB = 1.0l / 6.0 / 6.0 / 6.0;
 
 	N_PRES J0start =  0.44553;
 	N_PRES tauStart = 44.9132;
@@ -58,9 +59,9 @@ int main()
 	Matrix<N_PRES, GRAD_SIZE, 1> params;
 	params << 0.44553, 44.9132, 11.0971;
 
-	Optimizer<HPD2<N_PRES, GRAD_SIZE> > optimizer( solver, weight, 0.05 );
-	//optimizer.optimize( params );
-	optimizer.optimizeNewton( params );
+	Optimizer<HPD<N_PRES, GRAD_SIZE> > optimizer( solver, weightJ, weightB, 0.05 );
+	optimizer.optimize( params );
+	//optimizer.optimizeNewton( params );
 
 	delete solver;
 	delete plate;

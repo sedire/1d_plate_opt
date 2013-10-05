@@ -17,7 +17,7 @@ template<class PL_NUM>
 class Optimizer
 {
 public:
-	Optimizer( Solver<PL_NUM>* _solver, N_PRES _weight, N_PRES charTime );
+	Optimizer( Solver<PL_NUM>* _solver, N_PRES _weightJ, N_PRES _weightB , N_PRES charTime );
 	void optimize( const Matrix<N_PRES, GRAD_SIZE, 1>& params );
 	void optimizeNewton( const Matrix<N_PRES, GRAD_SIZE, 1>& params );
 
@@ -37,7 +37,8 @@ private:
 
 	Solver<PL_NUM>* solver;
 
-	N_PRES weight;
+	N_PRES weightJ;
+	N_PRES weightB;
 
 	N_PRES charTime;
 
@@ -86,9 +87,10 @@ private:
 };
 
 template<class PL_NUM>
-Optimizer<PL_NUM>::Optimizer( Solver<PL_NUM>* _solver, N_PRES _weight, N_PRES _charTime ):
+Optimizer<PL_NUM>::Optimizer( Solver<PL_NUM>* _solver, N_PRES _weightJ, N_PRES _weightB, N_PRES _charTime ):
 	solver( _solver ),
-	weight( _weight ),
+	weightJ( _weightJ ),
+	weightB( _weightB ),
 	charTime( _charTime )
 {
 	for( int i = 0; i < GRAD_SIZE; ++i )
@@ -246,14 +248,13 @@ int Optimizer<PL_NUM>::lineSearch()
 
 	N_PRES objValForb = 0.0;
 	Matrix<N_PRES, GRAD_SIZE, 1> gradForb;
-	al /= 1.3;
 	do
 	{
-		al *= 1.3;
 		newPar = parVect + al * dk1;
 		cout << " === looking for b at\n" << newPar << "\n\n";
 		calc1stOrdOptInfo( newPar, &objValForb, &gradForb );
 		cout << " mult is " << gradForb.transpose() * dk1 << endl;
+		al *= 1.3;
 	}while( gradForb.transpose() * dk1 < 0 );
 
 	if( gradForb.transpose() * dk1 < 0 )
@@ -437,11 +438,11 @@ void Optimizer<PL_NUM>::calc1stOrdOptInfo( const Matrix<N_PRES, GRAD_SIZE, 1>& c
 
 	cout << "\tfunc val done " << funcVal << endl;
 
-	( *_gk )( 0 ) = funcVal.elems[1] * J0_SCALE + weight * curVal( 0 ) / sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) );
+	( *_gk )( 0 ) = funcVal.elems[1] + weightJ * curVal( 0 ) / sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) );
 	( *_gk )( 1 ) = funcVal.elems[2];
-	( *_gk )( 2 ) = funcVal.elems[3] * BY0_SCALE + weight * curVal( 2 ) / sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) );
+	( *_gk )( 2 ) = funcVal.elems[3] + weightJ * curVal( 2 ) / sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) );
 
-	*_objVal = funcVal.real() + sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) ) * weight;
+	*_objVal = funcVal.real() + sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) ) * weightJ;
 
 	time_t endtime = time( 0 );
 	cout << "\tdone in " << endtime - begin << endl;
