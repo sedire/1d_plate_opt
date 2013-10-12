@@ -522,12 +522,9 @@ void Optimizer<PL_NUM>::calc1stOrdOptInfo( const Matrix<N_PRES, GRAD_SIZE, 1>& c
 	B0begin.elems[3] = 1.0l;
 		
 	solver->setTask( J0begin, tauBegin, B0begin );
-	solver->calcConsts();
 
 	cout << "\tcalculating func val\n";
-
 	PL_NUM funcVal = calcFuncVal();
-
 	cout << "\tfunc val done " << funcVal << endl;
 
 	//( *_gk )( 0 ) = funcVal.elems[1] + weightJ * curVal( 0 ) / sqrt( curVal( 0 ) * curVal( 0 ) + curVal( 2 ) * curVal( 2 ) );

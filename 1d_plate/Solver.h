@@ -27,29 +27,29 @@ using namespace Eigen;
 enum {stress_whole, stress_centered};
 enum {current_const, current_sin, current_exp_sin};
 
-template<class PL_NUM>
-struct SolverPar
-{
-//parameters of the material
-	PL_NUM E1;				//Young's modulus
-	PL_NUM E2;				//Young's modulus
-	PL_NUM nu21;			//Poisson's ratio	
-	PL_NUM rho;				//composite's density
-
-	PL_NUM sigma_x;			//electric conductivity
-	PL_NUM sigma_x_mu;
-
-	N_PRES h;				//thickness of the plate
-	N_PRES a;				//width of the plate
-//other
-	PL_NUM dt;
-//stress
-	PL_NUM J0;
-	PL_NUM omega;
-	PL_NUM  p0;				//constant mechanical load
-	int stress_type;
-	int current_type;
-};
+//template<class PL_NUM>
+//struct SolverPar
+//{
+////parameters of the material
+//	PL_NUM E1;				//Young's modulus
+//	PL_NUM E2;				//Young's modulus
+//	PL_NUM nu21;			//Poisson's ratio	
+//	PL_NUM rho;				//composite's density
+//
+//	PL_NUM sigma_x;			//electric conductivity
+//	PL_NUM sigma_x_mu;
+//
+//	N_PRES h;				//thickness of the plate
+//	N_PRES a;				//width of the plate
+////other
+//	PL_NUM dt;
+////stress
+//	PL_NUM J0;
+//	PL_NUM omega;
+//	PL_NUM  p0;				//constant mechanical load
+//	int stress_type;
+//	int current_type;
+//};
 
 template<class PL_NUM>
 class Solver
@@ -58,10 +58,7 @@ public:
 	Solver();
 	~Solver();
 
-	void loadPlate( Plate<PL_NUM>* _plate );
 	void setTask( PL_NUM _J0, PL_NUM _tauJ, PL_NUM _By0 );
-	void endTask();
-	void calcConsts();
 
 	void calc_nonlin_system_run_test( long  _x, long _t );
 
@@ -75,6 +72,8 @@ public:
 	PL_NUM dt;			//time step
 	int curTimeStep;
 private:
+	void calcConsts();
+
 	PL_NUM E1;				//Young's modulus
 	PL_NUM E2;				//Young's modulus
 	PL_NUM nu21;			//Poisson's ratio	
@@ -112,7 +111,7 @@ private:
 	int Km;				//number of steps by space
 	int Kt;				//number of steps by time
 
-	PL_NUM dx;
+	N_PRES dx;
 
 	PL_NUM al;			//some weird var for normalization. It is said that this will improve the numerical scheme. must be equal to density
 	PL_NUM betta;		//parameter at Newmark's time integration scheme
@@ -139,14 +138,6 @@ private:
 	Matrix<PL_NUM, EQ_NUM, 1> N4;
 	Matrix<PL_NUM, EQ_NUM, 1> N5;
 
-	//PL_NUM N1[EQ_NUM];//basis vectors of the solution
-	//PL_NUM N2[EQ_NUM];
-	//PL_NUM N3[EQ_NUM];
-	//PL_NUM N4[EQ_NUM];
-	//PL_NUM N5[EQ_NUM];
-
-
-	Plate<PL_NUM>* plate;
 	RungeKutta<PL_NUM>* rungeKutta;
 	OrthoBuilder<PL_NUM>* orthoBuilder;
 
@@ -163,7 +154,6 @@ private:
 
 template<class PL_NUM>
 Solver<PL_NUM>::Solver() :
-	plate( 0 ),
 	rungeKutta( 0 ),
 	orthoBuilder( 0 )
 {
@@ -171,22 +161,7 @@ Solver<PL_NUM>::Solver() :
 }
 
 template<class PL_NUM>
-void Solver<PL_NUM>::loadPlate( Plate<PL_NUM>* _plate )
-{
-	plate = _plate;
-	//al = plate->rho;
-	al = 1;
-}
-
-template<class PL_NUM>
 Solver<PL_NUM>::~Solver()
-{
-	delete rungeKutta;
-	delete orthoBuilder;
-}
-
-template<class PL_NUM>
-void Solver<PL_NUM>::endTask()
 {
 	delete rungeKutta;
 	delete orthoBuilder;
@@ -198,8 +173,21 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauJ, PL_NUM _By0 )
 	ofstream of1( "test_sol.txt" );
 	of1.close();
 
+//material properties
+	al = 1.0;
+	E1 = 102970000000.0;				//Young's modulus
+	E2 = 7550000000.0;				//Young's modulus
+	nu21 = 0.3;			//Poisson's ratio	
+	rho = 1594.0;				//composite's density
+
+	sigma_x = 39000.0;			//electric conductivity
+	sigma_x_mu = sigma_x * 0.000001256l;
+
+	h = 0.0021;				//thickness of the plate
+	a = 0.1524;				//width of the plate
+//other
 	tauP = 0.01;
-	if( _tauJ.real() != 0.0l )
+	if( _tauJ != 0.0l )//_tauJ.real() != 0.0l )
 	{
 		tauJ = _tauJ;
 	}
@@ -231,7 +219,7 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauJ, PL_NUM _By0 )
 	Kt = 3;
 
 	dt = 0.0001;
-	dx = al.real() * plate->a / Km;
+	dx = al * a / Km;
 
 	++Km;
 
@@ -267,8 +255,6 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauJ, PL_NUM _By0 )
 		}
 		nonlin_vect_f( i ) = 0.0;
 	}
-	//lin_matr_A.resize( eq_num * eq_num, 0.0 );
-	//lin_vect_f.resize( eq_num, 0.0 );
 
 	newmark_A.resize( eq_num, 0.0 );
 	newmark_B.resize( eq_num, 0.0 );
@@ -283,24 +269,16 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauJ, PL_NUM _By0 )
 		N4( i ) = 0.0;
 		N5( i ) = 0.0;
 	}
-	//N1.resize( eq_num, 0.0 );
-	//N2.resize( eq_num, 0.0 );
-	//N3.resize( eq_num, 0.0 );
-	//N4.resize( eq_num, 0.0 );
-	//N5.resize( eq_num, 0.0 );
+
+	calcConsts();
 }
 
 template<class PL_NUM>
 void Solver<PL_NUM>::calcConsts()
 {
-	if( plate == 0 ) {
-		cout << "Solver error: plate is null\n";
-		return;
-	}
-
-	B11 = plate->E1 * plate->E1 / ( plate->E1 - plate->nu21 * plate->nu21 * plate->E2 );
-	B22 = plate->E2 / ( 1.0l - plate->nu21 * plate->nu21 * plate->E2 / plate->E1 );
-	B12 = plate->nu21 * plate->E2 * plate->E1 / ( plate->E1 - plate->nu21 * plate->nu21 * plate->E2 );
+	B11 = E1 * E1 / ( E1 - nu21 * nu21 * E2 );
+	B22 = E2 / ( 1.0l - nu21 * nu21 * E2 / E1 );
+	B12 = nu21 * E2 * E1 / ( E1 - nu21 * nu21 * E2 );
 
 	By1 = 2.0l * By0;                                      // in considered boundary-value problem
 	By2 = 0.0;
@@ -369,15 +347,6 @@ void Solver<PL_NUM>::calc_Newmark_AB( int _x, int mode )
 template<class PL_NUM>
 void Solver<PL_NUM>::calc_nonlin_system( int _x )
 {
-	if( plate == 0 ){
-		cout << "Error in solver: plate is zero\n";
-		return;
-	}
-	PL_NUM h = plate->h;
-	PL_NUM rho = plate->rho;
-	PL_NUM sigma_x = plate->sigma_x;
-	PL_NUM sigma_x_mu = plate->sigma_x_mu;
-
 	PL_NUM Jx = 0.0;
 	if( current_type == current_const )
 	{
@@ -394,9 +363,14 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 	PL_NUM Pimp = 0.0l;
 	if( stress_type == stress_centered )
 	{
-		if( ( cur_t + dt ).real() < tauP.real() && fabs( (long double)_x * dx.real() - plate->a / 2.0 ) < rad.real() )
+		/*if( ( cur_t + dt ).real() < tauP.real() && fabs( (long double)_x * dx.real() - a / 2.0 ) < rad.real() )
 		{
-			Pimp = p0 * sqrt( 1.0l - fabs( (long double)_x * dx.real() - plate->a / 2.0l ) * fabs( (long double)_x * dx.real() - plate->a / 2.0 ) / rad.real() / rad.real()	) 
+			Pimp = p0 * sqrt( 1.0l - fabs( (long double)_x * dx.real() - a / 2.0l ) * fabs( (long double)_x * dx.real() - a / 2.0 ) / rad.real() / rad.real()	) 
+				* sin( (long double)M_PI * ( cur_t + dt ) / tauP );
+		}*/
+		if( ( cur_t + dt ) < tauP && fabs( (long double)_x * dx - a / 2.0 ) < rad )
+		{
+			Pimp = p0 * sqrt( 1.0l - fabs( (long double)_x * dx - a / 2.0l ) * fabs( (long double)_x * dx - a / 2.0 ) / rad / rad	) 
 				* sin( (long double)M_PI * ( cur_t + dt ) / tauP );
 		}
 	}
@@ -598,16 +572,24 @@ int Solver<PL_NUM>::checkConv()
 	{
 		for( int i = 0; i < eq_num; ++i )
 		{
-			if( mesh[x].Nk[i].real() != 0.0 )
+			if( mesh[x].Nk[i] != 0.0 ) //mesh[x].Nk[i].real() != 0.0 )
 			{
-				if( fabs( ( mesh[x].Nk1[i].real() - mesh[x].Nk[i].real() ) / mesh[x].Nk[i].real() ) < ALMOST_ZERO )
+				/*if( fabs( ( mesh[x].Nk1[i].real() - mesh[x].Nk[i].real() ) / mesh[x].Nk[i].real() ) < ALMOST_ZERO )
+				{
+					return 0;
+				}*/
+				if( fabs( ( mesh[x].Nk1[i] - mesh[x].Nk[i] ) / mesh[x].Nk[i] ) < ALMOST_ZERO )
 				{
 					return 0;
 				}
 			}
 			else
 			{
-				if( fabs( mesh[x].Nk1[i].real() ) < ALMOST_ZERO )
+				/*if( fabs( mesh[x].Nk1[i].real() ) < ALMOST_ZERO )
+				{
+					return 0;
+				}*/
+				if( fabs( mesh[x].Nk1[i] ) < ALMOST_ZERO )
 				{
 					return 0;
 				}
@@ -644,9 +626,6 @@ template<class PL_NUM>
 void Solver<PL_NUM>::dump_check_sol( int fNum )
 {
 	PL_NUM sum = 0.0;
-	PL_NUM h = plate->h;
-	PL_NUM a = plate->a;
-	PL_NUM rho = plate->rho;
 	PL_NUM t = cur_t;
 
 	int minusOne = -1;
@@ -672,7 +651,7 @@ void Solver<PL_NUM>::dump_check_sol( int fNum )
 		ss << "test_sol.txt";
 	}
 	ofstream of1( ss.str(), ofstream::app );
-	of1 << " parrams " << J0 << " " << tauJ << " " << By0 << " --- " << cur_t.real() << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[1].real() /*<< " ; " << wTheor.real() << " ; " << fabs( ( wTheor.real() - mesh[ ( Km - 1 ) / 2 ].Nk1[1] ).real() / wTheor.real() )*/ << endl;
+	of1 << " parrams " << J0 << " " << tauJ << " " << By0 << " --- " << cur_t << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[1] /*<< " ; " << wTheor.real() << " ; " << fabs( ( wTheor.real() - mesh[ ( Km - 1 ) / 2 ].Nk1[1] ).real() / wTheor.real() )*/ << endl;
 	of1.close();
 }
 
