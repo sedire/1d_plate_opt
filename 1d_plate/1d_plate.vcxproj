@@ -115,6 +115,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="asa_cg.cpp" />
+    <ClCompile Include="HagerOptFuncs.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Optimizer.cpp" />
     <ClCompile Include="OrthoBuilder.cpp" />
@@ -124,6 +126,10 @@
     <ClCompile Include="VarVect.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="asa_cg.h" />
+    <ClInclude Include="asa_user.h" />
+    <ClInclude Include="cg_blas.h" />
+    <ClInclude Include="HagerOptFuncs.h" />
     <ClInclude Include="hyperDual.h" />
     <ClInclude Include="hyperDual2.h" />
     <ClInclude Include="Optimizer.h" />

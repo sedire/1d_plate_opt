@@ -24,26 +24,32 @@ using std::stringstream;
 using std::complex;
 using namespace Eigen;
 
-//class SolInfo
-//{
-//public:
-//	SolInfo();
-//	~SolInfo();
-//
-//	vector<PL_NUM> o;		//omega matrix to restore the solution
-//	vector<PL_NUM> z1;		//basis vectors of the solution, orthonormalized
-//	vector<PL_NUM> z2;
-//	vector<PL_NUM> z3;
-//	vector<PL_NUM> z4;
-//	vector<PL_NUM> z5;
-//
-//	vector<PL_NUM> C;
-//
-//	void flushO();
-//};
-
 enum {stress_whole, stress_centered};
 enum {current_const, current_sin, current_exp_sin};
+
+template<class PL_NUM>
+struct SolverPar
+{
+//parameters of the material
+	PL_NUM E1;				//Young's modulus
+	PL_NUM E2;				//Young's modulus
+	PL_NUM nu21;			//Poisson's ratio	
+	PL_NUM rho;				//composite's density
+
+	PL_NUM sigma_x;			//electric conductivity
+	PL_NUM sigma_x_mu;
+
+	N_PRES h;				//thickness of the plate
+	N_PRES a;				//width of the plate
+//other
+	PL_NUM dt;
+//stress
+	PL_NUM J0;
+	PL_NUM omega;
+	PL_NUM  p0;				//constant mechanical load
+	int stress_type;
+	int current_type;
+};
 
 template<class PL_NUM>
 class Solver
@@ -69,6 +75,17 @@ public:
 	PL_NUM dt;			//time step
 	int curTimeStep;
 private:
+	PL_NUM E1;				//Young's modulus
+	PL_NUM E2;				//Young's modulus
+	PL_NUM nu21;			//Poisson's ratio	
+	PL_NUM rho;				//composite's density
+
+	PL_NUM sigma_x;			//electric conductivity
+	PL_NUM sigma_x_mu;
+
+	N_PRES h;				//thickness of the plate
+	N_PRES a;				//width of the plate
+
 	int eq_num;				//number of equations in main system
 
 	PL_NUM J0;
@@ -161,40 +178,12 @@ void Solver<PL_NUM>::loadPlate( Plate<PL_NUM>* _plate )
 	al = 1;
 }
 
-
 template<class PL_NUM>
 Solver<PL_NUM>::~Solver()
 {
 	delete rungeKutta;
 	delete orthoBuilder;
 }
-
-//SolInfo::SolInfo()
-//{
-//	o.resize( EQ_NUM * EQ_NUM, 0.0 );
-//	z1.resize( EQ_NUM );
-//	z2.resize( EQ_NUM );
-//	z3.resize( EQ_NUM );
-//	z4.resize( EQ_NUM );
-//	z5.resize( EQ_NUM );
-//
-//	C.resize( EQ_NUM / 2 );
-//}
-
-//void SolInfo::flushO()
-//{
-//	for( int i = 0; i < o.size(); ++i )
-//	{
-//		o[i] = 0.0;
-//	}
-//}
-//
-//SolInfo::~SolInfo()
-//{
-//
-//}
-
-
 
 template<class PL_NUM>
 void Solver<PL_NUM>::endTask()
@@ -218,7 +207,7 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauJ, PL_NUM _By0 )
 	{
 		tauJ = 1.0l;
 	}
-	rad = 0.0021 / 10.0;
+	rad = 0.0021 / 100.0;
 
 	eq_num = 8;
 	cur_t = 0.0;
@@ -662,21 +651,28 @@ void Solver<PL_NUM>::dump_check_sol( int fNum )
 
 	int minusOne = -1;
 
-	for( int i = 0; i <= 1000000; ++i )
+	/*for( int i = 0; i <= 1000000; ++i )
 	{
 		PL_NUM omg = (long double)( M_PI * M_PI * ( 2 * i + 1 ) * ( 2 * i + 1 ) ) * h / 2.0l / a / a * sqrt( B22 / 3.0l / rho );
 
 		minusOne = -minusOne;
 
 		sum = sum + (long double)minusOne / ( 2 * i + 1 ) / ( 2 * i + 1 ) / ( 2 * i + 1 ) / ( 2 * i + 1 ) / ( 2 * i + 1 ) * cos( omg * t );
-	}
-	PL_NUM wTheor;
-	wTheor = - p0 * a * a * a * a / h / h / h / B22 * ( 5.0l / 32.0l - 48.0l / M_PI / M_PI / M_PI / M_PI / M_PI * sum );
+	}*/
+	//PL_NUM wTheor;
+	//wTheor = - p0 * a * a * a * a / h / h / h / B22 * ( 5.0l / 32.0l - 48.0l / M_PI / M_PI / M_PI / M_PI / M_PI * sum );
 
 	stringstream ss;
-	ss << "test_sol_" << fNum << ".txt";
+	if( fNum >= 0 )
+	{
+		ss << "test_sol_" << fNum << ".txt";
+	}
+	else
+	{
+		ss << "test_sol.txt";
+	}
 	ofstream of1( ss.str(), ofstream::app );
-	of1 << cur_t.real() << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[1].real() << " ; " << wTheor.real() << " ; " << fabs( ( wTheor.real() - mesh[ ( Km - 1 ) / 2 ].Nk1[1] ).real() / wTheor.real() ) << endl;
+	of1 << " parrams " << J0 << " " << tauJ << " " << By0 << " --- " << cur_t.real() << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[1].real() /*<< " ; " << wTheor.real() << " ; " << fabs( ( wTheor.real() - mesh[ ( Km - 1 ) / 2 ].Nk1[1] ).real() / wTheor.real() )*/ << endl;
 	of1.close();
 }
 

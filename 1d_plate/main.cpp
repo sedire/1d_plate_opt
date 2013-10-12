@@ -49,19 +49,18 @@ int main()
 	Solver<HPD<N_PRES, GRAD_SIZE> >* solver = new Solver<HPD<N_PRES, GRAD_SIZE> >();
 	solver->loadPlate( plate );
 
-	N_PRES weightJ = 1.0l / 6.0 / 6.0 / 6.0;
-	N_PRES weightB = 1.0l / 6.0 / 6.0 / 6.0;
+	N_PRES weightJ = 50000.0l;
+	N_PRES weightB = 1.0l / 6.0 / 6.0 / 6.0 * 6.0;
 
-	N_PRES J0start =  0.44553;
-	N_PRES tauStart = 44.9132;
-	N_PRES ByStart = 11.0971;
+	N_PRES J0start =  0.01;
+	N_PRES tauStart = 0.0048;
+	N_PRES ByStart = 1;
 
 	Matrix<N_PRES, GRAD_SIZE, 1> params;
-	params << 0.44553, 44.9132, 11.0971;
+	params << J0start, tauStart, ByStart;
 
-	Optimizer<HPD<N_PRES, GRAD_SIZE> > optimizer( solver, weightJ, weightB, 0.05 );
-	optimizer.optimize( params );
-	//optimizer.optimizeNewton( params );
+	Optimizer<HPD<N_PRES, GRAD_SIZE> > optimizer( solver, weightJ, weightB, CHAR_TIME );
+	optimizer.optimizeASA( params );
 
 	delete solver;
 	delete plate;

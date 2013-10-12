@@ -36,6 +36,12 @@
     <ClCompile Include="Optimizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="asa_cg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HagerOptFuncs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Plate.h">
@@ -63,6 +69,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="hyperDual2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="asa_user.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="asa_cg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cg_blas.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HagerOptFuncs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

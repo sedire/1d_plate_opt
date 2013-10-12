@@ -10,5 +10,6 @@
 #define J0_SCALE 100000000.0
 #define BY0_SCALE 1.0l
 #define GRAD_SIZE 3
+#define CHAR_TIME 0.05
 
 #endif
