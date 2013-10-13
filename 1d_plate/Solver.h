@@ -58,7 +58,7 @@ public:
 	Solver();
 	~Solver();
 
-	void setTask( PL_NUM _J0, PL_NUM _tauJ, PL_NUM _By0 );
+	void setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp, PL_NUM _By0 );
 
 	void calc_nonlin_system_run_test( long  _x, long _t );
 
@@ -68,8 +68,8 @@ public:
 	void dump_left_border_vals();
 	void dumpMatrA();
 
-	PL_NUM cur_t;
-	PL_NUM dt;			//time step
+	N_PRES cur_t;
+	N_PRES dt;			//time step
 	int curTimeStep;
 private:
 	void calcConsts();
@@ -105,7 +105,9 @@ private:
 	PL_NUM eps_x_0;
 
 	PL_NUM tauP;
-	PL_NUM tauJ;
+	//PL_NUM tauJ;
+	PL_NUM tauSin;
+	PL_NUM tauExp;
 	PL_NUM rad;
 
 	int Km;				//number of steps by space
@@ -113,7 +115,7 @@ private:
 
 	N_PRES dx;
 
-	PL_NUM al;			//some weird var for normalization. It is said that this will improve the numerical scheme. must be equal to density
+	N_PRES al;			//some weird var for normalization. It is said that this will improve the numerical scheme. must be equal to density
 	PL_NUM betta;		//parameter at Newmark's time integration scheme
 
 	vector<VarVect<PL_NUM> > mesh;		//2d mesh for solution.
@@ -168,7 +170,7 @@ Solver<PL_NUM>::~Solver()
 }
 
 template<class PL_NUM>
-void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauJ, PL_NUM _By0 )
+void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp, PL_NUM _By0 )
 {
 	ofstream of1( "test_sol.txt" );
 	of1.close();
@@ -187,13 +189,15 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauJ, PL_NUM _By0 )
 	a = 0.1524;				//width of the plate
 //other
 	tauP = 0.01;
-	if( _tauJ != 0.0l )//_tauJ.real() != 0.0l )
+	if( _tauSin.real() != 0.0l && _tauExp.real() != 0.0l )
 	{
-		tauJ = _tauJ;
+		tauSin = _tauSin;
+		tauExp = _tauExp;
 	}
 	else
 	{
-		tauJ = 1.0l;
+		tauSin = 1;
+		tauExp = 1;
 	}
 	rad = 0.0021 / 100.0;
 
@@ -204,7 +208,7 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauJ, PL_NUM _By0 )
 	J0 = _J0;
 	J0 *= J0_SCALE;
 	//J0 = complex<long double>( _J0.real() * 100000000/*/ plate->a.real() / plate->h.real() * 1000.0l*/, _J0.imag() );
-	omega = (long double)M_PI / tauJ;
+	omega = (long double)M_PI / tauSin;
 	p0 = 10000000;
 	stress_type = stress_centered;
 	current_type = current_exp_sin;
@@ -358,19 +362,14 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 	}
 	else if( current_type == current_exp_sin )
 	{
-		Jx = J0 * exp( -( cur_t + dt ) / tauJ ) * sin( omega * ( cur_t + dt ) );
+		Jx = J0 * exp( -( cur_t + dt ) / tauExp ) * sin( omega * ( cur_t + dt ) );
 	}
 	PL_NUM Pimp = 0.0l;
 	if( stress_type == stress_centered )
 	{
-		/*if( ( cur_t + dt ).real() < tauP.real() && fabs( (long double)_x * dx.real() - a / 2.0 ) < rad.real() )
+		if( cur_t + dt < tauP.real() && fabs( (long double)_x * dx - a / 2.0 ) < rad.real() )
 		{
-			Pimp = p0 * sqrt( 1.0l - fabs( (long double)_x * dx.real() - a / 2.0l ) * fabs( (long double)_x * dx.real() - a / 2.0 ) / rad.real() / rad.real()	) 
-				* sin( (long double)M_PI * ( cur_t + dt ) / tauP );
-		}*/
-		if( ( cur_t + dt ) < tauP && fabs( (long double)_x * dx - a / 2.0 ) < rad )
-		{
-			Pimp = p0 * sqrt( 1.0l - fabs( (long double)_x * dx - a / 2.0l ) * fabs( (long double)_x * dx - a / 2.0 ) / rad / rad	) 
+			Pimp = p0 * sqrt( 1.0l - fabs( (long double)_x * dx - a / 2.0l ) * fabs( (long double)_x * dx - a / 2.0 ) / rad.real() / rad.real()	) 
 				* sin( (long double)M_PI * ( cur_t + dt ) / tauP );
 		}
 	}
@@ -572,24 +571,16 @@ int Solver<PL_NUM>::checkConv()
 	{
 		for( int i = 0; i < eq_num; ++i )
 		{
-			if( mesh[x].Nk[i] != 0.0 ) //mesh[x].Nk[i].real() != 0.0 )
+			if( mesh[x].Nk[i].real() != 0.0 ) 
 			{
-				/*if( fabs( ( mesh[x].Nk1[i].real() - mesh[x].Nk[i].real() ) / mesh[x].Nk[i].real() ) < ALMOST_ZERO )
-				{
-					return 0;
-				}*/
-				if( fabs( ( mesh[x].Nk1[i] - mesh[x].Nk[i] ) / mesh[x].Nk[i] ) < ALMOST_ZERO )
+				if( fabs( ( mesh[x].Nk1[i].real() - mesh[x].Nk[i].real() ) / mesh[x].Nk[i].real() ) < ALMOST_ZERO )
 				{
 					return 0;
 				}
 			}
 			else
 			{
-				/*if( fabs( mesh[x].Nk1[i].real() ) < ALMOST_ZERO )
-				{
-					return 0;
-				}*/
-				if( fabs( mesh[x].Nk1[i] ) < ALMOST_ZERO )
+				if( fabs( mesh[x].Nk1[i].real() ) < ALMOST_ZERO )
 				{
 					return 0;
 				}
@@ -625,21 +616,20 @@ void Solver<PL_NUM>::dump_sol()
 template<class PL_NUM>
 void Solver<PL_NUM>::dump_check_sol( int fNum )
 {
-	PL_NUM sum = 0.0;
-	PL_NUM t = cur_t;
+	N_PRES t = cur_t;
 
-	int minusOne = -1;
-
-	/*for( int i = 0; i <= 1000000; ++i )
+	/*int minusOne = -1;
+	N_PRES sum = 0.0;
+	for( int i = 0; i <= 1000000; ++i )
 	{
-		PL_NUM omg = (long double)( M_PI * M_PI * ( 2 * i + 1 ) * ( 2 * i + 1 ) ) * h / 2.0l / a / a * sqrt( B22 / 3.0l / rho );
+		N_PRES omg = (long double)( M_PI * M_PI * ( 2 * i + 1 ) * ( 2 * i + 1 ) ) * h / 2.0l / a / a * sqrt( B22 / 3.0l / rho );
 
 		minusOne = -minusOne;
 
 		sum = sum + (long double)minusOne / ( 2 * i + 1 ) / ( 2 * i + 1 ) / ( 2 * i + 1 ) / ( 2 * i + 1 ) / ( 2 * i + 1 ) * cos( omg * t );
-	}*/
-	//PL_NUM wTheor;
-	//wTheor = - p0 * a * a * a * a / h / h / h / B22 * ( 5.0l / 32.0l - 48.0l / M_PI / M_PI / M_PI / M_PI / M_PI * sum );
+	}
+	N_PRES wTheor;
+	wTheor = - p0 * a * a * a * a / h / h / h / B22 * ( 5.0l / 32.0l - 48.0l / M_PI / M_PI / M_PI / M_PI / M_PI * sum );*/
 
 	stringstream ss;
 	if( fNum >= 0 )
@@ -651,7 +641,7 @@ void Solver<PL_NUM>::dump_check_sol( int fNum )
 		ss << "test_sol.txt";
 	}
 	ofstream of1( ss.str(), ofstream::app );
-	of1 << " parrams " << J0 << " " << tauJ << " " << By0 << " --- " << cur_t << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[1] /*<< " ; " << wTheor.real() << " ; " << fabs( ( wTheor.real() - mesh[ ( Km - 1 ) / 2 ].Nk1[1] ).real() / wTheor.real() )*/ << endl;
+	of1 << cur_t << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[1] /*<< " ; " << wTheor << " ; " << fabs( ( wTheor - mesh[ ( Km - 1 ) / 2 ].Nk1[1] ) / wTheor )*/ << endl;
 	of1.close();
 }
 
