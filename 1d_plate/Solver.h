@@ -58,7 +58,8 @@ public:
 	Solver();
 	~Solver();
 
-	void setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp, PL_NUM _By0 );
+	void setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp, PL_NUM _By0, PL_NUM _p0, PL_NUM _tauP );
+	void setMechLoad( PL_NUM _p0, PL_NUM _tauP );
 
 	void calc_nonlin_system_run_test( long  _x, long _t );
 
@@ -71,6 +72,14 @@ public:
 	N_PRES cur_t;
 	N_PRES dt;			//time step
 	int curTimeStep;
+
+	time_t getOrthoBTime();
+	time_t totalTime;
+	time_t totalTime1;
+	time_t rgkTime;
+	time_t rgkTime1;
+	time_t orthoTime;
+	time_t orthoTime1;
 private:
 	void calcConsts();
 
@@ -157,7 +166,13 @@ private:
 template<class PL_NUM>
 Solver<PL_NUM>::Solver() :
 	rungeKutta( 0 ),
-	orthoBuilder( 0 )
+	orthoBuilder( 0 ),
+	totalTime1( 0 ),
+	totalTime( 0 ),
+	rgkTime1( 0 ),
+	rgkTime( 0 ),
+	orthoTime1( 0 ),
+	orthoTime( 0 )
 {
 
 }
@@ -170,25 +185,48 @@ Solver<PL_NUM>::~Solver()
 }
 
 template<class PL_NUM>
-void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp, PL_NUM _By0 )
+time_t Solver<PL_NUM>::getOrthoBTime()
 {
+	return orthoBuilder->orthoTotal;
+}
+
+template<class PL_NUM>
+void Solver<PL_NUM>::setMechLoad( PL_NUM _p0, PL_NUM _tauP )
+{
+	tauP = _tauP;//0.01;
+	p0 = _p0;//10000000;
+	rad = 0.0021 / 100.0;
+}
+
+template<class PL_NUM>
+void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp, PL_NUM _By0, PL_NUM _p0, PL_NUM _tauP )
+{
+	totalTime1 = 0;
+	totalTime = 0;
+	rgkTime1 = 0;
+	rgkTime = 0;
+	orthoTime1 = 0;
+	orthoTime = 0;
+
 	ofstream of1( "test_sol.txt" );
 	of1.close();
 
 //material properties
 	al = 1.0;
-	E1 = 102970000000.0;				//Young's modulus
+	E1 = 102970000000.0;			//Young's modulus
 	E2 = 7550000000.0;				//Young's modulus
-	nu21 = 0.3;			//Poisson's ratio	
-	rho = 1594.0;				//composite's density
+	nu21 = 0.3;						//Poisson's ratio	
+	rho = 1594.0;					//composite's density
 
-	sigma_x = 39000.0;			//electric conductivity
+	sigma_x = 39000.0;				//electric conductivity
 	sigma_x_mu = sigma_x * 0.000001256l;
 
-	h = 0.0021;				//thickness of the plate
-	a = 0.1524;				//width of the plate
+	h = 0.0021;						//thickness of the plate
+	a = 0.1524;						//width of the plate
 //other
-	tauP = 0.01;
+	tauP = _tauP;//0.01;
+	p0 = _p0;//10000000;
+	rad = 0.0021 / 100.0;
 	if( _tauSin.real() != 0.0l && _tauExp.real() != 0.0l )
 	{
 		tauSin = _tauSin;
@@ -199,7 +237,6 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp, PL_NUM
 		tauSin = 1;
 		tauExp = 1;
 	}
-	rad = 0.0021 / 100.0;
 
 	eq_num = 8;
 	cur_t = 0.0;
@@ -209,7 +246,7 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp, PL_NUM
 	J0 *= J0_SCALE;
 	//J0 = complex<long double>( _J0.real() * 100000000/*/ plate->a.real() / plate->h.real() * 1000.0l*/, _J0.imag() );
 	omega = (long double)M_PI / tauSin;
-	p0 = 10000000;
+	
 	stress_type = stress_centered;
 	current_type = current_exp_sin;
 
@@ -452,6 +489,7 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 template<class PL_NUM>
 PL_NUM Solver<PL_NUM>::do_step()
 {	
+	totalTime1 = time( 0 );
 	//cout << "cur time is " << cur_t.real() << endl;
 	//cout << "time step number " << curTimeStep << endl;
 	//cout << "calculating solution for the next time step\n\n";
@@ -525,17 +563,21 @@ PL_NUM Solver<PL_NUM>::do_step()
 			calc_Newmark_AB( x, 0 );
 			calc_nonlin_system( x );
 
+			rgkTime1 = time( 0 );
 			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N1 );
 			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N2 );
 			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N3 );
 			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N4 );
 			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 1, &N5 );
+			rgkTime += time( 0 ) - rgkTime1;
 
+			orthoTime1 = time( 0 );
 			orthoBuilder->orthonorm( 1, x, &N1 );
 			orthoBuilder->orthonorm( 2, x, &N2 );
 			orthoBuilder->orthonorm( 3, x, &N3 );
 			orthoBuilder->orthonorm( 4, x, &N4 );
 			orthoBuilder->orthonorm( 5, x, &N5 );
+			orthoTime += time( 0 ) - orthoTime1;
 		}
 		orthoBuilder->buildSolution( &mesh );
 
@@ -560,7 +602,9 @@ PL_NUM Solver<PL_NUM>::do_step()
 			mesh[x].d1N0[i] = mesh[x].d1N[i];
 			mesh[x].d2N0[i] = mesh[x].d2N[i];
 		}
-	}	
+	}
+
+	totalTime += time( 0 ) - totalTime1;
 	return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
 }
 

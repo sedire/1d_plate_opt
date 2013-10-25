@@ -33,6 +33,10 @@ private:
 	Matrix<PL_NUM, EQ_NUM, 1> f2;
 	Matrix<PL_NUM, EQ_NUM, 1> f3;
 	Matrix<PL_NUM, EQ_NUM, 1> f4;
+
+	Matrix<PL_NUM, EQ_NUM, 1> Af1;
+	Matrix<PL_NUM, EQ_NUM, 1> Af2;
+	Matrix<PL_NUM, EQ_NUM, 1> Af3;
 };
 
 
@@ -64,32 +68,44 @@ RungeKutta<PL_NUM>::RungeKutta( int _eq_num )
 template<class PL_NUM>
 void RungeKutta<PL_NUM>::calc( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &A, const Matrix<PL_NUM, EQ_NUM, 1> &f, PL_NUM dx, int hom, Matrix<PL_NUM, EQ_NUM, 1>* x )
 {
-	for( int i = 0; i < eq_num; ++i ) {
-		f1( i ) = 0.0;
-		f2( i ) = 0.0;
-		f3( i ) = 0.0;
-		f4( i ) = 0.0;
-	}
+	//for( int i = 0; i < eq_num; ++i ) {
+	//	f1( i ) = 0.0;
+	//	f2( i ) = 0.0;
+	//	f3( i ) = 0.0;
+	//	f4( i ) = 0.0;
+	//}
 
-	f1 += dx * ( A * (*x) );
+	f1 = dx * ( A * (*x) );
 	//for( int i = 0; i < eq_num; ++i ) {				//f1 = dx * Fhi( x )
 	//	for( int j = 0; j < eq_num; ++j ) {
 	//		f1[i] += dx * A[eq_num * i + j] * (x)[j];
 	//	}
 	//}
-	f2 += dx * ( A * ( (*x) + rgk_d21 * f1 ) );
+
+	Af1 = dx * ( A * f1 );
+	//f2 += dx * ( A * ( (*x) + rgk_d21 * f1 ) );
+	f2 = rgk_d21 * Af1 + f1;
+
 	//for( int i = 0; i < eq_num; ++i ) {				//f2 = dx * Fhi( x + d21 * f1 )
 	//	for( int j = 0; j < eq_num; ++j ) {
 	//		f2[i] += dx * A[eq_num * i + j] * ( (x)[j] + rgk_d21 * f1[j] );
 	//	}
 	//}
-	f3 += dx * ( A * ( (*x) + rgk_d31 * f1 + rgk_d32 * f2 ) );
+
+	Af2 = dx * ( A * f2 );
+	//f3 += dx * ( A * ( (*x) + rgk_d31 * f1 + rgk_d32 * f2 ) );
+	f3 = rgk_d31 * Af1 + rgk_d32 * Af2 + f1;
+
 	//for( int i = 0; i < eq_num; ++i ) {				//f3 = dx * Fhi( x + d31 * f1 + d32 * f2 )
 	//	for( int j = 0; j < eq_num; ++j ) {
 	//		f3[i] += dx * A[eq_num * i + j] * ( (x)[j] + rgk_d31 * f1[j] + rgk_d32 * f2[j] );
 	//	}
 	//}
-	f4 += dx * ( A * ( (*x) + rgk_d41 * f1 + rgk_d42 * f2 + rgk_d43 * f3 ) );
+
+	Af3 = dx * ( A * f3 );
+	//f4 += dx * ( A * ( (*x) + rgk_d41 * f1 + rgk_d42 * f2 + rgk_d43 * f3 ) );
+	f4 = rgk_d41 * Af1 + rgk_d42 * Af2 + rgk_d43 * Af3 + f1;
+
 	//for( int i = 0; i < eq_num; ++i ) {				//f2 = dx * Fhi( x + d41 * f1 + d42 * f2 + d43 * f3 )
 	//	for( int j = 0; j < eq_num; ++j ) {
 	//		f4[i] += dx * A[eq_num * i + j] * ( (x)[j] + rgk_d41 * f1[j] + rgk_d42 * f2[j] + rgk_d43 * f3[j] );

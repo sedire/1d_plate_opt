@@ -52,8 +52,8 @@ int main()
 	N_PRES ByStart = 1;
 
 //////////////////////////////////
-	//Solver<N_PRES>* solver2 = new Solver<N_PRES>();
-	//solver2->setTask( J0start, tauStart, ByStart );
+	//Solver<HPD<N_PRES, GRAD_SIZE> >* solver2 = new Solver<HPD<N_PRES, GRAD_SIZE> >();
+	//solver2->setTask( J0start, tauStart, tauStart, ByStart, 10000000, 0.01 );
 	//time_t tBegin = time( 0 );
 	//while( solver2->cur_t <= 0.05 )
 	//{
@@ -70,6 +70,12 @@ int main()
 	//cout << " \n computations are done in " << tEnd - tBegin << endl;
 	//cout << ".........\n";
 	//cout << "... done!\n";
+
+	//cout << " total time: " << solver2->totalTime << endl;
+	//cout << " rgk time: " << solver2->rgkTime << endl;
+	//cout << "  ortho time: " << solver2->orthoTime << endl;
+	//cout << " ortho time from orthoBuilder: " << solver2->getOrthoBTime() << endl;
+
 	//std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 	//return 0;
 ///////////////////////////////////////

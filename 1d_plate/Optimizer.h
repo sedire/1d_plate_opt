@@ -295,6 +295,7 @@ void Optimizer<PL_NUM>::optimizeASA( const Matrix<N_PRES, GRAD_SIZE, 1>& params 
 template<class PL_NUM>
 void Optimizer<PL_NUM>::optimizeASA_Taus( const Matrix<N_PRES, GRAD_SIZE, 1>& params )
 {
+	time_t totOptStart = time( 0 );
 	cout << "optimizeASA enter\n";
 
 	const N_PRES threshold = 1.e-6;
@@ -329,6 +330,8 @@ void Optimizer<PL_NUM>::optimizeASA_Taus( const Matrix<N_PRES, GRAD_SIZE, 1>& pa
 	{
 		cout << x[i] << endl;
 	}
+
+	cout << " total optimization time : " << time( 0 ) - totOptStart << endl;
 
 	delete[] x;
 	delete[] lo;

@@ -7,6 +7,7 @@
 #include <vector>
 #include <Eigen/Eigen>
 #include <complex>
+#include "time.h"
 
 using std::cout;
 using std::endl;
@@ -46,10 +47,14 @@ public:
 	virtual void flushO( int x );
 	virtual void setInitVects( const Matrix<PL_NUM, EQ_NUM, 1> &N1, const Matrix<PL_NUM, EQ_NUM, 1> &N2, const Matrix<PL_NUM, EQ_NUM, 1> &N3, const Matrix<PL_NUM, EQ_NUM, 1> &N4, const Matrix<PL_NUM, EQ_NUM, 1> &N5 );
 	virtual void orthogTest( int x );
+
+	time_t orthoStart;
+	time_t orthoTotal;
 protected:
 	int eq_num;
 	int Km;
 	vector<SolInfo<PL_NUM> > solInfoMap;
+	vector<PL_NUM> omega2;
 };
 
 template<class PL_NUM>
@@ -93,9 +98,12 @@ SolInfo<PL_NUM>::~SolInfo()
 }
 
 template<class PL_NUM>
-OrthoBuilder<PL_NUM>::OrthoBuilder()
+OrthoBuilder<PL_NUM>::OrthoBuilder() :
+	eq_num( EQ_NUM ),
+	orthoStart( 0 ),
+	orthoTotal( 0 )
 {
-	eq_num = EQ_NUM;
+	omega2.resize( eq_num * eq_num, 0.0 );
 }
 
 template<class PL_NUM>
@@ -172,10 +180,14 @@ void OrthoBuilder<PL_NUM>::orthogTest( int x )
 template<class PL_NUM>
 void OrthoBuilderGSh<PL_NUM>::orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM, 1>* NtoOrt )
 {
+	orthoStart = time( 0 );
+
 	long double k11 = 1.414213562373095;
 	PL_NUM norm = 0;
-	vector<PL_NUM> omega2;
-	omega2.resize( eq_num * eq_num, 0.0 );
+	for( int i = 0; i < eq_num * eq_num; ++i )
+	{
+		omega2[i] = 0.0;
+	}
 
 	if( baseV < 1 || baseV > 5 || n < 0 || n > Km - 1 )
 	{
@@ -419,6 +431,8 @@ void OrthoBuilderGSh<PL_NUM>::orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM
 			(*NtoOrt)( i ) = solInfoMap[n + 1].z5[i];
 		}
 	}
+
+	orthoTotal += time( 0 ) - orthoStart;
 }
 
 template<class PL_NUM>
