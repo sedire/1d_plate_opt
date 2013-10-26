@@ -186,6 +186,147 @@ const HPD<D_PRES, NN> operator/( const HPD<D_PRES, NN>& lhs, const D_PRES& rhs )
 }
 
 //----------------------------------------------------------------
+// comparison
+
+template<class D_PRES, int NN>
+const bool operator<( const HPD<D_PRES, NN>& lhs, const D_PRES& rhs )
+{
+	return lhs.real() < rhs;
+}
+
+template<class D_PRES, int NN>
+const bool operator<( const D_PRES& lhs, const HPD<D_PRES, NN>& rhs )
+{
+	return lhs < rhs.real();
+}
+
+template<class D_PRES, int NN>
+const bool operator<( const HPD<D_PRES, NN>& lhs, const HPD<D_PRES, NN>& rhs )
+{
+	return lhs.real() < rhs.real();
+}
+
+template<class D_PRES, int NN>
+const bool operator<=( const HPD<D_PRES, NN>& lhs, const D_PRES& rhs )
+{
+	return lhs.real() <= rhs;
+}
+
+template<class D_PRES, int NN>
+const bool operator<=( const D_PRES& lhs, const HPD<D_PRES, NN>& rhs )
+{
+	return lhs <= rhs.real();
+}
+
+template<class D_PRES, int NN>
+const bool operator<=( const HPD<D_PRES, NN>& lhs, const HPD<D_PRES, NN>& rhs )
+{
+	return lhs.real() <= rhs.real();
+}
+
+template<class D_PRES, int NN>
+const bool operator>( const HPD<D_PRES, NN>& lhs, const D_PRES& rhs )
+{
+	return lhs.real() > rhs;
+}
+
+template<class D_PRES, int NN>
+const bool operator>( const D_PRES& lhs, const HPD<D_PRES, NN>& rhs )
+{
+	return lhs > rhs.real();
+}
+
+template<class D_PRES, int NN>
+const bool operator>( const HPD<D_PRES, NN>& lhs, const HPD<D_PRES, NN>& rhs )
+{
+	return lhs.real() > rhs.real();
+}
+
+template<class D_PRES, int NN>
+const bool operator>=( const HPD<D_PRES, NN>& lhs, const D_PRES& rhs )
+{
+	return lhs.real() >= rhs;
+}
+
+template<class D_PRES, int NN>
+const bool operator>=( const D_PRES& lhs, const HPD<D_PRES, NN>& rhs )
+{
+	return lhs >= rhs.real();
+}
+
+template<class D_PRES, int NN>
+const bool operator>=( const HPD<D_PRES, NN>& lhs, const HPD<D_PRES, NN>& rhs )
+{
+	return lhs.real() >= rhs.real();
+}
+
+template<class D_PRES, int NN>
+const bool operator==( const HPD<D_PRES, NN>& lhs, const D_PRES& rhs )
+{
+	if( lhs.real() != rhs )
+	{
+		return false;
+	}
+	return true;
+}
+
+template<class D_PRES, int NN>
+const bool operator==( const D_PRES& lhs, const HPD<D_PRES, NN>& rhs )
+{
+	if( rhs.real() != lhs )
+	{
+		return false;
+	}
+	return true;
+}
+
+template<class D_PRES, int NN>
+const bool operator==( const HPD<D_PRES, NN>& lhs, const HPD<D_PRES, NN>& rhs )
+{
+	for( int i = 0; i < NN + 1; ++i )
+	{
+		if( lhs.elems[i] != rhs.elems[i] )
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+template<class D_PRES, int NN>
+const bool operator!=( const HPD<D_PRES, NN>& lhs, const D_PRES& rhs )
+{
+	if( lhs.real() != rhs )
+	{
+		return true;
+	}
+	return false;
+}
+
+template<class D_PRES, int NN>
+const bool operator!=( const D_PRES& lhs, const HPD<D_PRES, NN>& rhs )
+{
+	if( rhs.real() != lhs )
+	{
+		return true;
+	}
+	return false;
+}
+
+template<class D_PRES, int NN>
+const bool operator!=( const HPD<D_PRES, NN>& lhs, const HPD<D_PRES, NN>& rhs )
+{
+	for( int i = 0; i < NN + 1; ++i )
+	{
+		if( lhs.elems[i] != rhs.elems[i] )
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+//----------------------------------------------------------------
 // cout
 
 template<class D_PRES, int NN>
@@ -263,6 +404,30 @@ public:
 	friend const HPD operator/<>( const HPD& lhs, const HPD& rhs );
 	friend const HPD operator/<>( const D_PRES& lhs, const HPD& rhs );
 	friend const HPD operator/<>( const HPD& lhs, const D_PRES& rhs );
+
+	friend const bool operator< <>( const HPD& lhs, const D_PRES& rhs );
+	friend const bool operator< <>( const D_PRES& lhs, const HPD& rhs );
+	friend const bool operator< <>( const HPD& lhs, const HPD& rhs );
+
+	friend const bool operator<=<>( const HPD& lhs, const D_PRES& rhs );
+	friend const bool operator<=<>( const D_PRES& lhs, const HPD& rhs );
+	friend const bool operator<=<>( const HPD& lhs, const HPD& rhs );
+
+	friend const bool operator> <>( const HPD& lhs, const D_PRES& rhs );
+	friend const bool operator> <>( const D_PRES& lhs, const HPD& rhs );
+	friend const bool operator> <>( const HPD& lhs, const HPD& rhs );
+
+	friend const bool operator>=<>( const HPD& lhs, const D_PRES& rhs );
+	friend const bool operator>=<>( const D_PRES& lhs, const HPD& rhs );
+	friend const bool operator>=<>( const HPD& lhs, const HPD& rhs );
+
+	friend const bool operator==<>( const HPD& lhs, const D_PRES& rhs );
+	friend const bool operator==<>( const D_PRES& lhs, const HPD& rhs );
+	friend const bool operator==<>( const HPD& lhs, const HPD& rhs );
+
+	friend const bool operator!=<>( const HPD& lhs, const D_PRES& rhs );
+	friend const bool operator!=<>( const D_PRES& lhs, const HPD& rhs );
+	friend const bool operator!=<>( const HPD& lhs, const HPD& rhs );
 
 //private:
 	//HPD( const HPD& rhs );
@@ -409,6 +574,17 @@ HPD<D_PRES, NN> sqrt( const HPD<D_PRES, NN>& arg )
 	HPD<D_PRES, NN> ret;
 	D_PRES x0 = arg.elems[0];
 	ret = sqrt( x0 ) + 0.5 / sqrt( x0 ) * ( arg - x0 );
+	return ret;
+}
+
+template<class D_PRES, int NN>
+HPD<D_PRES, NN> fabs( const HPD<D_PRES, NN>& arg )
+{
+	HPD<D_PRES, NN> ret = arg;
+	if( arg.elems[0] < 0.0l )
+	{
+		ret = -ret;
+	}
 	return ret;
 }
 

@@ -227,7 +227,7 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp, PL_NUM
 	tauP = _tauP;//0.01;
 	p0 = _p0;//10000000;
 	rad = 0.0021 / 100.0;
-	if( _tauSin.real() != 0.0l && _tauExp.real() != 0.0l )
+	if( _tauSin != 0.0l && _tauExp != 0.0l )
 	{
 		tauSin = _tauSin;
 		tauExp = _tauExp;
@@ -404,9 +404,9 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 	PL_NUM Pimp = 0.0l;
 	if( stress_type == stress_centered )
 	{
-		if( cur_t + dt < tauP.real() && fabs( (long double)_x * dx - a / 2.0 ) < rad.real() )
+		if( cur_t + dt < tauP && fabs( (long double)_x * dx - a / 2.0 ) < rad )
 		{
-			Pimp = p0 * sqrt( 1.0l - fabs( (long double)_x * dx - a / 2.0l ) * fabs( (long double)_x * dx - a / 2.0 ) / rad.real() / rad.real()	) 
+			Pimp = p0 * sqrt( 1.0l - fabs( (long double)_x * dx - a / 2.0l ) * fabs( (long double)_x * dx - a / 2.0 ) / rad / rad	) 
 				* sin( (long double)M_PI * ( cur_t + dt ) / tauP );
 		}
 	}
@@ -615,16 +615,16 @@ int Solver<PL_NUM>::checkConv()
 	{
 		for( int i = 0; i < eq_num; ++i )
 		{
-			if( mesh[x].Nk[i].real() != 0.0 ) 
+			if( mesh[x].Nk[i] != 0.0l ) 
 			{
-				if( fabs( ( mesh[x].Nk1[i].real() - mesh[x].Nk[i].real() ) / mesh[x].Nk[i].real() ) < ALMOST_ZERO )
+				if( fabs( ( mesh[x].Nk1[i] - mesh[x].Nk[i] ) / mesh[x].Nk[i] ) < ALMOST_ZERO )
 				{
 					return 0;
 				}
 			}
 			else
 			{
-				if( fabs( mesh[x].Nk1[i].real() ) < ALMOST_ZERO )
+				if( fabs( mesh[x].Nk1[i] ) < ALMOST_ZERO )
 				{
 					return 0;
 				}
@@ -663,16 +663,16 @@ void Solver<PL_NUM>::dump_check_sol( int fNum )
 	N_PRES t = cur_t;
 
 	/*int minusOne = -1;
-	N_PRES sum = 0.0;
+	PL_NUM sum = 0.0;
 	for( int i = 0; i <= 1000000; ++i )
 	{
-		N_PRES omg = (long double)( M_PI * M_PI * ( 2 * i + 1 ) * ( 2 * i + 1 ) ) * h / 2.0l / a / a * sqrt( B22 / 3.0l / rho );
+		PL_NUM omg = (long double)( (long double)M_PI * (long double)M_PI * ( 2 * i + 1 ) * ( 2 * i + 1 ) ) * h / 2.0l / a / a * sqrt( B22 / 3.0l / rho );
 
 		minusOne = -minusOne;
 
 		sum = sum + (long double)minusOne / ( 2 * i + 1 ) / ( 2 * i + 1 ) / ( 2 * i + 1 ) / ( 2 * i + 1 ) / ( 2 * i + 1 ) * cos( omg * t );
 	}
-	N_PRES wTheor;
+	PL_NUM wTheor;
 	wTheor = - p0 * a * a * a * a / h / h / h / B22 * ( 5.0l / 32.0l - 48.0l / M_PI / M_PI / M_PI / M_PI / M_PI * sum );*/
 
 	stringstream ss;
@@ -685,7 +685,7 @@ void Solver<PL_NUM>::dump_check_sol( int fNum )
 		ss << "test_sol.txt";
 	}
 	ofstream of1( ss.str(), ofstream::app );
-	of1 << cur_t << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[1] /*<< " ; " << wTheor << " ; " << fabs( ( wTheor - mesh[ ( Km - 1 ) / 2 ].Nk1[1] ) / wTheor )*/ << endl;
+	of1 << cur_t << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[1] <</* " ; " << wTheor << " ; " << fabs( ( wTheor - mesh[ ( Km - 1 ) / 2 ].Nk1[1] ) / wTheor ) << */endl;
 	of1.close();
 }
 

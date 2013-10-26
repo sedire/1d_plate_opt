@@ -226,7 +226,7 @@ void OrthoBuilderGSh<PL_NUM>::orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM
 		}
 		solInfoMap[n + 1].o[1 * eq_num + 1] = sqrt( solInfoMap[n + 1].o[1 * eq_num + 1] );
 
-		if( ( norm / solInfoMap[n + 1].o[1 * eq_num + 1] ).real() <= k11 )
+		if( norm / solInfoMap[n + 1].o[1 * eq_num + 1] <= k11 )
 		{
 			for( int i = 0; i < eq_num; ++i )
 			{
@@ -285,7 +285,7 @@ void OrthoBuilderGSh<PL_NUM>::orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM
 		}
 		solInfoMap[n + 1].o[2 * eq_num + 2] = sqrt( solInfoMap[n + 1].o[2 * eq_num + 2] );
 
-		if( ( norm / solInfoMap[n + 1].o[2 * eq_num + 2] ).real() <= k11 )
+		if( norm / solInfoMap[n + 1].o[2 * eq_num + 2] <= k11 )
 		{
 			for( int i = 0; i < eq_num; ++i )
 			{
@@ -361,7 +361,7 @@ void OrthoBuilderGSh<PL_NUM>::orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM
 		}
 		solInfoMap[n + 1].o[3 * eq_num + 3] = sqrt( solInfoMap[n + 1].o[3 * eq_num + 3] );
 		
-		if( ( norm / solInfoMap[n + 1].o[3 * eq_num + 3] ).real() <= k11 )
+		if( norm / solInfoMap[n + 1].o[3 * eq_num + 3] <= k11 )
 		{
 			for( int i = 0; i < eq_num; ++i )
 			{
@@ -489,7 +489,7 @@ void OrthoBuilderGSh<PL_NUM>::buildSolution( vector<VarVect<PL_NUM> >* _mesh )
 		//for(int j = 0; j < msize; ++j )
 		//{
 			int j =0;
-			if( fabs( M[i * msize + j].real() ) >= 0.0000000001 )
+			if( fabs( M[i * msize + j] ) >= 0.0000000001l )
 			{
 				found = 1;
 				posI = i;

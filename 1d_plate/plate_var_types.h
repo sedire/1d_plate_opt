@@ -6,10 +6,10 @@
 #define N_PRES long double
 //#define PL_NUM complex<long double>
 #define EQ_NUM 8
-#define ALMOST_ZERO 0.0000000001 
-#define J0_SCALE 100000000.0
+#define ALMOST_ZERO 0.0000000001l
+#define J0_SCALE 100000000.0l
 #define BY0_SCALE 1.0l
 #define GRAD_SIZE 3
-#define CHAR_TIME 0.05
+#define CHAR_TIME 0.05l
 
 #endif
