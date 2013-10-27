@@ -73,6 +73,8 @@ int main()
 
 	cout << " total time: " << solver2->totalTime << endl;
 	cout << " rgk time: " << solver2->rgkTime << endl;
+	cout << " matr time: " << solver2->matrTime << endl;
+	cout << " buildSoln time: " << solver2->buildSolnTime << endl;
 	cout << "  ortho time: " << solver2->orthoTime << endl;
 	cout << " ortho time from orthoBuilder: " << solver2->getOrthoBTime() << endl;
 
