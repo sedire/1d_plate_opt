@@ -319,9 +319,9 @@ void Optimizer<PL_NUM>::optimizeASA_Taus( const Matrix<N_PRES, GRAD_SIZE, 1>& pa
 	asa_cg_default( &cgParm );
     asa_default( &asaParm );
     cgParm.PrintParms = TRUE;
-    cgParm.PrintLevel = 3;
+    cgParm.PrintLevel = 2;
     asaParm.PrintParms = TRUE;
-    asaParm.PrintLevel = 3;
+    asaParm.PrintLevel = 2;
 
 	asa_cg( x, lo, hi, GRAD_SIZE, NULL, &cgParm, &asaParm, threshold, calcValASA_Taus, calcGradASA_Taus, calc1stOrdOptInfoASA_Taus, 0, 0 ) ;
 
