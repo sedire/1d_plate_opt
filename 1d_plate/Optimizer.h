@@ -310,9 +310,15 @@ void Optimizer<PL_NUM>::optimizeASA_Taus( const Matrix<N_PRES, GRAD_SIZE, 1>& pa
 	lo[0] = -1.0;
 	lo[1] = 0.00001;
 	lo[2] = 0.00001;
+	lo[3] = -1.0;
+	lo[4] = 0.00001;
+	lo[5] = 0.00001;
 	hi[0] = 1.0;
 	hi[1] = 1000000000.0;
 	hi[2] = 1000000000.0;
+	hi[3] = 1.0;
+	hi[4] = 1000000000.0;
+	hi[5] = 1000000000.0;
 
 	asacg_parm cgParm;
     asa_parm asaParm;
@@ -323,7 +329,7 @@ void Optimizer<PL_NUM>::optimizeASA_Taus( const Matrix<N_PRES, GRAD_SIZE, 1>& pa
     asaParm.PrintParms = TRUE;
     asaParm.PrintLevel = 2;
 
-	asa_cg( x, lo, hi, GRAD_SIZE, NULL, &cgParm, &asaParm, threshold, calcValASA_Taus, calcGradASA_Taus, calc1stOrdOptInfoASA_Taus, 0, 0 ) ;
+	asa_cg( x, lo, hi, GRAD_SIZE, NULL, &cgParm, &asaParm, threshold, calcValASA_Taus, calcGradASA_Taus, calc1stOrdOptInfoASA_Taus, 0, 0 );
 
 	cout << "\n\n===============\nASA optimization complete. X is:\n";
 	for( int i = 0; i < GRAD_SIZE; ++i )

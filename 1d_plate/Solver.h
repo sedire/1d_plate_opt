@@ -58,7 +58,9 @@ public:
 	Solver();
 	~Solver();
 
-	void setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp, PL_NUM _By0, PL_NUM _p0, PL_NUM _tauP );
+	void setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
+				PL_NUM _J0_1, PL_NUM _tauSin_1, PL_NUM _tauExp_1,
+				PL_NUM _By0, PL_NUM _p0, PL_NUM _tauP );
 	void setMechLoad( PL_NUM _p0, PL_NUM _tauP );
 
 	void calc_nonlin_system_run_test( long  _x, long _t );
@@ -101,7 +103,7 @@ private:
 	int eq_num;				//number of equations in main system
 
 	PL_NUM J0;
-	PL_NUM omega;
+	PL_NUM J0_1;
 	PL_NUM  p0;				//constant mechanical load
 	int stress_type;
 	int current_type;
@@ -120,7 +122,11 @@ private:
 	PL_NUM tauP;
 	//PL_NUM tauJ;
 	PL_NUM tauSin;
+	PL_NUM tauSin_1;
 	PL_NUM tauExp;
+	PL_NUM tauExp_1;
+	PL_NUM omega;
+	PL_NUM omega_1;
 	PL_NUM rad;
 
 	int Km;				//number of steps by space
@@ -203,7 +209,9 @@ void Solver<PL_NUM>::setMechLoad( PL_NUM _p0, PL_NUM _tauP )
 }
 
 template<class PL_NUM>
-void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp, PL_NUM _By0, PL_NUM _p0, PL_NUM _tauP )
+void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
+							PL_NUM _J0_1, PL_NUM _tauSin_1, PL_NUM _tauExp_1,
+							PL_NUM _By0, PL_NUM _p0, PL_NUM _tauP )
 {
 	totalTime1 = 0;
 	totalTime = 0;
@@ -231,15 +239,20 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp, PL_NUM
 	tauP = _tauP;//0.01;
 	p0 = _p0;//10000000;
 	rad = 0.0021 / 100.0;
-	if( _tauSin != 0.0l && _tauExp != 0.0l )
+	if( _tauSin != 0.0l && _tauExp != 0.0l && _tauSin_1 != 0.0l && _tauExp_1 != 0.0l )
 	{
 		tauSin = _tauSin;
 		tauExp = _tauExp;
+		tauSin_1 = _tauSin_1;
+		tauExp_1 = _tauExp_1;
 	}
 	else
 	{
+		cout << " \n\n taus set to 1!!\n\n";
 		tauSin = 1;
 		tauExp = 1;
+		tauSin_1 = 1;
+		tauExp_1 = 1;
 	}
 
 	eq_num = 8;
@@ -248,8 +261,11 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp, PL_NUM
 
 	J0 = _J0;
 	J0 *= J0_SCALE;
-	//J0 = complex<long double>( _J0.real() * 100000000/*/ plate->a.real() / plate->h.real() * 1000.0l*/, _J0.imag() );
+	J0_1 = _J0_1;
+	J0_1 *= J0_SCALE;
+
 	omega = (long double)M_PI / tauSin;
+	omega_1 = (long double)M_PI / tauSin_1;
 	
 	stress_type = stress_centered;
 	current_type = current_exp_sin;
@@ -401,7 +417,14 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 	}
 	else if( current_type == current_exp_sin )
 	{
-		Jx = J0 * exp( -( cur_t + dt ) / tauExp ) * sin( omega * ( cur_t + dt ) );
+		if( cur_t + dt < SWITCH_TIME )
+		{
+			Jx = J0 * exp( -( cur_t + dt ) / tauExp ) * sin( omega * ( cur_t + dt ) );
+		}
+		else
+		{
+			Jx = J0_1 * exp( -( cur_t + dt ) / tauExp_1 ) * sin( omega_1 * ( cur_t + dt ) );
+		}
 	}
 	PL_NUM Pimp = 0.0l;
 	if( stress_type == stress_centered )
