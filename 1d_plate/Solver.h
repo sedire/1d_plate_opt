@@ -239,21 +239,11 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	tauP = _tauP;//0.01;
 	p0 = _p0;//10000000;
 	rad = 0.0021 / 100.0;
-	if( _tauSin != 0.0l && _tauExp != 0.0l && _tauSin_1 != 0.0l && _tauExp_1 != 0.0l )
-	{
-		tauSin = _tauSin;
-		tauExp = _tauExp;
-		tauSin_1 = _tauSin_1;
-		tauExp_1 = _tauExp_1;
-	}
-	else
-	{
-		cout << " \n\n taus set to 1!!\n\n";
-		tauSin = 1;
-		tauExp = 1;
-		tauSin_1 = 1;
-		tauExp_1 = 1;
-	}
+
+	_tauSin != 0.0l ? tauSin = _tauSin : tauSin = 1;
+	_tauExp != 0.0l ? tauExp = _tauExp : tauExp = 1;
+	_tauSin_1 != 0.0l ? tauSin_1 = _tauSin_1 : tauSin_1 = 1;
+	_tauExp_1 != 0.0l ? tauExp_1 = _tauExp_1 : tauExp_1 = 1;
 
 	eq_num = 8;
 	cur_t = 0.0;

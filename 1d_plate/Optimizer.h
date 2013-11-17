@@ -25,7 +25,7 @@ public:
 	void optimize( const Matrix<N_PRES, GRAD_SIZE, 1>& params );
 	void optimizeCG_DES( const Matrix<N_PRES, GRAD_SIZE, 1>& params );
 	void optimizeASA( const Matrix<N_PRES, GRAD_SIZE, 1>& params );
-	void optimizeASA_Taus( const Matrix<N_PRES, GRAD_SIZE, 1>& params );
+	void optimizeASA_Taus( const Matrix<N_PRES, GRAD_SIZE_FULL, 1>& params );
 	void optimizeNewton( const Matrix<N_PRES, GRAD_SIZE, 1>& params );
 
 private:
@@ -226,28 +226,6 @@ void Optimizer<PL_NUM>::optimizeNewton( const Matrix<N_PRES, GRAD_SIZE, 1>& para
 	}
 }
 
-//template<class PL_NUM>
-//void Optimizer<PL_NUM>::optimizeCG_DES( const Matrix<N_PRES, GRAD_SIZE, 1>& params )
-//{
-//	cout << "optimizeCG_DES enter\n";
-//
-//	const N_PRES threshold = 1.e-6;
-//	double* x = new double[GRAD_SIZE];
-//	for( int i = 0; i < GRAD_SIZE; ++i )
-//	{
-//		x[i] = params( i );
-//	}
-//
-//	cg_parameter Parm;
-//	cg_default( &Parm );    /* set default parameter values */
-//    Parm.PrintLevel = 3;
-//	Parm.PrintParms = 0;
-//
-//	cg_descent( x, GRAD_SIZE, 0, &Parm, threshold, calcValCG_DES, calcGradCG_DES, calc1stOrdOptInfoCG_DES, 0 );
-//
-//	delete[] x;
-//}
-
 template<class PL_NUM>
 void Optimizer<PL_NUM>::optimizeASA( const Matrix<N_PRES, GRAD_SIZE, 1>& params )
 {
@@ -293,46 +271,44 @@ void Optimizer<PL_NUM>::optimizeASA( const Matrix<N_PRES, GRAD_SIZE, 1>& params 
 }
 
 template<class PL_NUM>
-void Optimizer<PL_NUM>::optimizeASA_Taus( const Matrix<N_PRES, GRAD_SIZE, 1>& params )
+void Optimizer<PL_NUM>::optimizeASA_Taus( const Matrix<N_PRES, GRAD_SIZE_FULL, 1>& params )
 {
 	time_t totOptStart = time( 0 );
 	cout << "optimizeASA enter\n";
 
-	const N_PRES threshold = 1.e-6;
-	double* x = new double[GRAD_SIZE];
-	for( int i = 0; i < GRAD_SIZE; ++i )
+	const N_PRES threshold( 1.e-6 );
+
+	double* x = new double[GRAD_SIZE_FULL];
+	for( int i = 0; i < GRAD_SIZE_FULL; ++i )
 	{
 		x[i] = params( i );
 	}
-	double* lo = new double[GRAD_SIZE];
-	double* hi = new double[GRAD_SIZE];
+	double* lo = new double[GRAD_SIZE_FULL];
+	double* hi = new double[GRAD_SIZE_FULL];
+	for( int i = 0; i < GRAD_SIZE_FULL; i += 3 )
+	{
+		lo[i] = -1.0;
+		lo[i + 1] = 0.00001;
+		lo[i + 2] = 0.00001;
 
-	lo[0] = -1.0;
-	lo[1] = 0.00001;
-	lo[2] = 0.00001;
-	lo[3] = -1.0;
-	lo[4] = 0.00001;
-	lo[5] = 0.00001;
-	hi[0] = 1.0;
-	hi[1] = 1000000000.0;
-	hi[2] = 1000000000.0;
-	hi[3] = 1.0;
-	hi[4] = 1000000000.0;
-	hi[5] = 1000000000.0;
+		hi[i] = 1.0;
+		hi[i + 1] = 1000000000.0;
+		hi[i + 2] = 1000000000.0;
+	}
 
 	asacg_parm cgParm;
     asa_parm asaParm;
 	asa_cg_default( &cgParm );
     asa_default( &asaParm );
     cgParm.PrintParms = TRUE;
-    cgParm.PrintLevel = 2;
+    cgParm.PrintLevel = 3;
     asaParm.PrintParms = TRUE;
-    asaParm.PrintLevel = 2;
+    asaParm.PrintLevel = 3;
 
-	asa_cg( x, lo, hi, GRAD_SIZE, NULL, &cgParm, &asaParm, threshold, calcValASA_Taus, calcGradASA_Taus, calc1stOrdOptInfoASA_Taus, 0, 0 );
+	asa_cg( x, lo, hi, GRAD_SIZE_FULL, NULL, &cgParm, &asaParm, threshold, calcValASA_Taus, calcGradASA_Taus, calc1stOrdOptInfoASA_Taus, 0, 0 );
 
 	cout << "\n\n===============\nASA optimization complete. X is:\n";
-	for( int i = 0; i < GRAD_SIZE; ++i )
+	for( int i = 0; i < GRAD_SIZE_FULL; ++i )
 	{
 		cout << x[i] << endl;
 	}

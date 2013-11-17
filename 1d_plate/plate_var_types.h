@@ -13,4 +13,12 @@
 #define CHAR_TIME 0.05l
 #define SWITCH_TIME 0.01l
 
+#define J_WEIGHT 10l
+
+#define GRAD_SIZE_FULL 12
+#define GRAD_SIZE_FIRST 3
+#define GRAD_SIZE_SECOND 6
+
+#define SCEN_NUMBER 3
+
 #endif

@@ -14,31 +14,6 @@ int main()
 {
 	cout << "hello\n";
 
-	/*HPD2<N_PRES, 4> xx1;
-	HPD2<N_PRES, 4> xx2;
-	HPD2<N_PRES, 4> xx3;
-	HPD2<N_PRES, 4> xx4;
-
-	HPD2<N_PRES, 4> yy;
-	
-	xx1.elems[0] = 5.01;
-	xx1.elems[1] = 1.0;
-	xx2.elems[0] = 23.22;
-	xx2.elems[2] = 1.0;
-	xx3.elems[0] = 4.36;
-	xx3.elems[3] = 1.0;
-	xx4.elems[0] = 1.6;
-	xx4.elems[4] = 1.0;
-
-	yy = xx1 * xx1 + xx2 * xx2 + xx3 * xx3 * xx3 + 2.0l * ( xx1 + xx2 ) + xx4 * ( xx3 - xx2 ) * ( xx3 - xx2 ) * ( xx3 - xx2 ) * ( xx2 - xx1 ) + 20.0l * xx4 * ( xx1 + xx3 ) * ( xx1 + xx3 ) + xx4 * xx4 * xx4 * xx4
-		+ 19.0l / xx3 / xx3 / xx3 / xx3 / xx3 - ( xx1 + xx2 + xx3 ) * ( xx2 - 1.0l ) / ( xx4 + xx2 ) / ( xx4 + xx2 )
-		+ xx1 * xx1 * ( xx2 - xx3 ) * sin( xx1 + xx2 * cos( exp( xx3 / ( xx4 + xx2 ) / sqrt( xx1 ) ) ) - sqrt( xx2 + xx3 ) );
-
-	cout << yy << endl;
-
-	std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-	return 0;*/
-
 	//omp_set_num_threads( 4 );
 
 	Solver<HPD<N_PRES, GRAD_SIZE> >* solver = new Solver<HPD<N_PRES, GRAD_SIZE> >();
@@ -49,9 +24,19 @@ int main()
 	N_PRES J0start =  0.01;
 	N_PRES tauStart = 0.0048;
 	N_PRES tauStartExp = 0.0048;
+
 	N_PRES J0start_1 =  0.01;
 	N_PRES tauStart_1 = 0.0048;
 	N_PRES tauStartExp_1 = 0.0048;
+
+	N_PRES J0start_2 =  0.01;
+	N_PRES tauStart_2 = 0.0048;
+	N_PRES tauStartExp_2 = 0.0048;
+
+	N_PRES J0start_3 =  0.01;
+	N_PRES tauStart_3 = 0.0048;
+	N_PRES tauStartExp_3 = 0.0048;
+
 	N_PRES ByStart = 1;
 
 //////////////////////////////////
@@ -85,8 +70,11 @@ int main()
 	//return 0;
 ///////////////////////////////////////
 
-	Matrix<N_PRES, GRAD_SIZE, 1> params;
-	params << J0start, tauStart, tauStartExp, J0start_1, tauStart_1, tauStartExp_1;
+	Matrix<N_PRES, GRAD_SIZE_FULL, 1> params;
+	params << J0start, tauStart, tauStartExp, 
+		J0start_1, tauStart_1, tauStartExp_1,
+		J0start_2, tauStart_2, tauStartExp_2,
+		J0start_3, tauStart_3, tauStartExp_3;
 
 	Optimizer<HPD<N_PRES, GRAD_SIZE> > optimizer( solver, weightJ, weightB, CHAR_TIME );
 	optimizer.optimizeASA_Taus( params );
