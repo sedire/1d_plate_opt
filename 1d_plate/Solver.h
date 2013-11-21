@@ -504,126 +504,169 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 template<class PL_NUM>
 PL_NUM Solver<PL_NUM>::do_step()
 {	
-	totalTime1 = time( 0 );
+	#pragma omp single
+	{
+		totalTime1 = time( 0 );
+	}
 	//cout << "cur time is " << cur_t.real() << endl;
 	//cout << "time step number " << curTimeStep << endl;
 	//cout << "calculating solution for the next time step\n\n";
 
-	int iter = 0;
-	int preLin = 0;
-	int cont = 1;
+	int iter( 0 );
+	int preLin( 0 );
+	int cont( 1 ); 
 
 	do{
-		if( iter == 0 && curTimeStep == 0 )
+		#pragma omp single
 		{
-			preLin = 0;
-		}
-		else
-		{
-			preLin = 1;
-		}
-		calc_Newmark_AB( 0, 1 );
-
-		//solInfoMap[0].flushO();
-		orthoBuilder->flushO( 0 );
-
-		N1( 0 ) = 0.0; N1( 1 ) = 0.0; N1( 2 ) = 1.0; N1( 3 ) = 0.0; N1( 4 ) = 0.0; N1( 5 ) = 0.0; N1( 6 ) = 0.0; N1( 7 ) = 0.0;
-		N2( 0 ) = 0.0; N2( 1 ) = 0.0; N2( 2 ) = 0.0; N2( 3 ) = 1.0; N2( 4 ) = 0.0; N2( 5 ) = 0.0; N2( 6 ) = 0.0; N2( 7 ) = 0.0;
-		N3( 0 ) = 0.0; N3( 1 ) = 0.0; N3( 2 ) = 0.0; N3( 3 ) = 0.0; N3( 4 ) = 1.0; N3( 5 ) = 0.0; N3( 6 ) = 0.0; N3( 7 ) = 0.0;
-		N4( 0 ) = 0.0; N4( 1 ) = 0.0; N4( 2 ) = 0.0; N4( 3 ) = 0.0; N4( 4 ) = 0.0; N4( 5 ) = 0.0; 
-		if( preLin == 0 )
-		{
-			N4( 6 ) = 0.0;
-		}
-		else
-		{
-			N4( 6 ) = mesh[0].Nk1[0] / 2.0l / betta / dt + newmark_B[0];
-		}
-		N4( 7 ) = -1.0;
-		N5( 0 ) = 0.0; N5( 1 ) = 0.0; N5( 2 ) = 0.0; N5( 3 ) = 0.0; N5( 4 ) = 0.0; N5( 5 ) = 0.0; 
-		if( preLin == 0 )
-		{
-			N5( 6 ) = 0.0;
-			N5( 7 ) = 0.0;
-		}
-		else
-		{
-			N5( 6 ) = ( newmark_B[0] * mesh[0].Nk1[7] - newmark_B[1] * By0 );
-			N5( 7 ) = 0.0l - mesh[0].Nk1[7];
-		}
-
-		/*for( int i = 0; i < eq_num; ++i )
-		{
-			solInfoMap[0].z1[i] = N1[i];
-			solInfoMap[0].z2[i] = N2[i];
-			solInfoMap[0].z3[i] = N3[i];
-			solInfoMap[0].z4[i] = N4[i];
-			solInfoMap[0].z5[i] = N5[i];
-		}*/
-		orthoBuilder->setInitVects( N1, N2, N3, N4, N5 );
-
-		//#pragma omp parallel for
-		for( int x = 0; x < Km; ++x )
-		{
-			for( int i = 0; i < eq_num; ++i )
+			//cout << " proc num " << omp_get_thread_num() << endl;
+			if( iter == 0 && curTimeStep == 0 )
 			{
-				mesh[x].Nk[i] = mesh[x].Nk1[i];
+				preLin = 0;
+			}
+			else
+			{
+				preLin = 1;
+			}
+			calc_Newmark_AB( 0, 1 );
+
+			//solInfoMap[0].flushO();
+			orthoBuilder->flushO( 0 );
+
+			N1( 0 ) = 0.0; N1( 1 ) = 0.0; N1( 2 ) = 1.0; N1( 3 ) = 0.0; N1( 4 ) = 0.0; N1( 5 ) = 0.0; N1( 6 ) = 0.0; N1( 7 ) = 0.0;
+			N2( 0 ) = 0.0; N2( 1 ) = 0.0; N2( 2 ) = 0.0; N2( 3 ) = 1.0; N2( 4 ) = 0.0; N2( 5 ) = 0.0; N2( 6 ) = 0.0; N2( 7 ) = 0.0;
+			N3( 0 ) = 0.0; N3( 1 ) = 0.0; N3( 2 ) = 0.0; N3( 3 ) = 0.0; N3( 4 ) = 1.0; N3( 5 ) = 0.0; N3( 6 ) = 0.0; N3( 7 ) = 0.0;
+			N4( 0 ) = 0.0; N4( 1 ) = 0.0; N4( 2 ) = 0.0; N4( 3 ) = 0.0; N4( 4 ) = 0.0; N4( 5 ) = 0.0; 
+			if( preLin == 0 )
+			{
+				N4( 6 ) = 0.0;
+			}
+			else
+			{
+				N4( 6 ) = mesh[0].Nk1[0] / 2.0l / betta / dt + newmark_B[0];
+			}
+			N4( 7 ) = -1.0;
+			N5( 0 ) = 0.0; N5( 1 ) = 0.0; N5( 2 ) = 0.0; N5( 3 ) = 0.0; N5( 4 ) = 0.0; N5( 5 ) = 0.0; 
+			if( preLin == 0 )
+			{
+				N5( 6 ) = 0.0;
+				N5( 7 ) = 0.0;
+			}
+			else
+			{
+				N5( 6 ) = ( newmark_B[0] * mesh[0].Nk1[7] - newmark_B[1] * By0 );
+				N5( 7 ) = 0.0l - mesh[0].Nk1[7];
+			}
+
+			/*for( int i = 0; i < eq_num; ++i )
+			{
+				solInfoMap[0].z1[i] = N1[i];
+				solInfoMap[0].z2[i] = N2[i];
+				solInfoMap[0].z3[i] = N3[i];
+				solInfoMap[0].z4[i] = N4[i];
+				solInfoMap[0].z5[i] = N5[i];
+			}*/
+			orthoBuilder->setInitVects( N1, N2, N3, N4, N5 );
+
+			//#pragma omp parallel for
+			for( int x = 0; x < Km; ++x )
+			{
+				for( int i = 0; i < eq_num; ++i )
+				{
+					mesh[x].Nk[i] = mesh[x].Nk1[i];
+				}
 			}
 		}
 
 		for( int x = 0; x < Km - 1; ++x )
 		{
-			orthoBuilder->flushO( x + 1 );
+			#pragma omp single
+			{
+				orthoBuilder->flushO( x + 1 );
 
-			calc_Newmark_AB( x, 0 );
-			matrTime1 = time( 0 );
-			calc_nonlin_system( x );
-			matrTime += time( 0 ) - matrTime1;
+				calc_Newmark_AB( x, 0 );
+				matrTime1 = time( 0 );
+				calc_nonlin_system( x );
+				matrTime += time( 0 ) - matrTime1;
 
-			rgkTime1 = time( 0 );
-			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N1 );
-			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N2 );
-			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N3 );
-			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N4 );
-			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 1, &N5 );
-			rgkTime += time( 0 ) - rgkTime1;
+				rgkTime1 = time( 0 );
 
-			orthoTime1 = time( 0 );
-			orthoBuilder->orthonorm( 1, x, &N1 );
-			orthoBuilder->orthonorm( 2, x, &N2 );
-			orthoBuilder->orthonorm( 3, x, &N3 );
-			orthoBuilder->orthonorm( 4, x, &N4 );
-			orthoBuilder->orthonorm( 5, x, &N5 );
-			orthoTime += time( 0 ) - orthoTime1;
+				cout << " x is " << x << endl
+			}
+
+			#pragma omp sections
+			{
+				#pragma omp section
+				{
+					rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N1 );
+				}
+				#pragma omp section
+				{
+					rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N2 );
+				}
+				#pragma omp section
+				{
+					rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N3 );
+				}
+				#pragma omp section
+				{
+					rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N4 );
+				}
+				#pragma omp section
+				{
+					rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 1, &N5 );
+				}
+			}
+
+			#pragma omp barrier
+			#pragma omp single
+			{
+				rgkTime += time( 0 ) - rgkTime1;
+
+				orthoTime1 = time( 0 );
+				orthoBuilder->orthonorm( 1, x, &N1 );
+				orthoBuilder->orthonorm( 2, x, &N2 );
+				orthoBuilder->orthonorm( 3, x, &N3 );
+				orthoBuilder->orthonorm( 4, x, &N4 );
+				orthoBuilder->orthonorm( 5, x, &N5 );
+				orthoTime += time( 0 ) - orthoTime1;
+			}
 		}
-		buildSolnTime1 = time( 0 );
-		orthoBuilder->buildSolution( &mesh );
-		buildSolnTime += time( 0 ) - buildSolnTime1;
-
-		if( preLin != 0 )
+		#pragma omp barrier
+		#pragma omp single
 		{
-			cont = checkConv();
+			buildSolnTime1 = time( 0 );
+			orthoBuilder->buildSolution( &mesh );
+			buildSolnTime += time( 0 ) - buildSolnTime1;
+
+			if( preLin != 0 )
+			{
+				cont = checkConv();
+			}
+			++iter;
+			//cout << " : " << iter << endl;
 		}
-		++iter;
-		//cout << " : " << iter << endl;
 	}while( cont == 1 );
+	#pragma omp barrier
 	//cout << "approximation to the solution on the time step done in " << iter << " steps\n";
 
-	//#pragma omp parallel for
-	for( int x = 0; x < Km; ++x )
-    {
-		for( int i = 0; i < eq_num; ++i )
+	#pragma omp single
+	{
+		for( int x = 0; x < Km; ++x )
 		{
-			mesh[x].d2N[i] = ( mesh[x].Nk1[i] - mesh[x].Nk0[i] ) / betta / dt / dt - mesh[x].d1N0[i] / betta / dt
-						- ( 0.5l - betta ) / betta * mesh[x].d2N0[i];
-			mesh[x].d1N[i] = mesh[x].d1N0[i] + 0.5l * dt * ( mesh[x].d2N0[i] + mesh[x].d2N[i] );
-			mesh[x].Nk0[i] = mesh[x].Nk1[i];
-			mesh[x].d1N0[i] = mesh[x].d1N[i];
-			mesh[x].d2N0[i] = mesh[x].d2N[i];
+			for( int i = 0; i < eq_num; ++i )
+			{
+				mesh[x].d2N[i] = ( mesh[x].Nk1[i] - mesh[x].Nk0[i] ) / betta / dt / dt - mesh[x].d1N0[i] / betta / dt
+							- ( 0.5l - betta ) / betta * mesh[x].d2N0[i];
+				mesh[x].d1N[i] = mesh[x].d1N0[i] + 0.5l * dt * ( mesh[x].d2N0[i] + mesh[x].d2N[i] );
+				mesh[x].Nk0[i] = mesh[x].Nk1[i];
+				mesh[x].d1N0[i] = mesh[x].d1N[i];
+				mesh[x].d2N0[i] = mesh[x].d2N[i];
+			}
 		}
-	}
 
-	totalTime += time( 0 ) - totalTime1;
+		totalTime += time( 0 ) - totalTime1;
+	}
 	return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
 }
 

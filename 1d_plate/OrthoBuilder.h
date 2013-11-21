@@ -189,11 +189,11 @@ void OrthoBuilderGSh<PL_NUM>::orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM
 		omega2[i] = 0.0;
 	}
 
-	if( baseV < 1 || baseV > 5 || n < 0 || n > Km - 1 )
-	{
-		cout << "Error in orthonorm: bad input\n";
-		return;
-	}
+	//if( baseV < 1 || baseV > 5 || n < 0 || n > Km - 1 )
+	//{
+	//	cout << "Error in orthonorm: bad input\n";
+	//	return;
+	//}
 
 	if( baseV == 1 )
 	{

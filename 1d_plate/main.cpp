@@ -14,7 +14,7 @@ int main()
 {
 	cout << "hello\n";
 
-	//omp_set_num_threads( 4 );
+	//omp_set_num_threads( THREAD_NUM );
 
 	Solver<HPD<N_PRES, GRAD_SIZE> >* solver = new Solver<HPD<N_PRES, GRAD_SIZE> >();
 
@@ -40,34 +40,40 @@ int main()
 	N_PRES ByStart = 1;
 
 //////////////////////////////////
-	//Solver<HPD<N_PRES, GRAD_SIZE> >* solver2 = new Solver<HPD<N_PRES, GRAD_SIZE> >();
-	//solver2->setTask( J0start, tauStart, tauStart, ByStart, 10000000, 0.01 );
-	//time_t tBegin = time( 0 );
-	//while( solver2->cur_t <= 0.05 )
-	//{
-	//	cout << solver2->cur_t << endl;
-	//	for( int i = 0; i < 1; ++i )
-	//	{
-	//		solver2->do_step();
-	//		solver2->cur_t += solver2->dt;
-	//		++( solver2->curTimeStep );
-	//	}
-	//	solver2->dump_check_sol( -1 );
-	//}
-	//time_t tEnd = time( 0 );
-	//cout << " \n computations are done in " << tEnd - tBegin << endl;
-	//cout << ".........\n";
-	//cout << "... done!\n";
+	/*Solver<HPD<N_PRES, GRAD_SIZE> >* solver2 = new Solver<HPD<N_PRES, GRAD_SIZE> >();
+	solver2->setTask( J0start, tauStart, tauStart, J0start, tauStart, tauStart, ByStart, 10000000, 0.01 );
+	time_t tBegin = time( 0 );
+	#pragma omp parallel
+	{
+		while( solver2->cur_t <= 0.05 )
+		{
+			#pragma omp single
+			{
+				cout << solver2->cur_t << endl;
+			}
+			solver2->do_step();
+			#pragma omp single
+			{
+				solver2->cur_t += solver2->dt;
+				++( solver2->curTimeStep );
+				solver2->dump_check_sol( -1 );
+			}
+		}
+	}
+	time_t tEnd = time( 0 );
+	cout << " \n computations are done in " << tEnd - tBegin << endl;
+	cout << ".........\n";
+	cout << "... done!\n";
 
-	//cout << " total time: " << solver2->totalTime << endl;
-	//cout << " rgk time: " << solver2->rgkTime << endl;
-	//cout << " matr time: " << solver2->matrTime << endl;
-	//cout << " buildSoln time: " << solver2->buildSolnTime << endl;
-	//cout << "  ortho time: " << solver2->orthoTime << endl;
-	//cout << " ortho time from orthoBuilder: " << solver2->getOrthoBTime() << endl;
+	cout << " total time: " << solver2->totalTime << endl;
+	cout << " rgk time: " << solver2->rgkTime << endl;
+	cout << " matr time: " << solver2->matrTime << endl;
+	cout << " buildSoln time: " << solver2->buildSolnTime << endl;
+	cout << "  ortho time: " << solver2->orthoTime << endl;
+	cout << " ortho time from orthoBuilder: " << solver2->getOrthoBTime() << endl;
 
-	//std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-	//return 0;
+	std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+	return 0;*/
 ///////////////////////////////////////
 
 	Matrix<N_PRES, GRAD_SIZE_FULL, 1> params;
@@ -76,8 +82,8 @@ int main()
 		J0start_2, tauStart_2, tauStartExp_2,
 		J0start_3, tauStart_3, tauStartExp_3;
 
-	Optimizer<HPD<N_PRES, GRAD_SIZE> > optimizer( solver, weightJ, weightB, CHAR_TIME );
-	optimizer.optimizeASA_Taus( params );
+	//Optimizer<HPD<N_PRES, GRAD_SIZE> > optimizer( solver, weightJ, weightB, CHAR_TIME );
+	optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
 
 	delete solver;
 
