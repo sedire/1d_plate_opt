@@ -15,7 +15,7 @@
 #define CHAR_TIME 0.05l
 #define SWITCH_TIME 0.01l
 
-#define J_WEIGHT 0.0l
+#define J_WEIGHT 1.0l
 
 #define GRAD_SIZE_FULL 12
 #define GRAD_SIZE_FIRST 3
