@@ -55,10 +55,13 @@ void optimizeASA_Taus( const Matrix<N_PRES, GRAD_SIZE_FULL, 1>& params )
 	asa_cg( x, lo, hi, GRAD_SIZE_FULL, NULL, &cgParm, &asaParm, threshold, calcValASA_Taus, calcGradASA_Taus, calc1stOrdOptInfoASA_Taus, 0, 0 );
 
 	cout << "\n\n===============\nASA optimization complete. X is:\n";
+	ofstream of( "solution.txt" );
 	for( int i = 0; i < GRAD_SIZE_FULL; ++i )
 	{
+		of << x[i] << endl;
 		cout << x[i] << endl;
 	}
+	of.close();
 
 	cout << " total optimization time : " << time( 0 ) - totOptStart << endl;
 

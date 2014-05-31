@@ -63,6 +63,8 @@ public:
 				PL_NUM _By0, PL_NUM _p0, PL_NUM _tauP );
 	void setMechLoad( PL_NUM _p0, PL_NUM _tauP );
 
+	PL_NUM increaseTime();
+
 	void calc_nonlin_system_run_test( long  _x, long _t );
 
 	PL_NUM do_step();
@@ -332,6 +334,14 @@ void Solver<PL_NUM>::calcConsts()
 	By1 = 2.0l * By0;                                      // in considered boundary-value problem
 	By2 = 0.0;
 	eps_x_0 = eps_x - eps_0;
+}
+
+template<class PL_NUM>
+PL_NUM Solver<PL_NUM>::increaseTime()
+{
+	cur_t += dt;
+	++curTimeStep;
+	return cur_t;
 }
 
 template<class PL_NUM>
