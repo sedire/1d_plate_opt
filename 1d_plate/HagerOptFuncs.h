@@ -5,6 +5,7 @@
 
 double calc1stOrdOptInfoCG_DES( double* g, double* x, long n );
 double calcValGradTaus( double* g, double* x, long n );
+double calcValTaus( double* x, long n );
 
 //double calcValCG_DES( double* x, long n );
 

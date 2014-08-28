@@ -115,7 +115,7 @@ private:
 	PL_NUM B12;
 	PL_NUM By0;
 	PL_NUM By1;                                      // in considered boundary-value problem
-	PL_NUM By2;   
+	PL_NUM By2;										//CAUTION! almost everywhere By2 is assumed to be 0. If that is not true, the program must be fixed
 
 	PL_NUM eps_0;
 	PL_NUM eps_x;
@@ -272,7 +272,7 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	Kt = 3;
 
 	dt = 0.0001;
-	dx = al * a / Km;
+	dx = al * a / ( Km - 1 );	//HERE WAS A MISTAKE!!!
 
 	++Km;
 

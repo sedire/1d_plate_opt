@@ -427,7 +427,7 @@ double calcValTaus( double* x, long n )
 
 	N_PRES Weight = J_WEIGHT;
 	ret = ( funcVal1[0] + funcVal1[1] + funcVal1[2]
-		+ funcVal2[0] + funcVal2[1] + funcVal2[2] ) / 3.0
+		+ funcVal2[0] + funcVal2[1] + funcVal2[2] ) / 3.0l
 			/*+ Weight * ( ( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[3] * exp( -SWITCH_TIME / x[5] ) * sin( M_PI * SWITCH_TIME / x[4] ) ) *
 						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[3] * exp( -SWITCH_TIME / x[5] ) * sin( M_PI * SWITCH_TIME / x[4] ) ) + 
 						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[6] * exp( -SWITCH_TIME / x[8] ) * sin( M_PI * SWITCH_TIME / x[7] ) ) *
