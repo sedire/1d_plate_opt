@@ -3,10 +3,9 @@
 #include "Solver.h"
 #include "Plate.h"
 #include "Optimizer.h"
-//#include "hyperDual.h"
 #include "HagerOptFuncs.h"
-//#include "hyperDual2.h"
 #include <omp.h>
+#include "SolverPar.h"
 
 using std::cout;
 using std::endl;
@@ -17,67 +16,28 @@ int main()
 
 	//omp_set_num_threads( THREAD_NUM );
 
-	Solver<HPD<N_PRES, GRAD_SIZE> >* solver = new Solver<HPD<N_PRES, GRAD_SIZE> >();
+	//Solver<HPD<N_PRES, GRAD_SIZE> >* solver = new Solver<HPD<N_PRES, GRAD_SIZE> >();
 
 	N_PRES weightJ = 50000.0l;
 	N_PRES weightB = 1.0l / 6.0 / 6.0 / 6.0 * 6.0;
 
-	N_PRES J0start =  0.01;
-	N_PRES tauStart = 0.0048;
-	N_PRES tauStartExp = 0.0048;
+	N_PRES J0start =  0.02;
+	N_PRES tauStart = 0.0111611;
+	N_PRES tauStartExp = 0.0311281;
 
-	N_PRES J0start_1 =  0.01;
-	N_PRES tauStart_1 = 0.0048;
-	N_PRES tauStartExp_1 = 0.0048;
+	N_PRES J0start_1 =  0.02;
+	N_PRES tauStart_1 = 0.00516662;
+	N_PRES tauStartExp_1 = 0.00915119;
 
-	N_PRES J0start_2 =  0.01;
-	N_PRES tauStart_2 = 0.0048;
-	N_PRES tauStartExp_2 = 0.0048;
+	N_PRES J0start_2 =  0.02;
+	N_PRES tauStart_2 = 0.00281418;
+	N_PRES tauStartExp_2 = 0.0126425;
 
-	N_PRES J0start_3 =  0.01;
-	N_PRES tauStart_3 = 0.0048;
-	N_PRES tauStartExp_3 = 0.0048;
+	N_PRES J0start_3 =  0.02;
+	N_PRES tauStart_3 = 0.00391129;
+	N_PRES tauStartExp_3 = 0.0151232;
 
-	N_PRES ByStart = 1;
-
-	HPD<N_PRES, 2> a = 1.0;
-	HPD<N_PRES, 2> b = 2.0;
-	HPD<N_PRES, 2> c = 3.0;
-	HPD<N_PRES, 2> d = 4.0;
-	HPD<N_PRES, 2> e = 5.0;
-
-	a.elems[1] = 2.0;
-	a.elems[2] = 3.0;
-	b.elems[1] = 4.0;
-	b.elems[2] = 5.0;
-	c.elems[1] = 6.0;
-	c.elems[2] = 7.0;
-	d.elems[1] = 8.0;
-	d.elems[2] = 9.0;
-	e.elems[1] = 10.0;
-	e.elems[2] = 11.0;
-
-	cout << a << endl;
-	cout << b << endl;
-	cout << c << endl;
-	cout << d << endl;
-	cout << e << endl;
-	cout << " --------------\n";
-
-	a *= b;
-	cout << a << endl;
-	a *= 3.0l;
-	cout << a << endl;
-	a /= d;
-	cout << a << endl;
-	a /= 5.0l; 
-	cout << a << endl;
-	a /= a;
-	cout << a << endl;
-	a = b;
-	cout << a << endl;
-	a *= a;
-	cout << a << endl;
+	N_PRES ByStart = 1.0;
 
 	//N_PRES dJ = 0.0001;
 	//N_PRES dTau = 0.000001;
@@ -102,101 +62,38 @@ int main()
 	//cout << " finite diff " << deriv << endl;
 	//cout << " hpd " << grad[2] << endl;
 
-
-	/*Solver<N_PRES> solver1;
-	Solver<HPD<N_PRES, GRAD_SIZE_FIRST> > solver2a;
-	Solver<HPD<N_PRES, GRAD_SIZE_SECOND> > solver2b;
-
-	solver1.setTask( 0.02, 0.008, 0.005, 0.03, 0.008, 0.004548, 1.0, 10000000, 0.01 );
-	solver1.setMechLoad( 7500000.0, 0.008 );
-
-	HPD<N_PRES, GRAD_SIZE_FIRST> J0_1a = 0.02;
-	J0_1a.elems[1] = 1.0;
-	HPD<N_PRES, GRAD_SIZE_FIRST> tauSin_1a = 0.008;
-	tauSin_1a.elems[2] = 1.0;
-	HPD<N_PRES, GRAD_SIZE_FIRST> tauExp_1a = 0.005;
-	tauExp_1a.elems[3] = 1.0;
-
-	HPD<N_PRES, GRAD_SIZE_FIRST> J0_2a = 0.03;
-	HPD<N_PRES, GRAD_SIZE_FIRST> tauSin_2a = 0.008;
-	HPD<N_PRES, GRAD_SIZE_FIRST> tauExp_2a = 0.004548;
-
-	solver2a.setTask( J0_1a, tauSin_1a, tauExp_1a, J0_2a, tauSin_2a, tauExp_2a, 1.0, 10000000, 0.01 );
-	solver2a.setMechLoad( 7500000.0, 0.008 );
-
-	HPD<N_PRES, GRAD_SIZE_SECOND> J0_1b = 0.02;
-	J0_1b.elems[1] = 1.0;
-	HPD<N_PRES, GRAD_SIZE_SECOND> tauSin_1b = 0.008;
-	tauSin_1b.elems[2] = 1.0;
-	HPD<N_PRES, GRAD_SIZE_SECOND> tauExp_1b = 0.005;
-	tauExp_1b.elems[3] = 1.0;
-
-	HPD<N_PRES, GRAD_SIZE_SECOND> J0_2b = 0.03;
-	J0_2b.elems[4] = 1.0;
-	HPD<N_PRES, GRAD_SIZE_SECOND> tauSin_2b = 0.008;
-	tauSin_2b.elems[5] = 1.0;
-	HPD<N_PRES, GRAD_SIZE_SECOND> tauExp_2b = 0.004548;
-	tauExp_2b.elems[6] = 1.0;
-
-	solver2b.setTask( J0_1b, tauSin_1b, tauExp_1b, J0_2b, tauSin_2b, tauExp_2b, 1.0, 10000000, 0.01 );
-	solver2b.setMechLoad( 7500000.0, 0.008 );
-
-	N_PRES val1 = 0.0;
-	HPD<N_PRES, GRAD_SIZE_FIRST> val2a = 0.0;
-	HPD<N_PRES, GRAD_SIZE_SECOND> val2b = 0.0;
-
-	N_PRES funcVal1a = 0.0;
-	N_PRES funcVal1b = 0.0;
-	HPD<N_PRES, GRAD_SIZE_FIRST> funcVal2a = 0.0;
-	HPD<N_PRES, GRAD_SIZE_SECOND> funcVal2b = 0.0;
-
-	while( solver1.cur_t <= SWITCH_TIME )
+	N_PRES*** resArr = new N_PRES**[CHAR_TIME / DELTA_T + 1];		//warning here!!!!
+	for( int i = 0; i < CHAR_TIME / DELTA_T + 1; ++i )
 	{
-		cout << " == " << solver1.cur_t << endl;
-		val1 = solver1.do_step();
-		val2a = solver2a.do_step();
+		resArr[i] = new N_PRES*[NODES_Y];
 
-		funcVal1a += val1 * val1;
-		funcVal2a += val2a * val2a;
-
-		solver1.increaseTime();
-		solver2a.increaseTime();
+		for (int j = 0; j < NODES_Y; ++j)
+		{
+			resArr[i][j] = new N_PRES[EQ_NUM];
+		}
 	}
-	funcVal1a /= SWITCH_TIME;
-	funcVal2a /= SWITCH_TIME;
+	Solver<N_PRES>* solver = new Solver<N_PRES>();
+	solver->setResArray( resArr );
+	solver->setTask( J0start, tauStart, tauStartExp, J0start_3, tauStart_3, tauStartExp_3, ByStart, 20000000, 0.012 );
+	solver->setSwitchTime( SWITCH_TIME );
 
-	while( solver1.cur_t <= CHAR_TIME )
+	while( solver->cur_t <= CHAR_TIME )
 	{
-		cout << " == " << solver1.cur_t << endl;
-		val1 = solver1.do_step();
+		cout << solver->cur_t << endl;
 
-		funcVal1b += val1 * val1;
+		solver->do_step();
+		solver->increaseTime();
 
-		solver1.increaseTime();
+		solver->dump_check_sol( -1 );
+		//solver->dump_whole_sol( 4 );
 	}
-	funcVal1b /= ( CHAR_TIME - SWITCH_TIME );
 
-	while( solver2b.cur_t <= SWITCH_TIME )
-	{
-		cout << " == " << solver2b.cur_t << endl;
-		solver2b.do_step();
+	SolverPar* solverPar = new SolverPar();
+	solver->saveParamsToStruct( solverPar );
+	delete solverPar;
 
-		solver2b.increaseTime();
-	}
-	while( solver2b.cur_t <= CHAR_TIME )
-	{
-		cout << " == " << solver2b.cur_t << endl;
-		val2b = solver2b.do_step();
-		funcVal2b += val2b * val2b;
-
-		solver2b.increaseTime();
-	}
-	funcVal2b /= ( CHAR_TIME - SWITCH_TIME );
-
-	cout << " val1 " << funcVal1a + funcVal1b << endl;
-	cout << " val2 " << funcVal2a.real() + funcVal2b.real() << endl;
-	cout << " diff is " << funcVal1a + funcVal1b - funcVal2a.real() - funcVal2b.real() << endl;*/
-
+	cout << ".........\n";
+	cout << "... done!\n";
 
 //////////////////////////////////
 	//Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >* solver2 = new Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >();
@@ -216,27 +113,37 @@ int main()
 	//cout << ".........\n";
 	//cout << "... done!\n";
 
-	//cout << " total time: " << solver2->totalTime << endl;
-	//cout << " rgk time: " << solver2->rgkTime << endl;
-	//cout << " matr time: " << solver2->matrTime << endl;
-	//cout << " buildSoln time: " << solver2->buildSolnTime << endl;
-	//cout << "  ortho time: " << solver2->orthoTime << endl;
-	//cout << " ortho time from orthoBuilder: " << solver2->getOrthoBTime() << endl;
+	cout << " total time: " << solver->totalTime << endl;
+	cout << " rgk time: " << solver->rgkTime << endl;
+	cout << " matr time: " << solver->matrTime << endl;
+	cout << " buildSoln time: " << solver->buildSolnTime << endl;
+	cout << "  ortho time: " << solver->orthoTime << endl;
+	cout << " ortho time from orthoBuilder: " << solver->getOrthoBTime() << endl;
 
 	//std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 	//return 0;
 ///////////////////////////////////////
 
-	Matrix<N_PRES, GRAD_SIZE_FULL, 1> params;
-	params << J0start, tauStart, tauStartExp, 
-		J0start_1, tauStart_1, tauStartExp_1,
-		J0start_2, tauStart_2, tauStartExp_2,
-		J0start_3, tauStart_3, tauStartExp_3;
+	//Matrix<N_PRES, GRAD_SIZE_FULL, 1> params;
+	//params << J0start, tauStart, tauStartExp, 
+	//	J0start_1, tauStart_1, tauStartExp_1,
+	//	J0start_2, tauStart_2, tauStartExp_2,
+	//	J0start_3, tauStart_3, tauStartExp_3;
 
 	//Optimizer<HPD<N_PRES, GRAD_SIZE> > optimizer( solver, weightJ, weightB, CHAR_TIME );
 	//optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
 
 	delete solver;
+	for( int i = 0; i < CHAR_TIME / DELTA_T + 1; ++i )
+	{
+		for (int j = 0; j < NODES_Y; ++j)
+		{
+			delete[] resArr[i][j];
+		}
+		delete[] resArr[i];
+		cout << " ------ " << i << endl;
+	}
+	delete[] resArr;
 
 	cout << ".........\n";
 	cout << "... done!\n";

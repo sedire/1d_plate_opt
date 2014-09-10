@@ -83,5 +83,11 @@
     <ClInclude Include="HagerOptFuncs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AdjSolver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SolverPar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

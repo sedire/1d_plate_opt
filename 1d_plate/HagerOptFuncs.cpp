@@ -215,10 +215,7 @@ double calcValGradTaus( double* g, double* x, long n )
 			val = solver_first[scen].do_step();
 			funcVal1[scen] += val * val;
 
-			//solver_first[scen].cur_t += solver_first[i].dt;
-			//++( solver_first[scen].curTimeStep );
 			solver_first[scen].increaseTime();
-			//solver_first.dump_check_sol( -1 );
 		}
 		funcVal1[scen] /= SWITCH_TIME;
 
@@ -230,20 +227,14 @@ double calcValGradTaus( double* g, double* x, long n )
 		{
 			solver_second[scen].do_step();
 			solver_second[scen].increaseTime();
-
-			//solver_second.dump_check_sol( -1 );
 		}
+
 		while( solver_second[scen].cur_t <= charTime )
 		{
-			//cout << "\t\t both -- " << solver.cur_t.real() << " params: " << x[0] << " " << x[1] << " " << x[2] << endl;
 			val2 = solver_second[scen].do_step();
 			funcVal2[scen] += val2 * val2;
 
 			solver_second[scen].increaseTime();
-			//solver_second[scen].cur_t += solver_second[scen].dt;
-			//++( solver_second[i].curTimeStep );
-
-			//solver_second.dump_check_sol( -1 );
 		}
 		funcVal2[scen] /= ( charTime - SWITCH_TIME );
 	}
