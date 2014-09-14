@@ -66,4 +66,19 @@ void VarVect<PL_NUM>::setup( int _eq_num )
 	d2N0.resize( _eq_num, 0.0 );
 }
 
+class VarVectAdj
+{
+public:
+	VarVectAdj();
+	VarVectAdj( int _eq_num );
+	~VarVectAdj();
+	void setup( int _eq_num );
+
+	vector<N_PRES> Nk;
+
+	vector<N_PRES> Nk0;
+	vector<N_PRES> d1N0;
+	vector<N_PRES> d2N0;
+};
+
 #endif

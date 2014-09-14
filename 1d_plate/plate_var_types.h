@@ -25,4 +25,7 @@
 
 #define SCEN_NUMBER 3
 
+enum {stress_whole, stress_centered};
+enum {current_const, current_sin, current_exp_sin};
+
 #endif

@@ -24,9 +24,6 @@ using std::stringstream;
 using std::complex;
 using namespace Eigen;
 
-enum {stress_whole, stress_centered};
-enum {current_const, current_sin, current_exp_sin};
-
 //template<class PL_NUM>
 //struct SolverPar
 //{
@@ -83,7 +80,7 @@ public:
 	N_PRES switchTime;
 	int curTimeStep;
 
-	void saveParamsToStruct( SolverPar* saveTo );
+	SolverPar saveParamsToStruct();
 
 	time_t getOrthoBTime();
 	time_t totalTime;
@@ -221,63 +218,58 @@ void inline Solver<N_PRES>::copyToResArr() 	//do nothing in this case
 }
 
 template<class PL_NUM>
-void Solver<PL_NUM>::saveParamsToStruct( SolverPar* saveTo ) 	//do nothing in this case
+SolverPar Solver<PL_NUM>::saveParamsToStruct() 	//do nothing in this case
 {
 	cout << " -- Solver does not save the params\n";
 }
 
 template<>
-void inline Solver<N_PRES>::saveParamsToStruct( SolverPar* saveTo )
+SolverPar inline Solver<N_PRES>::saveParamsToStruct()
 {
-	if( saveTo != 0 )
-	{
-		saveTo->E1 = E1;
-		saveTo->E2 = E2;
-		saveTo->nu21 = nu21;
-		saveTo->rho = rho;
+	SolverPar saveTo;
+
+	saveTo.E1 = E1;
+	saveTo.E2 = E2;
+	saveTo.nu21 = nu21;
+	saveTo.rho = rho;
 	
-		saveTo->sigma_x = sigma_x;
-		saveTo->sigma_x_mu = sigma_x_mu;
+	saveTo.sigma_x = sigma_x;
+	saveTo.sigma_x_mu = sigma_x_mu;
 
-		saveTo->h = h;
-		saveTo->a = a;
+	saveTo.h = h;
+	saveTo.a = a;
 
-		saveTo->dt = dt;
-		saveTo->Km = Km;
-		saveTo->dx = dx;
+	saveTo.dt = dt;
+	saveTo.Km = Km;
+	saveTo.dx = dx;
 
-		saveTo->J0 = J0;
-		saveTo->J0_1 = J0_1;
-		saveTo->tauSin = tauSin;
-		saveTo->tauSin_1 = tauSin_1;
-		saveTo->tauExp = tauExp;
-		saveTo->tauExp_1 = tauExp_1;
+	saveTo.J0 = J0;
+	saveTo.J0_1 = J0_1;
+	saveTo.tauSin = tauSin;
+	saveTo.tauSin_1 = tauSin_1;
+	saveTo.tauExp = tauExp;
+	saveTo.tauExp_1 = tauExp_1;
 
-		saveTo->p0 = p0;				//constant mechanical load
-		saveTo->tauP = tauP;
-		saveTo->rad = rad;
+	saveTo.p0 = p0;				//constant mechanical load
+	saveTo.tauP = tauP;
+	saveTo.rad = rad;
 
-		saveTo->stress_type = stress_type;
-		saveTo->current_type = current_type;
+	saveTo.stress_type = stress_type;
+	saveTo.current_type = current_type;
 
-		saveTo->beta = beta;
+	saveTo.beta = beta;
 
-		saveTo->B11;
-		saveTo->B22;
-		saveTo->B12;
-		saveTo->By0;
-		saveTo->By1;                                      // in considered boundary-value problem
-		saveTo->By2;										//CAUTION! almost everywhere By2 is assumed to be 0. If that is not true, the program must be fixed
+	saveTo.B11 = B11;
+	saveTo.B22 = B22;
+	saveTo.B12 = B12;
+	saveTo.By0 = By0;
+	saveTo.By1 = By1;                                      // in considered boundary-value problem
 
-		saveTo->eps_0;
-		saveTo->eps_x;
-		saveTo->eps_x_0;
-	}
-	else
-	{
-		cout << " ERROR in saveParamsToStruct: input pointer is zero\n";
-		return;
-	}
+	saveTo.eps_0 = eps_0;
+	saveTo.eps_x = eps_x;
+	saveTo.eps_x_0 = eps_x_0;
+
+	return saveTo;
 }
 
 template<class PL_NUM>
@@ -373,10 +365,9 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	eps_x = 0.0000000002501502912;
 
 	Km = NODES_Y;
-//	Kt = 3;
 
 	dt = DELTA_T;
-	dx = al * a / ( Km - 1 );	//HERE WAS A MISTAKE!!!
+	dx = al * a / ( Km - 1 );
 
 	beta = 0.25;
 
@@ -654,12 +645,15 @@ PL_NUM Solver<PL_NUM>::do_step()
 			N5( 6 ) = 0.0;
 			N5( 7 ) = 0.0;
 		}
-		else
+		else	//WARNING!!! I have changed the sign here!!
 		{
-			N5( 6 ) = ( newmark_B[0] * mesh[0].Nk1[7] - newmark_B[1] * By0 );
-			N5( 7 ) = 0.0l - mesh[0].Nk1[7];
+			N5( 6 ) = -( newmark_B[0] * mesh[0].Nk1[7] - newmark_B[1] * By0 );
+			N5( 7 ) = mesh[0].Nk1[7];
 		}
 
+		cout <<  " --------------\n";
+		cout << N5( 0 ) << " " << N5( 1 ) << " " << N5( 2 ) << " " << N5( 3 ) << " " << N5( 4 ) << " " << N5( 5 ) << " " << N5( 6 ) << " " << N5( 7 ) << " " << endl;
+		cout <<  " --------------\n";
 		/*for( int i = 0; i < eq_num; ++i )
 		{
 			solInfoMap[0].z1[i] = N1[i];
@@ -738,10 +732,6 @@ PL_NUM Solver<PL_NUM>::do_step()
 	totalTime += time( 0 ) - totalTime1;
 
 	copyToResArr();
-	if( resArr != 0 )
-	{
-		cout << " --- " << resArr[curTimeStep][( Km - 1 ) / 2][7] << "   " << mesh[ ( Km - 1 ) / 2 ].Nk1[7] << endl;
-	}
 
 	return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
 }

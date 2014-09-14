@@ -6,6 +6,7 @@
 #include "HagerOptFuncs.h"
 #include <omp.h>
 #include "SolverPar.h"
+#include "AdjSolver.h"
 
 using std::cout;
 using std::endl;
@@ -21,7 +22,7 @@ int main()
 	N_PRES weightJ = 50000.0l;
 	N_PRES weightB = 1.0l / 6.0 / 6.0 / 6.0 * 6.0;
 
-	N_PRES J0start =  0.02;
+	N_PRES J0start =  0.0;
 	N_PRES tauStart = 0.0111611;
 	N_PRES tauStartExp = 0.0311281;
 
@@ -33,11 +34,11 @@ int main()
 	N_PRES tauStart_2 = 0.00281418;
 	N_PRES tauStartExp_2 = 0.0126425;
 
-	N_PRES J0start_3 =  0.02;
+	N_PRES J0start_3 =  0.0;
 	N_PRES tauStart_3 = 0.00391129;
 	N_PRES tauStartExp_3 = 0.0151232;
 
-	N_PRES ByStart = 1.0;
+	N_PRES ByStart = 0.0;
 
 	//N_PRES dJ = 0.0001;
 	//N_PRES dTau = 0.000001;
@@ -62,19 +63,19 @@ int main()
 	//cout << " finite diff " << deriv << endl;
 	//cout << " hpd " << grad[2] << endl;
 
-	N_PRES*** resArr = new N_PRES**[CHAR_TIME / DELTA_T + 1];		//warning here!!!!
-	for( int i = 0; i < CHAR_TIME / DELTA_T + 1; ++i )
-	{
-		resArr[i] = new N_PRES*[NODES_Y];
+	//N_PRES*** resArr = new N_PRES**[CHAR_TIME / DELTA_T + 1];		//warning here!!!!
+	//for( int i = 0; i < CHAR_TIME / DELTA_T + 1; ++i )
+	//{
+	//	resArr[i] = new N_PRES*[NODES_Y];
 
-		for (int j = 0; j < NODES_Y; ++j)
-		{
-			resArr[i][j] = new N_PRES[EQ_NUM];
-		}
-	}
+	//	for (int j = 0; j < NODES_Y; ++j)
+	//	{
+	//		resArr[i][j] = new N_PRES[EQ_NUM];
+	//	}
+	//}
 	Solver<N_PRES>* solver = new Solver<N_PRES>();
-	solver->setResArray( resArr );
-	solver->setTask( J0start, tauStart, tauStartExp, J0start_3, tauStart_3, tauStartExp_3, ByStart, 20000000, 0.012 );
+	solver->setResArray( 0 );
+	solver->setTask( J0start, tauStart, tauStartExp, J0start_3, tauStart_3, tauStartExp_3, ByStart, 10000000, 0.01 );
 	solver->setSwitchTime( SWITCH_TIME );
 
 	while( solver->cur_t <= CHAR_TIME )
@@ -85,12 +86,11 @@ int main()
 		solver->increaseTime();
 
 		solver->dump_check_sol( -1 );
-		//solver->dump_whole_sol( 4 );
+		solver->dump_whole_sol( 4 );
 	}
 
-	SolverPar* solverPar = new SolverPar();
-	solver->saveParamsToStruct( solverPar );
-	delete solverPar;
+	AdjSolver adjSolver;
+	adjSolver.loadParamsFromStruct( solver->saveParamsToStruct() );
 
 	cout << ".........\n";
 	cout << "... done!\n";
@@ -120,8 +120,6 @@ int main()
 	cout << "  ortho time: " << solver->orthoTime << endl;
 	cout << " ortho time from orthoBuilder: " << solver->getOrthoBTime() << endl;
 
-	//std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-	//return 0;
 ///////////////////////////////////////
 
 	//Matrix<N_PRES, GRAD_SIZE_FULL, 1> params;
@@ -134,6 +132,7 @@ int main()
 	//optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
 
 	delete solver;
+	/*cout << " deleting the solution array now...\n";
 	for( int i = 0; i < CHAR_TIME / DELTA_T + 1; ++i )
 	{
 		for (int j = 0; j < NODES_Y; ++j)
@@ -141,9 +140,8 @@ int main()
 			delete[] resArr[i][j];
 		}
 		delete[] resArr[i];
-		cout << " ------ " << i << endl;
 	}
-	delete[] resArr;
+	delete[] resArr;*/
 
 	cout << ".........\n";
 	cout << "... done!\n";

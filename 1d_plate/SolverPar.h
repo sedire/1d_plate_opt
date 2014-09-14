@@ -16,7 +16,7 @@ struct SolverPar
 
 	N_PRES h;				//thickness of the plate
 	N_PRES a;				//width of the plate
-//discretization params
+//scheme params
 	N_PRES dt;
 	int Km;
 	N_PRES dx;
@@ -42,7 +42,6 @@ struct SolverPar
 	N_PRES B12;
 	N_PRES By0;
 	N_PRES By1;                                      // in considered boundary-value problem
-	N_PRES By2;										//CAUTION! almost everywhere By2 is assumed to be 0. If that is not true, the program must be fixed
 
 	N_PRES eps_0;
 	N_PRES eps_x;
