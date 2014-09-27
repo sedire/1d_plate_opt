@@ -55,14 +55,14 @@ public:
 	Solver();
 	~Solver();
 
-	N_PRES*** resArr;		//array to keep all the results obtained
+	N_PRES* resArr;		//array to keep all the results obtained
 
 	void setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 				PL_NUM _J0_1, PL_NUM _tauSin_1, PL_NUM _tauExp_1,
 				PL_NUM _By0, PL_NUM _p0, PL_NUM _tauP );
 	void setMechLoad( PL_NUM _p0, PL_NUM _tauP );
 	void setSwitchTime( N_PRES _switchTime );
-	void setResArray( N_PRES*** _resArr );
+	void setResArray( N_PRES* _resArr );
 
 	PL_NUM increaseTime();
 
@@ -211,7 +211,7 @@ void inline Solver<N_PRES>::copyToResArr() 	//do nothing in this case
 		{
 			for( int i = 0; i < eq_num; ++i )
 			{
-				resArr[curTimeStep][y][i] = mesh[y].Nk1[i];
+				resArr[curTimeStep * ( Km * eq_num ) + y * eq_num + i] = mesh[y].Nk1[i];
 			}
 		}
 	}
@@ -280,7 +280,7 @@ Solver<PL_NUM>::~Solver()
 }
 
 template<class PL_NUM>
-void Solver<PL_NUM>::setResArray( N_PRES*** _resArr )
+void Solver<PL_NUM>::setResArray( N_PRES* _resArr )
 {
 	resArr = _resArr;
 }
@@ -355,7 +355,7 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	omega = (long double)M_PI / tauSin;
 	omega_1 = (long double)M_PI / tauSin_1;
 	
-	stress_type = stress_centered;
+	stress_type = stress_whole;
 	current_type = current_exp_sin;
 
 	By0 = _By0;
@@ -506,26 +506,26 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 	}
 	else if( current_type == current_sin )
 	{
-		Jx = J0 * sin( omega * ( cur_t + dt ) );
+		Jx = J0 * sin( omega * cur_t );
 	}
 	else if( current_type == current_exp_sin )
 	{
-		if( cur_t + dt <= switchTime )
+		if( cur_t <= switchTime )
 		{
-			Jx = J0 * exp( -( cur_t + dt ) / tauExp ) * sin( omega * ( cur_t + dt ) );
+			Jx = J0 * exp( -cur_t / tauExp ) * sin( omega * cur_t );
 		}
 		else
 		{
-			Jx = J0_1 * exp( -( cur_t + dt ) / tauExp_1 ) * sin( omega_1 * ( cur_t + dt ) );
+			Jx = J0_1 * exp( -cur_t / tauExp_1 ) * sin( omega_1 * cur_t );
 		}
 	}
 	PL_NUM Pimp = 0.0l;
 	if( stress_type == stress_centered )
 	{
-		if( cur_t + dt < tauP && fabs( (long double)_x * dx - a / 2.0 ) < rad )
+		if( cur_t < tauP && fabs( (long double)_x * dx - a / 2.0 ) < rad )
 		{
 			Pimp = p0 * sqrt( 1.0l - fabs( (long double)_x * dx - a / 2.0l ) * fabs( (long double)_x * dx - a / 2.0 ) / rad / rad	) 
-				* sin( (long double)M_PI * ( cur_t + dt ) / tauP );
+				* sin( (long double)M_PI * cur_t / tauP );
 		}
 	}
 	else if( stress_type == stress_whole )
@@ -535,8 +535,8 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 
 	//long r;
 
-	nonlin_matr_A[ 0][ 3] = 1.0l / al / h / B22;
-	nonlin_matr_A[ 1][ 2] = 1.0l / al;
+	nonlin_matr_A[ 0][3 ] = 1.0l / al / h / B22;
+	nonlin_matr_A[ 1][2 ] = 1.0l / al;
 	nonlin_matr_A[ 2][5 ] = -12.0l /al / h / h / h / B22;
 
 	nonlin_matr_A[ 3][0 ] = rho / al * h / beta / dt / dt + sigma_x * h / 2.0l / beta / dt / al * mesh[_x].Nk[7] * mesh[_x].Nk[7];
@@ -651,17 +651,6 @@ PL_NUM Solver<PL_NUM>::do_step()
 			N5( 7 ) = mesh[0].Nk1[7];
 		}
 
-		cout <<  " --------------\n";
-		cout << N5( 0 ) << " " << N5( 1 ) << " " << N5( 2 ) << " " << N5( 3 ) << " " << N5( 4 ) << " " << N5( 5 ) << " " << N5( 6 ) << " " << N5( 7 ) << " " << endl;
-		cout <<  " --------------\n";
-		/*for( int i = 0; i < eq_num; ++i )
-		{
-			solInfoMap[0].z1[i] = N1[i];
-			solInfoMap[0].z2[i] = N2[i];
-			solInfoMap[0].z3[i] = N3[i];
-			solInfoMap[0].z4[i] = N4[i];
-			solInfoMap[0].z5[i] = N5[i];
-		}*/
 		orthoBuilder->setInitVects( N1, N2, N3, N4, N5 );
 
 		for( int x = 0; x < Km; ++x )
@@ -682,8 +671,6 @@ PL_NUM Solver<PL_NUM>::do_step()
 			matrTime += time( 0 ) - matrTime1;
 
 			rgkTime1 = time( 0 );
-
-			//cout << " x is " << x << endl;
 
 			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N1 );
 			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N2 );
@@ -713,8 +700,6 @@ PL_NUM Solver<PL_NUM>::do_step()
 		++iter;
 		cout << " : " << iter << endl;
 	}while( cont == 1 );
-
-	//cout << "approximation to the solution on the time step done in " << iter << " steps\n";
 
 	for( int x = 0; x < Km; ++x )
 	{
@@ -835,7 +820,8 @@ void Solver<PL_NUM>::dump_check_sol( int fNum )
 		ss << "test_sol.txt";
 	}
 	ofstream of1( ss.str(), ofstream::app );
-	of1 << cur_t << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[1] << " ; " << wTheor << " ; " << fabs( ( wTheor - mesh[ ( Km - 1 ) / 2 ].Nk1[1] ) / wTheor ) << endl;
+	of1 << cur_t << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[1] << " ; " << wTheor << " ; " << resArr[ ( curTimeStep - 1 ) * Km * eq_num + ( Km - 1 ) / 2 * eq_num + 1]
+		<< /*" ; " << fabs( ( wTheor - mesh[ ( Km - 1 ) / 2 ].Nk1[1] ) / wTheor ) <<*/ endl;
 	of1.close();
 }
 

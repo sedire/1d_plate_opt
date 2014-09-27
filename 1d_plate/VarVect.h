@@ -74,11 +74,11 @@ public:
 	~VarVectAdj();
 	void setup( int _eq_num );
 
-	vector<N_PRES> Nk;
+	vector<N_PRES> N;	//soln for the current time step
 
-	vector<N_PRES> Nk0;
-	vector<N_PRES> d1N0;
-	vector<N_PRES> d2N0;
+	vector<N_PRES> N1;	//soln from the previous time step (at t + dt)
+	vector<N_PRES> d1N1;
+	vector<N_PRES> d2N1;
 };
 
 #endif

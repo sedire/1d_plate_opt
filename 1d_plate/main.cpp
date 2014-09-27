@@ -40,42 +40,14 @@ int main()
 
 	N_PRES ByStart = 0.0;
 
-	//N_PRES dJ = 0.0001;
-	//N_PRES dTau = 0.000001;
-	////double xx[GRAD_SIZE_FULL] = {0.25037, 0.11209, 1e-005, 0.0554859, 0.00446793, 1e-005, 0.285602, 0.187283, 1e-005, -0.135677, 0.312661, 1e-005};
-	//double xx[GRAD_SIZE_FULL] = {0.01, 0.0048, 0.0048, 0.01, 0.0048, 0.0048, 0.01, 0.0048, 0.0048, 0.01, 0.0048, 0.0048};
-	//double xx1[GRAD_SIZE_FULL] = {0.01, 0.0048, 0.0048 + dTau, 0.01, 0.0048, 0.0048, 0.01, 0.0048, 0.0048, 0.01, 0.0048, 0.0048};
-	//double xx2[GRAD_SIZE_FULL] = {0.01, 0.0048, 0.0048 - dTau, 0.01, 0.0048, 0.0048, 0.01, 0.0048, 0.0048, 0.01, 0.0048, 0.0048};
-	//double grad[GRAD_SIZE_FULL];
-	//for( int i = 0; i < GRAD_SIZE_FULL; ++i )
-	//{
-	//	grad[i] = 0.0;
-	//}
-	//N_PRES val1 = calcValTaus( xx, -1 );
-	//N_PRES val2 = calcValGradTaus( grad, xx, -1 );
-	//cout << " val1 " << val1 << endl;
-	//cout << " val2 " << val2 << endl;
-	//cout << " diff is " << val1 - val2 << endl;
-
-	//N_PRES f1 = calcValTaus( xx1, -1 );
-	//N_PRES f2 = calcValTaus( xx2, -1 );
-	//N_PRES deriv = ( f1 - f2 ) / 2.0 / dTau;
-	//cout << " finite diff " << deriv << endl;
-	//cout << " hpd " << grad[2] << endl;
-
-	//N_PRES*** resArr = new N_PRES**[CHAR_TIME / DELTA_T + 1];		//warning here!!!!
-	//for( int i = 0; i < CHAR_TIME / DELTA_T + 1; ++i )
-	//{
-	//	resArr[i] = new N_PRES*[NODES_Y];
-
-	//	for (int j = 0; j < NODES_Y; ++j)
-	//	{
-	//		resArr[i][j] = new N_PRES[EQ_NUM];
-	//	}
-	//}
+	N_PRES* resArr = new N_PRES[( CHAR_TIME / DELTA_T + 1 ) * NODES_Y * EQ_NUM];		//warning here!!!!
+	for( int i = 0; i < ( CHAR_TIME / DELTA_T + 1 ) * NODES_Y * EQ_NUM; ++i )
+	{
+		resArr[i] = 0.0;
+	}
 	Solver<N_PRES>* solver = new Solver<N_PRES>();
-	solver->setResArray( 0 );
-	solver->setTask( J0start, tauStart, tauStartExp, J0start_3, tauStart_3, tauStartExp_3, ByStart, 10000000, 0.01 );
+	solver->setResArray( resArr );
+	solver->setTask( J0start, tauStart, tauStartExp, J0start_3, tauStart_3, tauStartExp_3, ByStart, /*10000000*/100, 0.01 );
 	solver->setSwitchTime( SWITCH_TIME );
 
 	while( solver->cur_t <= CHAR_TIME )
@@ -89,8 +61,18 @@ int main()
 		solver->dump_whole_sol( 4 );
 	}
 
+	std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+	cout << "creating the AdjSolver\n";
 	AdjSolver adjSolver;
 	adjSolver.loadParamsFromStruct( solver->saveParamsToStruct() );
+	adjSolver.setPrimalSolnData( resArr );
+
+	while( adjSolver.getCurTime() >= 0.0 )
+	{
+		cout << " time is " << adjSolver.getCurTime() << endl;
+		adjSolver.doStep();
+		adjSolver.decreaseTime();
+	}
 
 	cout << ".........\n";
 	cout << "... done!\n";
@@ -118,7 +100,7 @@ int main()
 	cout << " matr time: " << solver->matrTime << endl;
 	cout << " buildSoln time: " << solver->buildSolnTime << endl;
 	cout << "  ortho time: " << solver->orthoTime << endl;
-	cout << " ortho time from orthoBuilder: " << solver->getOrthoBTime() << endl;
+	cout << "ortho time from orthoBuilder: " << solver->getOrthoBTime() << endl;
 
 ///////////////////////////////////////
 
@@ -132,16 +114,8 @@ int main()
 	//optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
 
 	delete solver;
-	/*cout << " deleting the solution array now...\n";
-	for( int i = 0; i < CHAR_TIME / DELTA_T + 1; ++i )
-	{
-		for (int j = 0; j < NODES_Y; ++j)
-		{
-			delete[] resArr[i][j];
-		}
-		delete[] resArr[i];
-	}
-	delete[] resArr;*/
+	cout << "\n -- Deleting the solution array now...\n";
+	delete[] resArr;
 
 	cout << ".........\n";
 	cout << "... done!\n";
