@@ -53,7 +53,8 @@ AdjSolver::AdjSolver() :
 	eq_num( EQ_NUM ),
 
 	primSoln( 0 ),
-	primSolnDt( 0 )
+	primSolnDt( 0 ),
+	adjSoln( 0 )
 {
 }
 
@@ -78,7 +79,14 @@ AdjSolver::~AdjSolver()
 void AdjSolver::decreaseTime()
 {
 	--curTimeStep;
-	curTime -= dt;
+	if( curTimeStep == 0 )
+	{
+		curTime = 0.0;
+	}
+	else
+	{
+		curTime -= dt;
+	}
 }
 
 N_PRES AdjSolver::getCurTime()
@@ -86,8 +94,16 @@ N_PRES AdjSolver::getCurTime()
 	return curTime;
 }
 
+int AdjSolver::getCurTimeStep()
+{
+	return curTimeStep;
+}
+
 void AdjSolver::loadParamsFromStruct( const SolverPar& loadFrom )
 {
+	ofstream of1( "adj_test_sol.txt" );
+	of1.close();
+
 	E1 = loadFrom.E1;				
 	E2 = loadFrom.E2;				
 	nu21 = loadFrom.nu21;			
@@ -207,6 +223,18 @@ void AdjSolver::setPrimalSolnData( N_PRES* _primSoln )
 	}
 }
 
+void AdjSolver::setAdjointSolnData( N_PRES* _adjSoln )
+{
+	if( _adjSoln != 0 )
+	{
+		adjSoln = _adjSoln;
+	}
+	else
+	{
+		cout << "WARNING! pointer to the solution of the ajoint problem is NULL!\n";
+	}
+}
+
 void AdjSolver::calcNewmarkAB( int y )
 {
 	for( int i = 0; i < eq_num; ++i )
@@ -259,7 +287,7 @@ void AdjSolver::calcSystemMatrices( int y )
 		/ ( 24.0 * beta * dt * dt );
 
 	matrA( 3, 0 ) = -1.0 / ( B22 * h );
-	matrA( 3, 3 ) -eps_x_0 * h * ( -2.0 * beta * dt * primSoln[indty + 6] * primSolnDt[indty + 7] + primSoln[indty + 7] 
+	matrA( 3, 3 ) = -eps_x_0 * h * ( -2.0 * beta * dt * primSoln[indty + 6] * primSolnDt[indty + 7] + primSoln[indty + 7] 
 		* ( primSoln[indty + 6] - 2.0 * beta * dt * primSolnDt[indty + 6] ) ) / ( 2.0 * B22 * beta * dt );
 
 	matrA( 4, 5 ) = -1.0;
@@ -317,17 +345,7 @@ N_PRES AdjSolver::doStep()
 		rungeKutta->adjCalc( matrA, vectF, dx, 0, &N3 );
 		rungeKutta->adjCalc( matrA, vectF, dx, 0, &N4 );
 		rungeKutta->adjCalc( matrA, vectF, dx, 1, &N5 );
-
 		
-
-		orthoBuilder->flushO( y + 1 );
-
-		orthoBuilder->orthonorm( 1, y, &N1 );
-		orthoBuilder->orthonorm( 2, y, &N2 );
-		orthoBuilder->orthonorm( 3, y, &N3 );
-		orthoBuilder->orthonorm( 4, y, &N4 );
-		orthoBuilder->orthonorm( 5, y, &N5 );
-
 		//cout << "\torthog check\n";
 		//cout << "\t" << ( N1.transpose() * N2 ) / N1.norm() / N2.norm() << endl;
 		//cout << "\t" << ( N1.transpose() * N3 ) / N1.norm() / N3.norm() << endl;
@@ -342,19 +360,76 @@ N_PRES AdjSolver::doStep()
 		//cout << "\t" << ( N3.transpose() * N5 ) / N3.norm() / N5.norm() << endl;
 
 		//cout << "\t" << ( N4.transpose() * N5 ) / N4.norm() / N5.norm() << endl;
+
+		orthoBuilder->flushO( y + 1 );
+
+		orthoBuilder->orthonorm( 1, y, &N1 );
+		orthoBuilder->orthonorm( 2, y, &N2 );
+		orthoBuilder->orthonorm( 3, y, &N3 );
+		orthoBuilder->orthonorm( 4, y, &N4 );
+		orthoBuilder->orthonorm( 5, y, &N5 );
 	}
 
-	cout << "---------------\n";
-	cout << N1 << endl;
-	cout << "---------------\n";
-	cout << N2 << endl;
-	cout << "---------------\n";
-	cout << N3 << endl;
-	cout << "---------------\n";
-	cout << N4 << endl;
-	cout << "---------------\n";
-	cout << N5 << endl;
-	cout << "---------------\n";
+	orthoBuilder->buildSolutionAdj( &mesh );
+
+	for( int x = 0; x < Km; ++x )
+	{
+		for( int i = 0; i < eq_num; ++i )
+		{
+			N_PRES d2N = ( mesh[x].N[i] - mesh[x].N1[i] ) / beta / dt / dt + mesh[x].d1N1[i] / beta / dt
+						+ ( 1.0 - 1.0 / ( 2.0 * beta ) ) * mesh[x].d2N1[i];
+			N_PRES d1N = -0.5 * dt * d2N + mesh[x].d1N1[i] - 0.5 * dt * mesh[x].d2N1[i];
+			mesh[x].N1[i] = mesh[x].N[i];
+			mesh[x].d1N1[i] = d1N;
+			mesh[x].d2N1[i] = d2N;
+		}
+	}
+
+	//cout << "---------------\n";
+	//cout << N1 << endl;
+	//cout << "---------------\n";
+	//cout << N2 << endl;
+	//cout << "---------------\n";
+	//cout << N3 << endl;
+	//cout << "---------------\n";
+	//cout << N4 << endl;
+	//cout << "---------------\n";
+	//cout << N5 << endl;
+	//cout << "---------------\n";
+
+	if( adjSoln != 0 )
+	{
+		for( int y = 0; y < Km; ++y )
+		{
+			for( int i = 0; i < eq_num; ++i )
+			{
+				adjSoln[curTimeStep * ( Km * eq_num ) + y * eq_num + i] = mesh[y].N[i];
+			}
+		}
+	}
 
 	return 0;
+}
+
+void AdjSolver::dumpSol( int fNum )
+{
+	N_PRES t = curTime;
+
+	stringstream ss;
+	if( fNum >= 0 )
+	{
+		ss << "adj_test_sol_" << fNum << ".txt";
+	}
+	else
+	{
+		ss << "adj_test_sol.txt";
+	}
+	ofstream of1( ss.str(), ofstream::app );
+	of1 << curTime;
+	for( int i = 0; i < eq_num; ++i )
+	{
+		of1 << " ; " << mesh[ ( Km - 1 ) / 2 ].N[i];
+	}
+	of1 << endl;
+	of1.close();
 }

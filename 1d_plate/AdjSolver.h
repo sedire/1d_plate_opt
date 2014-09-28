@@ -8,11 +8,14 @@
 #include <Eigen\Eigen>
 #include "RungeKutta.h"
 #include "OrthoBuilder.h"
+#include <sstream>
+#include <fstream>
 
 using std::cout;
 using std::endl;
+using std::stringstream;
+using std::ofstream;
 using namespace Eigen;
-
 
 class AdjSolver		
 {
@@ -21,10 +24,13 @@ public:
 	~AdjSolver();
 	void loadParamsFromStruct( const SolverPar& loadFrom );
 	void setPrimalSolnData( N_PRES* _primSoln );
+	void setAdjointSolnData( N_PRES* _adjSoln );
 
 	N_PRES doStep();		//the adjoint problem is solved backwards in time
 	void decreaseTime();
 	N_PRES getCurTime();
+	int getCurTimeStep();
+	void dumpSol( int fNum );
 
 private:
 //parameters of the material
@@ -88,6 +94,7 @@ private:
 
 	N_PRES* primSoln;	//pointer to where the primal solution is stored
 	N_PRES* primSolnDt;	//pointer to the time derivative approximation of the primal solution -- computed here
+	N_PRES* adjSoln;	//here we will store the adjoint solution
 
 //basis vectors for superposition part
 	Matrix<N_PRES, EQ_NUM, 1> N1;

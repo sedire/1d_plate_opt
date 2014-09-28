@@ -23,8 +23,8 @@ int main()
 	N_PRES weightB = 1.0l / 6.0 / 6.0 / 6.0 * 6.0;
 
 	N_PRES J0start =  0.0;
-	N_PRES tauStart = 0.0111611;
-	N_PRES tauStartExp = 0.0311281;
+	N_PRES tauStart = 0.048;
+	N_PRES tauStartExp = 0.048;
 
 	N_PRES J0start_1 =  0.02;
 	N_PRES tauStart_1 = 0.00516662;
@@ -45,9 +45,14 @@ int main()
 	{
 		resArr[i] = 0.0;
 	}
+	N_PRES* resArrAdj = new N_PRES[( CHAR_TIME / DELTA_T + 1 ) * NODES_Y * EQ_NUM];		//warning here!!!!
+	for( int i = 0; i < ( CHAR_TIME / DELTA_T + 1 ) * NODES_Y * EQ_NUM; ++i )
+	{
+		resArrAdj[i] = 0.0;
+	}
 	Solver<N_PRES>* solver = new Solver<N_PRES>();
 	solver->setResArray( resArr );
-	solver->setTask( J0start, tauStart, tauStartExp, J0start_3, tauStart_3, tauStartExp_3, ByStart, /*10000000*/100, 0.01 );
+	solver->setTask( J0start, tauStart, tauStartExp, J0start_3, tauStart_3, tauStartExp_3, ByStart, 20000000, 0.012 );
 	solver->setSwitchTime( SWITCH_TIME );
 
 	while( solver->cur_t <= CHAR_TIME )
@@ -58,20 +63,22 @@ int main()
 		solver->increaseTime();
 
 		solver->dump_check_sol( -1 );
-		solver->dump_whole_sol( 4 );
+		//solver->dump_whole_sol( 4 );
 	}
 
-	std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 	cout << "creating the AdjSolver\n";
 	AdjSolver adjSolver;
 	adjSolver.loadParamsFromStruct( solver->saveParamsToStruct() );
 	adjSolver.setPrimalSolnData( resArr );
 
-	while( adjSolver.getCurTime() >= 0.0 )
+	while( adjSolver.getCurTimeStep() >= 0 )
 	{
-		cout << " time is " << adjSolver.getCurTime() << endl;
+		cout << " time is " << adjSolver.getCurTime() << " " << adjSolver.getCurTimeStep() << endl;
 		adjSolver.doStep();
+		adjSolver.dumpSol( -1 );
 		adjSolver.decreaseTime();
+		cout << " new time is " << adjSolver.getCurTime() << " " << adjSolver.getCurTimeStep() << endl;
+		//std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 	}
 
 	cout << ".........\n";
@@ -114,8 +121,9 @@ int main()
 	//optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
 
 	delete solver;
-	cout << "\n -- Deleting the solution array now...\n";
+	cout << "\n -- Deleting the solution arrays now...\n";
 	delete[] resArr;
+	delete[] resArrAdj;
 
 	cout << ".........\n";
 	cout << "... done!\n";

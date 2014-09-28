@@ -335,7 +335,7 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 //other
 	tauP = _tauP;//0.01;
 	p0 = _p0;//10000000;
-	rad = 0.0021 / 100.0;
+	rad = h / 100.0;
 
 	_tauSin != 0.0l ? tauSin = _tauSin : tauSin = 1;
 	_tauExp != 0.0l ? tauExp = _tauExp : tauExp = 1;
@@ -355,7 +355,7 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	omega = (long double)M_PI / tauSin;
 	omega_1 = (long double)M_PI / tauSin_1;
 	
-	stress_type = stress_whole;
+	stress_type = stress_centered;
 	current_type = current_exp_sin;
 
 	By0 = _By0;
