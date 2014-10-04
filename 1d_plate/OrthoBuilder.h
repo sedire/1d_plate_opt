@@ -632,12 +632,17 @@ void OrthoBuilderGSh<PL_NUM>::buildSolution( vector<VarVect<PL_NUM> >* _mesh )
 template<class PL_NUM>
 void OrthoBuilderGSh<PL_NUM>::buildSolutionAdj( vector<VarVectAdj>* _mesh )
 {
+}
+
+template<>
+void inline OrthoBuilderGSh<N_PRES>::buildSolutionAdj( vector<VarVectAdj>* _mesh )
+{
 	static const int msize = EQ_NUM / 2;
-	Matrix<PL_NUM, msize, msize, RowMajor> M;
-	Matrix<PL_NUM, msize, 1> f11;
-	Matrix<PL_NUM, msize, 1> x1;
-	Matrix<PL_NUM, msize, 1> res;
-	Matrix<PL_NUM, msize, 1> dx;
+	Matrix<N_PRES, msize, msize, RowMajor> M;
+	Matrix<N_PRES, msize, 1> f11;
+	Matrix<N_PRES, msize, 1> x1;
+	Matrix<N_PRES, msize, 1> res;
+	Matrix<N_PRES, msize, 1> dx;
 
 	for( int i = 0; i < msize; ++i )
 	{

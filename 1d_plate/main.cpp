@@ -17,12 +17,10 @@ int main()
 
 	//omp_set_num_threads( THREAD_NUM );
 
-	//Solver<HPD<N_PRES, GRAD_SIZE> >* solver = new Solver<HPD<N_PRES, GRAD_SIZE> >();
+	//N_PRES weightJ = 50000.0l;
+	//N_PRES weightB = 1.0l / 6.0 / 6.0 / 6.0 * 6.0;
 
-	N_PRES weightJ = 50000.0l;
-	N_PRES weightB = 1.0l / 6.0 / 6.0 / 6.0 * 6.0;
-
-	N_PRES J0start =  0.0;
+	N_PRES J0start =  0.01;
 	N_PRES tauStart = 0.048;
 	N_PRES tauStartExp = 0.048;
 
@@ -38,7 +36,10 @@ int main()
 	N_PRES tauStart_3 = 0.00391129;
 	N_PRES tauStartExp_3 = 0.0151232;
 
-	N_PRES ByStart = 0.0;
+	N_PRES ByStart = 1.0;
+
+	N_PRES p0 = 10000000.0;
+	N_PRES tauP = 0.01;
 
 	N_PRES* resArr = new N_PRES[( CHAR_TIME / DELTA_T + 1 ) * NODES_Y * EQ_NUM];		//warning here!!!!
 	for( int i = 0; i < ( CHAR_TIME / DELTA_T + 1 ) * NODES_Y * EQ_NUM; ++i )
@@ -52,7 +53,7 @@ int main()
 	}
 	Solver<N_PRES>* solver = new Solver<N_PRES>();
 	solver->setResArray( resArr );
-	solver->setTask( J0start, tauStart, tauStartExp, J0start_3, tauStart_3, tauStartExp_3, ByStart, 20000000, 0.012 );
+	solver->setTask( J0start, tauStart, tauStartExp, J0start_3, tauStart_3, tauStartExp_3, ByStart, p0, tauP );
 	solver->setSwitchTime( SWITCH_TIME );
 
 	while( solver->cur_t <= CHAR_TIME )
@@ -60,16 +61,19 @@ int main()
 		cout << solver->cur_t << endl;
 
 		solver->do_step();
-		solver->increaseTime();
 
-		solver->dump_check_sol( -1 );
+		//solver->dump_check_sol( -1 );
+		solver->dumpSolAll( -1 );
 		//solver->dump_whole_sol( 4 );
+
+		solver->increaseTime();
 	}
 
 	cout << "creating the AdjSolver\n";
 	AdjSolver adjSolver;
 	adjSolver.loadParamsFromStruct( solver->saveParamsToStruct() );
 	adjSolver.setPrimalSolnData( resArr );
+	adjSolver.setAdjointSolnData( resArrAdj );
 
 	while( adjSolver.getCurTimeStep() >= 0 )
 	{
@@ -77,12 +81,78 @@ int main()
 		adjSolver.doStep();
 		adjSolver.dumpSol( -1 );
 		adjSolver.decreaseTime();
+
 		cout << " new time is " << adjSolver.getCurTime() << " " << adjSolver.getCurTimeStep() << endl;
 		//std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 	}
 
-	cout << ".........\n";
-	cout << "... done!\n";
+	N_PRES dy = 0.1524 / ( NODES_Y - 1 );
+	N_PRES dt = DELTA_T;
+	HPD<N_PRES, GRAD_SIZE> sum = 0.0l;
+
+	HPD<N_PRES, GRAD_SIZE> J0startHPD =  J0start;
+	J0startHPD.elems[1] = 1.0;
+	HPD<N_PRES, GRAD_SIZE> tauStartHPD = tauStart;
+	tauStartHPD.elems[2] = 1.0;
+	HPD<N_PRES, GRAD_SIZE> tauStartExpHPD = tauStartExp;
+	tauStartExpHPD.elems[3] = 1.0;
+	HPD<N_PRES, GRAD_SIZE> ByStartHPD = ByStart;
+	Solver<HPD<N_PRES, GRAD_SIZE> >* solverHPD = new Solver<HPD<N_PRES, GRAD_SIZE> >();
+	solverHPD->setTask( J0startHPD, tauStartHPD, tauStartExpHPD, J0startHPD, tauStartHPD, tauStartExpHPD, ByStartHPD, p0, tauP );
+	solverHPD->setSwitchTime( SWITCH_TIME );
+	while( solverHPD->cur_t <= CHAR_TIME )
+	{
+		cout << solverHPD->cur_t << endl;
+		
+		if( solverHPD->cur_t < CHAR_TIME )
+		{
+			sum += solverHPD->do_step();
+		}
+		solverHPD->increaseTime();
+	}
+	sum *= dt * dy;
+
+	N_PRES dJ = 0.00001;
+	N_PRES dTau = 0.0000005;
+	N_PRES obj1 = 0.0;
+	N_PRES obj2 = 0.0;
+
+	/*solver->setTask( J0start, tauStart, tauStartExp + dTau, J0start_3, tauStart_3, tauStartExp_3, ByStart, p0, tauP );
+	while( solver->cur_t <= CHAR_TIME )
+	{
+		cout << solver->cur_t << endl;
+
+		solver->do_step();
+		solver->increaseTime();
+	}
+	for( int t = 0; t < CHAR_TIME / DELTA_T + 1 - 1; ++t )
+	{
+		for( int y = 0; y < NODES_Y - 1; ++y )
+		{
+			obj1 += resArr[ NODES_Y * EQ_NUM * t + y * EQ_NUM + 1] * resArr[ NODES_Y * EQ_NUM * t + y * EQ_NUM + 1] * dy * DELTA_T;
+		}
+	}
+
+	solver->setTask( J0start, tauStart, tauStartExp - dTau, J0start_3, tauStart_3, tauStartExp_3, ByStart, p0, tauP );
+	while( solver->cur_t <= CHAR_TIME )
+	{
+		cout << solver->cur_t << endl;
+
+		solver->do_step();
+		solver->increaseTime();
+	}
+	for( int t = 0; t < CHAR_TIME / DELTA_T + 1 - 1; ++t )
+	{
+		for( int y = 0; y < NODES_Y - 1; ++y )
+		{
+			obj2 += resArr[ NODES_Y * EQ_NUM * t + y * EQ_NUM + 1] * resArr[ NODES_Y * EQ_NUM * t + y * EQ_NUM + 1] * dy * DELTA_T;
+		}
+	}*/
+	
+	//cout << " dF / dTauExp by fin diff  " << ( obj1 - obj2 ) / ( 2.0 * dTau ) << endl;
+	cout << " dF / dJ " <<  adjSolver.calcJDeriv() << " " << sum.elems[1] << endl;
+	cout << " dF / dJ " <<  adjSolver.calcTauSinDeriv() << " " << sum.elems[2] << endl;
+	cout << " dF / dJ " <<  adjSolver.calcTauExpDeriv() << " " << sum.elems[3] << endl;
 
 //////////////////////////////////
 	//Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >* solver2 = new Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >();

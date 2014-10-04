@@ -71,6 +71,7 @@ public:
 	PL_NUM do_step();
 	void dump_sol();
 	void dump_check_sol( int fNum );
+	void dumpSolAll( int fNum );
 	void dump_left_border_vals();
 	void dumpMatrA();
 	void dump_whole_sol( int var );
@@ -343,9 +344,6 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	_tauExp_1 != 0.0l ? tauExp_1 = _tauExp_1 : tauExp_1 = 1;
 
 	eq_num = EQ_NUM;
-	cur_t = 0.0;
-	curTimeStep = 0;
-	switchTime = SWITCH_TIME;
 
 	J0 = _J0;
 	J0 *= J0_SCALE;
@@ -367,6 +365,10 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	Km = NODES_Y;
 
 	dt = DELTA_T;
+	cur_t = dt;
+	curTimeStep = 1;
+	switchTime = SWITCH_TIME;
+
 	dx = al * a / ( Km - 1 );
 
 	beta = 0.25;
@@ -613,7 +615,7 @@ PL_NUM Solver<PL_NUM>::do_step()
 
 	do{
 		//cout << " proc num " << omp_get_thread_num() << endl;
-		if( iter == 0 && curTimeStep == 0 )
+		if( iter == 0 && curTimeStep == 1 )
 		{
 			preLin = 0;
 		}
@@ -718,7 +720,13 @@ PL_NUM Solver<PL_NUM>::do_step()
 
 	copyToResArr();
 
-	return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
+	PL_NUM sum = 0.0l;
+	for( int y = 0; y < Km - 1; ++y )
+	{
+		sum += mesh[y].Nk1[1] * mesh[y].Nk1[1];
+	}
+	//return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
+	return sum;
 }
 
 template<class PL_NUM>
@@ -820,7 +828,7 @@ void Solver<PL_NUM>::dump_check_sol( int fNum )
 		ss << "test_sol.txt";
 	}
 	ofstream of1( ss.str(), ofstream::app );
-	of1 << cur_t << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[1] << " ; " << wTheor << " ; " << resArr[ ( curTimeStep - 1 ) * Km * eq_num + ( Km - 1 ) / 2 * eq_num + 1]
+	of1 << cur_t << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[1] << " ; " << wTheor << " ; " << resArr[ curTimeStep * Km * eq_num + ( Km - 1 ) / 2 * eq_num + 1]
 		<< /*" ; " << fabs( ( wTheor - mesh[ ( Km - 1 ) / 2 ].Nk1[1] ) / wTheor ) <<*/ endl;
 	of1.close();
 }
@@ -843,6 +851,28 @@ void Solver<PL_NUM>::dump_left_border_vals()
 {
 	ofstream of1( "sol_left_border.txt", ofstream::app );
 	of1 << "v : " << mesh[0].Nk1[0] << "\tw : " << mesh[0].Nk1[1] << "\tW : " << mesh[0].Nk1[2] << "\tMyy : " << mesh[0].Nk1[5] << "\tNyy : " << mesh[0].Nk1[3] << "\tNyz : " << mesh[0].Nk1[4] << endl;
+	of1.close();
+}
+
+template<class PL_NUM>
+void Solver<PL_NUM>::dumpSolAll( int fNum )
+{
+	stringstream ss;
+	if( fNum >= 0 )
+	{
+		ss << "all_test_sol_" << fNum << ".txt";
+	}
+	else
+	{
+		ss << "all_test_sol.txt";
+	}
+	ofstream of1( ss.str(), ofstream::app );
+	of1 << cur_t;
+	for( int i = 0; i < eq_num; ++i )
+	{
+		of1 << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[i];
+	}
+	of1 << endl;
 	of1.close();
 }
 

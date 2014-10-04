@@ -32,6 +32,10 @@ public:
 	int getCurTimeStep();
 	void dumpSol( int fNum );
 
+	N_PRES calcJDeriv();
+	N_PRES calcTauSinDeriv();
+	N_PRES calcTauExpDeriv();
+
 private:
 //parameters of the material
 	N_PRES E1;				//Young's modulus
