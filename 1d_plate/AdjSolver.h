@@ -24,6 +24,7 @@ public:
 	~AdjSolver();
 	void loadParamsFromStruct( const SolverPar& loadFrom );
 	void setPrimalSolnData( N_PRES* _primSoln );
+	void setPrimalDtData( N_PRES* _primSolnDt );
 	void setAdjointSolnData( N_PRES* _adjSoln );
 
 	N_PRES doStep();		//the adjoint problem is solved backwards in time

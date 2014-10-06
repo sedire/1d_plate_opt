@@ -46,6 +46,11 @@ int main()
 	{
 		resArr[i] = 0.0;
 	}
+	N_PRES* resArrDt = new N_PRES[( CHAR_TIME / DELTA_T + 1 ) * NODES_Y * EQ_NUM];		//warning here!!!!
+	for( int i = 0; i < ( CHAR_TIME / DELTA_T + 1 ) * NODES_Y * EQ_NUM; ++i )
+	{
+		resArrDt[i] = 0.0;
+	}
 	N_PRES* resArrAdj = new N_PRES[( CHAR_TIME / DELTA_T + 1 ) * NODES_Y * EQ_NUM];		//warning here!!!!
 	for( int i = 0; i < ( CHAR_TIME / DELTA_T + 1 ) * NODES_Y * EQ_NUM; ++i )
 	{
@@ -53,6 +58,7 @@ int main()
 	}
 	Solver<N_PRES>* solver = new Solver<N_PRES>();
 	solver->setResArray( resArr );
+	solver->setResArrayDt( resArrDt );
 	solver->setTask( J0start, tauStart, tauStartExp, J0start_3, tauStart_3, tauStartExp_3, ByStart, p0, tauP );
 	solver->setSwitchTime( SWITCH_TIME );
 
@@ -73,6 +79,7 @@ int main()
 	AdjSolver adjSolver;
 	adjSolver.loadParamsFromStruct( solver->saveParamsToStruct() );
 	adjSolver.setPrimalSolnData( resArr );
+	adjSolver.setPrimalDtData( resArrDt );
 	adjSolver.setAdjointSolnData( resArrAdj );
 
 	while( adjSolver.getCurTimeStep() >= 0 )
@@ -104,7 +111,7 @@ int main()
 	{
 		cout << solverHPD->cur_t << endl;
 		
-		if( solverHPD->cur_t < CHAR_TIME )
+		if( solverHPD->cur_t <= CHAR_TIME )
 		{
 			sum += solverHPD->do_step();
 		}
@@ -193,6 +200,7 @@ int main()
 	delete solver;
 	cout << "\n -- Deleting the solution arrays now...\n";
 	delete[] resArr;
+	delete[] resArrDt;
 	delete[] resArrAdj;
 
 	cout << ".........\n";

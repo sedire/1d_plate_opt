@@ -56,6 +56,7 @@ public:
 	~Solver();
 
 	N_PRES* resArr;		//array to keep all the results obtained
+	N_PRES* resArrDt;
 
 	void setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 				PL_NUM _J0_1, PL_NUM _tauSin_1, PL_NUM _tauExp_1,
@@ -63,6 +64,7 @@ public:
 	void setMechLoad( PL_NUM _p0, PL_NUM _tauP );
 	void setSwitchTime( N_PRES _switchTime );
 	void setResArray( N_PRES* _resArr );
+	void setResArrayDt( N_PRES* _resArrDt );
 
 	PL_NUM increaseTime();
 
@@ -213,6 +215,7 @@ void inline Solver<N_PRES>::copyToResArr() 	//do nothing in this case
 			for( int i = 0; i < eq_num; ++i )
 			{
 				resArr[curTimeStep * ( Km * eq_num ) + y * eq_num + i] = mesh[y].Nk1[i];
+				resArrDt[curTimeStep * ( Km * eq_num ) + y * eq_num + i] = mesh[y].d1N0[i];
 			}
 		}
 	}
@@ -284,6 +287,12 @@ template<class PL_NUM>
 void Solver<PL_NUM>::setResArray( N_PRES* _resArr )
 {
 	resArr = _resArr;
+}
+
+template<class PL_NUM>
+void Solver<PL_NUM>::setResArrayDt( N_PRES* _resArrDt )
+{
+	resArrDt = _resArrDt;
 }
 
 template<class PL_NUM>
@@ -721,7 +730,7 @@ PL_NUM Solver<PL_NUM>::do_step()
 	copyToResArr();
 
 	PL_NUM sum = 0.0l;
-	for( int y = 0; y < Km - 1; ++y )
+	for( int y = 0; y < Km; ++y )
 	{
 		sum += mesh[y].Nk1[1] * mesh[y].Nk1[1];
 	}
