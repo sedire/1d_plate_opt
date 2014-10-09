@@ -521,6 +521,52 @@ N_PRES AdjSolver::calcJDeriv()
 	return sum;
 }
 
+N_PRES AdjSolver::calcJ0Deriv()
+{
+	N_PRES sum = 0.0;
+	
+	if( adjSoln != 0 )
+	{
+		for( int t = 0; t < totTimeSteps; ++t )
+		{
+			if( t * dt <= SWITCH_TIME )
+			{
+				for( int y = 0; y < Km; ++y )
+				{
+					sum += exp( -t * dt / tauExp ) * sin( M_PI * t * dt / tauSin ) 
+						* ( adjSoln[t * ( Km * eq_num ) + y * eq_num + 3] * h * primSoln[t * ( Km * eq_num ) + y * eq_num + 7] 
+						- adjSoln[t * ( Km * eq_num ) + y * eq_num + 4] * 0.5 * h * By1 ) * dx * dt; 
+				}
+			}
+		}
+	}
+
+	return sum;
+}
+
+N_PRES AdjSolver::calcJ1Deriv()
+{
+	N_PRES sum = 0.0;
+	
+	if( adjSoln != 0 )
+	{
+		for( int t = 0; t < totTimeSteps; ++t )
+		{
+			if( t * dt > SWITCH_TIME )
+			{
+				for( int y = 0; y < Km; ++y )
+				{
+					sum += exp( -t * dt / tauExp_1 ) * sin( M_PI * t * dt / tauSin_1 ) 
+						* ( adjSoln[t * ( Km * eq_num ) + y * eq_num + 3] * h * primSoln[t * ( Km * eq_num ) + y * eq_num + 7] 
+						- adjSoln[t * ( Km * eq_num ) + y * eq_num + 4] * 0.5 * h * By1 ) * dx * dt; 
+				}
+			}
+		}
+	}
+
+	return sum;
+}
+
 N_PRES AdjSolver::calcTauSinDeriv()
 {
 	N_PRES sum = 0.0;
@@ -543,6 +589,56 @@ N_PRES AdjSolver::calcTauSinDeriv()
 	return sum;
 }
 
+N_PRES AdjSolver::calcTauSin0Deriv()
+{
+	N_PRES sum = 0.0;
+	
+	if( adjSoln != 0 )
+	{
+		for( int t = 0; t < totTimeSteps; ++t )
+		{
+			if( t * dt <= SWITCH_TIME )
+			{
+				N_PRES innerSum = 0.0;
+				for( int y = 0; y < Km - 1; ++y )
+				{
+					innerSum += ( adjSoln[t * ( Km * eq_num ) + y * eq_num + 3] * h * primSoln[t * ( Km * eq_num ) + y * eq_num + 7]
+						- adjSoln[t * ( Km * eq_num ) + y * eq_num + 4] * 0.5 * h * By1 );
+				}
+				sum += -innerSum * exp( -t * dt / tauExp ) * cos( t * dt * M_PI / tauSin ) * t * dt;
+			}
+		}
+		sum *= J0 * dx * dt * M_PI / ( tauSin * tauSin );
+	}
+
+	return sum;
+}
+
+N_PRES AdjSolver::calcTauSin1Deriv()
+{
+	N_PRES sum = 0.0;
+	
+	if( adjSoln != 0 )
+	{
+		for( int t = 0; t < totTimeSteps; ++t )
+		{
+			if( t * dt > SWITCH_TIME )
+			{
+				N_PRES innerSum = 0.0;
+				for( int y = 0; y < Km - 1; ++y )
+				{
+					innerSum += ( adjSoln[t * ( Km * eq_num ) + y * eq_num + 3] * h * primSoln[t * ( Km * eq_num ) + y * eq_num + 7]
+						- adjSoln[t * ( Km * eq_num ) + y * eq_num + 4] * 0.5 * h * By1 );
+				}
+				sum += -innerSum * exp( -t * dt / tauExp_1 ) * cos( t * dt * M_PI / tauSin_1 ) * t * dt;
+			}
+		}
+		sum *= J0_1 * dx * dt * M_PI / ( tauSin_1 * tauSin_1 );
+	}
+
+	return sum;
+}
+
 N_PRES AdjSolver::calcTauExpDeriv()
 {
 	N_PRES sum = 0.0;
@@ -556,6 +652,52 @@ N_PRES AdjSolver::calcTauExpDeriv()
 				sum += J0 * exp( -t * dt / tauExp ) * sin( M_PI * t * dt / tauSin ) * t * dt / ( tauExp * tauExp )
 					* ( adjSoln[t * ( Km * eq_num ) + y * eq_num + 3] * h * primSoln[t * ( Km * eq_num ) + y * eq_num + 7] 
 					- adjSoln[t * ( Km * eq_num ) + y * eq_num + 4] * 0.5 * h * By1 ) * dx * dt;
+			}
+		}
+	}
+
+	return sum;
+}
+
+N_PRES AdjSolver::calcTauExp0Deriv()
+{
+	N_PRES sum = 0.0;
+	
+	if( adjSoln != 0 )
+	{
+		for( int t = 0; t < totTimeSteps; ++t )
+		{
+			if( t * dt <= SWITCH_TIME )
+			{
+				for( int y = 0; y < Km; ++y )
+				{
+					sum += J0 * exp( -t * dt / tauExp ) * sin( M_PI * t * dt / tauSin ) * t * dt / ( tauExp * tauExp )
+						* ( adjSoln[t * ( Km * eq_num ) + y * eq_num + 3] * h * primSoln[t * ( Km * eq_num ) + y * eq_num + 7] 
+						- adjSoln[t * ( Km * eq_num ) + y * eq_num + 4] * 0.5 * h * By1 ) * dx * dt;
+				}
+			}
+		}
+	}
+
+	return sum;
+}
+
+N_PRES AdjSolver::calcTauExp1Deriv()
+{
+	N_PRES sum = 0.0;
+	
+	if( adjSoln != 0 )
+	{
+		for( int t = 0; t < totTimeSteps; ++t )
+		{
+			if( t * dt > SWITCH_TIME )
+			{
+				for( int y = 0; y < Km; ++y )
+				{
+					sum += J0_1 * exp( -t * dt / tauExp_1 ) * sin( M_PI * t * dt / tauSin_1 ) * t * dt / ( tauExp_1 * tauExp_1 )
+						* ( adjSoln[t * ( Km * eq_num ) + y * eq_num + 3] * h * primSoln[t * ( Km * eq_num ) + y * eq_num + 7] 
+						- adjSoln[t * ( Km * eq_num ) + y * eq_num + 4] * 0.5 * h * By1 ) * dx * dt;
+				}
 			}
 		}
 	}

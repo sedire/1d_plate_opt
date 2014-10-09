@@ -647,9 +647,9 @@ PL_NUM Solver<PL_NUM>::do_step()
 		}
 		else
 		{
-			N4( 6 ) = mesh[0].Nk1[0] / 2.0l / beta / dt + newmark_B[0];
+			N4( 6 ) = 0.0;//mesh[0].Nk1[0] / 2.0l / beta / dt + newmark_B[0];
 		}
-		N4( 7 ) = -1.0;
+		N4( 7 ) = 1.0; //sign!
 		N5( 0 ) = 0.0; N5( 1 ) = 0.0; N5( 2 ) = 0.0; N5( 3 ) = 0.0; N5( 4 ) = 0.0; N5( 5 ) = 0.0; 
 		if( preLin == 0 )
 		{
@@ -658,8 +658,8 @@ PL_NUM Solver<PL_NUM>::do_step()
 		}
 		else	//WARNING!!! I have changed the sign here!!
 		{
-			N5( 6 ) = -( newmark_B[0] * mesh[0].Nk1[7] - newmark_B[1] * By0 );
-			N5( 7 ) = mesh[0].Nk1[7];
+			N5( 6 ) = 0.0;//-( newmark_B[0] * mesh[0].Nk1[7] - newmark_B[1] * By0 );
+			N5( 7 ) = 0.0;//mesh[0].Nk1[7];
 		}
 
 		orthoBuilder->setInitVects( N1, N2, N3, N4, N5 );

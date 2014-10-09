@@ -15,10 +15,15 @@ int main()
 {
 	cout << "hello\n";
 
+	time_t adjTime = 0;
+	time_t hpdTime = 0;
+
 	//omp_set_num_threads( THREAD_NUM );
 
 	//N_PRES weightJ = 50000.0l;
 	//N_PRES weightB = 1.0l / 6.0 / 6.0 / 6.0 * 6.0;
+
+	adjTime = time( 0 );
 
 	N_PRES J0start =  0.01;
 	N_PRES tauStart = 0.048;
@@ -59,7 +64,7 @@ int main()
 	Solver<N_PRES>* solver = new Solver<N_PRES>();
 	solver->setResArray( resArr );
 	solver->setResArrayDt( resArrDt );
-	solver->setTask( J0start, tauStart, tauStartExp, J0start_3, tauStart_3, tauStartExp_3, ByStart, p0, tauP );
+	solver->setTask( J0start, tauStart, tauStartExp, J0start_1, tauStart_1, tauStartExp_1, ByStart, p0, tauP );
 	solver->setSwitchTime( SWITCH_TIME );
 
 	while( solver->cur_t <= CHAR_TIME )
@@ -93,21 +98,34 @@ int main()
 		//std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 	}
 
+	adjTime = time( 0 ) - adjTime;
+
 	N_PRES dy = 0.1524 / ( NODES_Y - 1 );
 	N_PRES dt = DELTA_T;
-	HPD<N_PRES, GRAD_SIZE> sum = 0.0l;
+	HPD<N_PRES, GRAD_SIZE_SECOND> sum = 0.0l;
 
-	HPD<N_PRES, GRAD_SIZE> J0startHPD =  J0start;
+	hpdTime = time( 0 );
+
+	HPD<N_PRES, GRAD_SIZE_SECOND> J0startHPD =  J0start;
 	J0startHPD.elems[1] = 1.0;
-	HPD<N_PRES, GRAD_SIZE> tauStartHPD = tauStart;
+	HPD<N_PRES, GRAD_SIZE_SECOND> tauStartHPD = tauStart;
 	tauStartHPD.elems[2] = 1.0;
-	HPD<N_PRES, GRAD_SIZE> tauStartExpHPD = tauStartExp;
+	HPD<N_PRES, GRAD_SIZE_SECOND> tauStartExpHPD = tauStartExp;
 	tauStartExpHPD.elems[3] = 1.0;
-	HPD<N_PRES, GRAD_SIZE> ByStartHPD = ByStart;
-	Solver<HPD<N_PRES, GRAD_SIZE> >* solverHPD = new Solver<HPD<N_PRES, GRAD_SIZE> >();
-	solverHPD->setTask( J0startHPD, tauStartHPD, tauStartExpHPD, J0startHPD, tauStartHPD, tauStartExpHPD, ByStartHPD, p0, tauP );
+
+	HPD<N_PRES, GRAD_SIZE_SECOND> J0startHPD_1 =  J0start_1;
+	J0startHPD_1.elems[4] = 1.0;
+	HPD<N_PRES, GRAD_SIZE_SECOND> tauStartHPD_1 = tauStart_1;
+	tauStartHPD_1.elems[5] = 1.0;
+	HPD<N_PRES, GRAD_SIZE_SECOND> tauStartExpHPD_1 = tauStartExp_1;
+	tauStartExpHPD_1.elems[6] = 1.0;
+
+	HPD<N_PRES, GRAD_SIZE_SECOND> ByStartHPD = ByStart;
+
+	Solver<HPD<N_PRES, GRAD_SIZE_SECOND> >* solverHPD = new Solver<HPD<N_PRES, GRAD_SIZE_SECOND> >();
+	solverHPD->setTask( J0startHPD, tauStartHPD, tauStartExpHPD, J0startHPD_1, tauStartHPD_1, tauStartExpHPD_1, ByStartHPD, p0, tauP );
 	solverHPD->setSwitchTime( SWITCH_TIME );
-	while( solverHPD->cur_t <= CHAR_TIME )
+	/*while( solverHPD->cur_t <= CHAR_TIME )
 	{
 		cout << solverHPD->cur_t << endl;
 		
@@ -117,7 +135,9 @@ int main()
 		}
 		solverHPD->increaseTime();
 	}
-	sum *= dt * dy;
+	sum *= dt * dy;*/
+
+	hpdTime = time( 0 ) - hpdTime;
 
 	N_PRES dJ = 0.00001;
 	N_PRES dTau = 0.0000005;
@@ -157,9 +177,12 @@ int main()
 	}*/
 	
 	//cout << " dF / dTauExp by fin diff  " << ( obj1 - obj2 ) / ( 2.0 * dTau ) << endl;
-	cout << " dF / dJ " <<  adjSolver.calcJDeriv() << " " << sum.elems[1] << endl;
-	cout << " dF / dJ " <<  adjSolver.calcTauSinDeriv() << " " << sum.elems[2] << endl;
-	cout << " dF / dJ " <<  adjSolver.calcTauExpDeriv() << " " << sum.elems[3] << endl;
+	cout << " dF / dJ0 " <<  adjSolver.calcJ0Deriv() << " " << sum.elems[1] << endl;
+	cout << " dF / dJ1 " <<  adjSolver.calcJ1Deriv() << " " << sum.elems[4] << endl;
+	cout << " dF / dtauSin0 " <<  adjSolver.calcTauSin0Deriv() << " " << sum.elems[2] << endl;
+	cout << " dF / dtauSin1 " <<  adjSolver.calcTauSin1Deriv() << " " << sum.elems[5] << endl;
+	cout << " dF / dtauExp0 " <<  adjSolver.calcTauExp0Deriv() << " " << sum.elems[3] << endl;
+	cout << " dF / dtauExp1 " <<  adjSolver.calcTauExp1Deriv() << " " << sum.elems[6] << endl;
 
 //////////////////////////////////
 	//Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >* solver2 = new Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >();
@@ -185,6 +208,9 @@ int main()
 	cout << " buildSoln time: " << solver->buildSolnTime << endl;
 	cout << "  ortho time: " << solver->orthoTime << endl;
 	cout << "ortho time from orthoBuilder: " << solver->getOrthoBTime() << endl;
+
+	cout << " adjTime " << adjTime << endl;
+	cout << " hpdTIme " << hpdTime << endl;
 
 ///////////////////////////////////////
 

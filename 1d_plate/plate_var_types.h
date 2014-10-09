@@ -13,7 +13,7 @@
 #define BY0_SCALE 1.0l
 #define GRAD_SIZE 3
 #define CHAR_TIME 0.05l
-#define SWITCH_TIME 10.1l
+#define SWITCH_TIME 0.01l
 #define DELTA_T 0.0001
 #define NODES_Y 10001
 

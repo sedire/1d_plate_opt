@@ -34,8 +34,16 @@ public:
 	void dumpSol( int fNum );
 
 	N_PRES calcJDeriv();
+	N_PRES calcJ0Deriv();
+	N_PRES calcJ1Deriv();
+
 	N_PRES calcTauSinDeriv();
+	N_PRES calcTauSin0Deriv();
+	N_PRES calcTauSin1Deriv();
+
 	N_PRES calcTauExpDeriv();
+	N_PRES calcTauExp0Deriv();
+	N_PRES calcTauExp1Deriv();
 
 private:
 //parameters of the material
