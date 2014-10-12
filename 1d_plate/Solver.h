@@ -274,8 +274,6 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	dt = 0.0001;
 	dx = al * a / Km;
 
-	++Km;
-
 	betta = 0.25;
 
 	if( rungeKutta != 0 )

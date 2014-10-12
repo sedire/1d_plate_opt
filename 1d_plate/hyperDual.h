@@ -304,7 +304,7 @@ const bool operator!=( const HPD<D_PRES, NN>& lhs, const D_PRES& rhs )
 }
 
 template<class D_PRES, int NN>
-const bool operator!=( const D_PRES& lhs, const HPD<D_PRES, NN>& rhs )
+const bool operator!=( const D_PRES& lhs, const HPD<D_PRES, NN>& rhs )	//we are doing it this way probably on purpose (convergence checks, etc.)
 {
 	if( rhs.real() != lhs )
 	{
@@ -361,7 +361,7 @@ public:
 	HPD( D_PRES a )
 	//{	elems.resize( NN + 1, 0.0 ); elems[0] = a; }
 	{
-		for( int i = 0; i < NN + 1; ++i )
+		for( int i = 1; i < NN + 1; ++i )
 		{
 			elems[i] = 0.0;
 		}
@@ -473,6 +473,10 @@ HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator+=( const HPD& rhs )
 			elems[i] += rhs.elems[i];
 		}
 	}
+	else
+	{
+		( *this ) *= 2.0;
+	}
 	return *this;
 }
 
@@ -493,6 +497,10 @@ HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator-=( const HPD& rhs )
 			elems[i] -= rhs.elems[i];
 		}
 	}
+	else
+	{
+		( *this ) = 0.0;
+	}
 	return *this;
 }
 
@@ -506,9 +514,10 @@ HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator-=( const D_PRES& rhs )
 template<class D_PRES, int NN>
 HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator*=( const HPD& rhs )
 {
-	//HPD<D_PRES, NN> tmp;
-	//tmp = ( *this ) * rhs;
-	( *this ) = ( *this ) * rhs;
+	HPD<D_PRES, NN> tmp;
+	tmp = ( *this ) * rhs;
+	//( *this ) = ( *this ) * rhs;
+	( *this ) = tmp;
 
 	return *this;
 }
@@ -516,7 +525,7 @@ HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator*=( const HPD& rhs )
 template<class D_PRES, int NN>
 HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator*=( const D_PRES& rhs )
 {
-	for( int i = 0; i < NN; ++i )
+	for( int i = 0; i < NN + 1; ++i )
 	{
 		elems[i] *= rhs;
 	}
@@ -526,7 +535,10 @@ HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator*=( const D_PRES& rhs )
 template<class D_PRES, int NN>
 HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator/=( const HPD& rhs )
 {
-	( *this ) = ( *this ) / rhs;
+	HPD<D_PRES, NN> tmp;
+	tmp = ( *this ) / rhs;
+	//( *this ) = ( *this ) / rhs;
+	( *this ) = tmp;
 
 	return *this;
 }
@@ -534,7 +546,7 @@ HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator/=( const HPD& rhs )
 template<class D_PRES, int NN>
 HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator/=( const D_PRES& rhs )
 {
-	for( int i = 0; i < NN; ++i )
+	for( int i = 0; i < NN + 1; ++i )
 	{
 		elems[i] /= rhs;
 	}

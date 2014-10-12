@@ -14,12 +14,12 @@ int main()
 {
 	cout << "hello\n";
 
-	//omp_set_num_threads( THREAD_NUM );
+	omp_set_num_threads( THREAD_NUM );
 
 	Solver<HPD<N_PRES, GRAD_SIZE> >* solver = new Solver<HPD<N_PRES, GRAD_SIZE> >();
 
-	N_PRES weightJ = 50000.0l;
-	N_PRES weightB = 1.0l / 6.0 / 6.0 / 6.0 * 6.0;
+	//N_PRES weightJ = 50000.0l;
+	//N_PRES weightB = 1.0l / 6.0 / 6.0 / 6.0 * 6.0;
 
 	N_PRES J0start =  0.01;
 	N_PRES tauStart = 0.0048;
@@ -37,7 +37,7 @@ int main()
 	N_PRES tauStart_3 = 0.0048;
 	N_PRES tauStartExp_3 = 0.0048;
 
-	N_PRES ByStart = 1;
+	N_PRES ByStart = 1.0;
 
 //////////////////////////////////
 	//Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >* solver2 = new Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >();
