@@ -1,13 +1,13 @@
-//#include "plate_var_types.h"
-//#include "HagerOptFuncs.h"
-//#include "hyperDual.h"
-//#include "time.h"
-//#include "Plate.h"
-//#include "Solver.h"
-//#include <iostream>
+#include "plate_var_types.h"
+#include "HagerOptFuncs.h"
+#include "hyperDual.h"
+#include "time.h"
+#include "Plate.h"
+#include "Solver.h"
+#include <iostream>
 //
-//using std::cout;
-//using std::endl;
+using std::cout;
+using std::endl;
 //
 ////double calc1stOrdOptInfoCG_DES( double* g, double* x, long n )
 ////{
@@ -325,112 +325,118 @@
 //	return ret;
 //}
 //
-//double calcValTaus( double* x, long n )
-//{
-//	double ret = 0.0l;
-//	time_t begin = time( 0 );
-//
-//	cout << "try to calc at\n";
-//	for( int i = 0; i < GRAD_SIZE_FULL; ++i )
-//	{
-//		cout << x[i] << endl;
-//	}
-//	cout << " ====\n";
-//
-//	N_PRES J0begin;
-//	N_PRES tauBeginSin;
-//	N_PRES tauBeginExp;
-//
-//	N_PRES J0begin2[SCEN_NUMBER];
-//	N_PRES tauBeginSin2[SCEN_NUMBER];
-//	N_PRES tauBeginExp2[SCEN_NUMBER];
-//
-//	N_PRES B0begin;
-//
-//	J0begin = x[0];
-//	tauBeginSin = x[1];
-//	tauBeginExp = x[2];
-//
-//	for( int i = 0; i < SCEN_NUMBER; ++i )
-//	{
-//		J0begin2[i] = x[( i + 1 ) * 3];
-//		tauBeginSin2[i] = x[( i + 1 ) * 3 + 1];
-//		tauBeginExp2[i] = x[( i + 1 ) * 3 + 2];
-//	}
-//	B0begin = 1.0l;
-//
-//	Solver<N_PRES> solver[SCEN_NUMBER];
-//
-//	cout << "\tcalculating func val\n";
-//
-//	double charTime = CHAR_TIME;
-//
-//	N_PRES funcVal1[SCEN_NUMBER];
-//	N_PRES funcVal2[SCEN_NUMBER];
-//	N_PRES mechLoad[SCEN_NUMBER] = { 7500000, 10000000, 20000000 };
-//	N_PRES mechTaus[SCEN_NUMBER] = { 0.008, 0.01, 0.012 };
-//
-//#pragma omp parallel for
-//	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
-//	{
-//		funcVal1[scen] = 0.0l;
-//		funcVal2[scen] = 0.0l;
-//		solver[scen].setTask( J0begin, tauBeginSin, tauBeginExp, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen], B0begin, 10000000, 0.01 );
-//		solver[scen].setMechLoad( mechLoad[scen], mechTaus[scen] );
-//		N_PRES val;
-//		while( solver[scen].cur_t <= SWITCH_TIME )
-//		{
-//			//cout << "\t\t both -- " << solver.cur_t.real() << " params: " << x[0] << " " << x[1] << " " << x[2] << endl;
-//			val = solver[scen].do_step();
-//			funcVal1[scen] += val * val;
-//
-//			//solver_first[i].cur_t += solver_first[i].dt;
-//			//++( solver_first[i].curTimeStep );
-//
-//			solver[scen].increaseTime();
-//
-//			//solver_second.dump_check_sol( -1 );
-//		}
-//		funcVal1[scen] /= SWITCH_TIME;
-//
-//		while( solver[scen].cur_t <= charTime )
-//		{
-//			val = solver[scen].do_step();
-//			funcVal2[scen] += val * val;
-//
-//			//solver_first[i].cur_t += solver_first[i].dt;
-//			//++( solver_first[i].curTimeStep );
-//
-//			solver[scen].increaseTime();
-//
-//			//solver_second.dump_check_sol( -1 );
-//		}
-//		funcVal2[scen] /= ( charTime - SWITCH_TIME );
-//	}
-//
-//	cout << "\tfunc val done\n";
-//	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
-//	{
-//		cout << "\t1st; scen " << scen << " " << funcVal1[scen] << endl;
-//		cout << "\t2nd; scen " << scen << " " << funcVal2[scen] << endl;
-//	}
-//	cout << " -------------\n";
-//
-//	N_PRES Weight = J_WEIGHT;
-//	ret = ( funcVal1[0] + funcVal1[1] + funcVal1[2]
-//		+ funcVal2[0] + funcVal2[1] + funcVal2[2] ) / 3.0l
-//			/*+ Weight * ( ( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[3] * exp( -SWITCH_TIME / x[5] ) * sin( M_PI * SWITCH_TIME / x[4] ) ) *
-//						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[3] * exp( -SWITCH_TIME / x[5] ) * sin( M_PI * SWITCH_TIME / x[4] ) ) + 
-//						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[6] * exp( -SWITCH_TIME / x[8] ) * sin( M_PI * SWITCH_TIME / x[7] ) ) *
-//						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[6] * exp( -SWITCH_TIME / x[8] ) * sin( M_PI * SWITCH_TIME / x[7] ) ) +
-//						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[9] * exp( -SWITCH_TIME / x[11] ) * sin( M_PI * SWITCH_TIME / x[10] ) ) * 
-//						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[9] * exp( -SWITCH_TIME / x[11] ) * sin( M_PI * SWITCH_TIME / x[10] ) ) )*/;
-//
-//	time_t endtime = time( 0 );
-//	cout << "\tdone in " << endtime - begin << endl;
-//
-//	return ret;
-//}
+double calcValTaus( double* x, long n )
+{
+	double ret = 0.0l;
+	time_t begin = time( 0 );
+	N_PRES dt = DELTA_T;
+	N_PRES dy = 0.1524 / ( NODES_Y - 1 );
+
+	cout << "try to calc at\n";
+	for( int i = 0; i < GRAD_SIZE_FULL; ++i )
+	{
+		cout << x[i] << endl;
+	}
+	cout << " ====\n";
+
+	N_PRES J0begin;
+	N_PRES tauBeginSin;
+	N_PRES tauBeginExp;
+
+	N_PRES J0begin2[SCEN_NUMBER];
+	N_PRES tauBeginSin2[SCEN_NUMBER];
+	N_PRES tauBeginExp2[SCEN_NUMBER];
+
+	N_PRES B0begin;
+
+	J0begin = x[0];
+	tauBeginSin = x[1];
+	tauBeginExp = x[2];
+
+	for( int i = 0; i < SCEN_NUMBER; ++i )
+	{
+		J0begin2[i] = x[( i + 1 ) * 3];
+		tauBeginSin2[i] = x[( i + 1 ) * 3 + 1];
+		tauBeginExp2[i] = x[( i + 1 ) * 3 + 2];
+	}
+	B0begin = 1.0l;
+
+	Solver<N_PRES> solver[SCEN_NUMBER];
+
+	cout << "\tcalculating func val\n";
+
+	double charTime = CHAR_TIME;
+
+	N_PRES funcVal1[SCEN_NUMBER];
+	N_PRES funcVal2[SCEN_NUMBER];
+	N_PRES mechLoad[SCEN_NUMBER] = { 7500000, 10000000, 20000000 };
+	N_PRES mechTaus[SCEN_NUMBER] = { 0.008, 0.01, 0.012 };
+
+#pragma omp parallel for
+	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
+	{
+		funcVal1[scen] = 0.0l;
+		funcVal2[scen] = 0.0l;
+		solver[scen].setTask( J0begin, tauBeginSin, tauBeginExp, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen], B0begin, 10000000, 0.01 );
+		solver[scen].setMechLoad( mechLoad[scen], mechTaus[scen] );
+		N_PRES sum = 0.0;
+
+		while( solver[scen].cur_t <= SWITCH_TIME )
+		{
+			//cout << "\t\t both -- " << solver.cur_t.real() << " params: " << x[0] << " " << x[1] << " " << x[2] << endl;
+			sum += solver[scen].do_step();
+
+			//solver_first[i].cur_t += solver_first[i].dt;
+			//++( solver_first[i].curTimeStep );
+
+			solver[scen].increaseTime();
+
+			//solver_second.dump_check_sol( -1 );
+		}
+		funcVal1[scen] = sum * dt * dy / SWITCH_TIME;
+
+		sum = 0.0;
+		while( solver[scen].cur_t <= charTime )
+		{
+			sum += solver[scen].do_step();
+
+			//solver_first[i].cur_t += solver_first[i].dt;
+			//++( solver_first[i].curTimeStep );
+
+			solver[scen].increaseTime();
+
+			//solver_second.dump_check_sol( -1 );
+		}
+		funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
+	}
+
+	cout << "\tfunc val done\n";
+	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
+	{
+		cout << "\t1st; scen " << scen << " " << funcVal1[scen] << endl;
+		cout << "\t2nd; scen " << scen << " " << funcVal2[scen] << endl;
+	}
+	cout << " -------------\n";
+
+	N_PRES Weight = J_WEIGHT;
+	ret = ( funcVal1[0] + funcVal1[1] + funcVal1[2]
+		+ funcVal2[0] + funcVal2[1] + funcVal2[2] ) / 3.0l
+			/*+ Weight * ( ( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[3] * exp( -SWITCH_TIME / x[5] ) * sin( M_PI * SWITCH_TIME / x[4] ) ) *
+						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[3] * exp( -SWITCH_TIME / x[5] ) * sin( M_PI * SWITCH_TIME / x[4] ) ) + 
+						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[6] * exp( -SWITCH_TIME / x[8] ) * sin( M_PI * SWITCH_TIME / x[7] ) ) *
+						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[6] * exp( -SWITCH_TIME / x[8] ) * sin( M_PI * SWITCH_TIME / x[7] ) ) +
+						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[9] * exp( -SWITCH_TIME / x[11] ) * sin( M_PI * SWITCH_TIME / x[10] ) ) * 
+						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[9] * exp( -SWITCH_TIME / x[11] ) * sin( M_PI * SWITCH_TIME / x[10] ) ) )*/;
+
+	time_t endtime = time( 0 );
+	cout << "\tdone in " << endtime - begin << endl;
+
+	cout << funcVal1[0] + funcVal2[0] << endl;
+	cout << funcVal1[1] + funcVal2[1] << endl;
+	cout << funcVal1[2] + funcVal2[2] << endl;
+
+	return ret;
+}
 //
 ////double calc1stOrdOptInfoASA( asa_objective* asa )
 ////{

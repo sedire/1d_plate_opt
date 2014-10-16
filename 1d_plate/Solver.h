@@ -378,7 +378,7 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	curTimeStep = 1;
 	switchTime = SWITCH_TIME;
 
-	dx = al * a / ( Km - 1 );
+	dx = a / ( Km - 1 );
 
 	beta = 0.25;
 
@@ -709,7 +709,7 @@ PL_NUM Solver<PL_NUM>::do_step()
 			cont = checkConv();
 		}
 		++iter;
-		cout << " : " << iter << endl;
+		//cout << " : " << iter << endl;
 	}while( cont == 1 );
 
 	for( int x = 0; x < Km; ++x )
@@ -818,11 +818,11 @@ void Solver<PL_NUM>::dump_check_sol( int fNum )
 	PL_NUM sum = 0.0;
 	for( int i = 0; i <= 1000000; ++i )
 	{
-		PL_NUM omg = (long double)( (long double)M_PI * (long double)M_PI * ( 2 * i + 1 ) * ( 2 * i + 1 ) ) * h / 2.0l / a / a * sqrt( B22 / 3.0l / rho );
+		PL_NUM omg = (long double)( (long double)M_PI * (long double)M_PI * ( 2.0 * i + 1.0 ) * ( 2.0 * i + 1.0 ) ) * h / 2.0l / a / a * sqrt( B22 / 3.0l / rho );
 
 		minusOne = -minusOne;
 
-		sum = sum + (long double)minusOne / ( 2 * i + 1 ) / ( 2 * i + 1 ) / ( 2 * i + 1 ) / ( 2 * i + 1 ) / ( 2 * i + 1 ) * cos( omg * t );
+		sum = sum + (long double)minusOne / ( 2.0 * i + 1.0 ) / ( 2.0 * i + 1.0 ) / ( 2.0 * i + 1.0 ) / ( 2.0 * i + 1.0 ) / ( 2.0 * i + 1.0 ) * cos( omg * t );
 	}
 	PL_NUM wTheor;
 	wTheor = - p0 * a * a * a * a / h / h / h / B22 * ( 5.0l / 32.0l - 48.0l / M_PI / M_PI / M_PI / M_PI / M_PI * sum );

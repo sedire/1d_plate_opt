@@ -67,18 +67,18 @@ int main()
 	solver->setTask( J0start, tauStart, tauStartExp, J0start_1, tauStart_1, tauStartExp_1, ByStart, p0, tauP );
 	solver->setSwitchTime( SWITCH_TIME );
 
-	while( solver->cur_t <= CHAR_TIME )
-	{
-		cout << solver->cur_t << endl;
+	//while( solver->cur_t <= CHAR_TIME )
+	//{
+	//	cout << solver->cur_t << endl;
 
-		solver->do_step();
+	//	solver->do_step();
 
-		//solver->dump_check_sol( -1 );
-		solver->dumpSolAll( -1 );
-		//solver->dump_whole_sol( 4 );
+	//	//solver->dump_check_sol( -1 );
+	//	solver->dumpSolAll( -1 );
+	//	//solver->dump_whole_sol( 4 );
 
-		solver->increaseTime();
-	}
+	//	solver->increaseTime();
+	//}
 
 	cout << "creating the AdjSolver\n";
 	AdjSolver adjSolver;
@@ -87,16 +87,16 @@ int main()
 	adjSolver.setPrimalDtData( resArrDt );
 	adjSolver.setAdjointSolnData( resArrAdj );
 
-	while( adjSolver.getCurTimeStep() >= 0 )
-	{
-		cout << " time is " << adjSolver.getCurTime() << " " << adjSolver.getCurTimeStep() << endl;
-		adjSolver.doStep();
-		adjSolver.dumpSol( -1 );
-		adjSolver.decreaseTime();
+	//while( adjSolver.getCurTimeStep() >= 0 )
+	//{
+	//	cout << " time is " << adjSolver.getCurTime() << " " << adjSolver.getCurTimeStep() << endl;
+	//	adjSolver.doStep();
+	//	adjSolver.dumpSol( -1 );
+	//	adjSolver.decreaseTime();
 
-		cout << " new time is " << adjSolver.getCurTime() << " " << adjSolver.getCurTimeStep() << endl;
-		//std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-	}
+	//	cout << " new time is " << adjSolver.getCurTime() << " " << adjSolver.getCurTimeStep() << endl;
+	//	//std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+	//}
 
 	adjTime = time( 0 ) - adjTime;
 
@@ -222,6 +222,12 @@ int main()
 
 	//Optimizer<HPD<N_PRES, GRAD_SIZE> > optimizer( solver, weightJ, weightB, CHAR_TIME );
 	//optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
+
+	double x[GRAD_SIZE_FULL] = { 0.0213812, 0.0111541, 0.0198321, 
+                                1.0, 0.00515865, 0.0025922,
+                                0.00991937, 0.00682416, 0.00001,
+                                1.0, 0.00370119, 0.00295973 };
+	calcValTaus( x, 0 );
 
 	delete solver;
 	cout << "\n -- Deleting the solution arrays now...\n";
