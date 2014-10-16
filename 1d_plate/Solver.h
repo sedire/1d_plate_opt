@@ -272,7 +272,7 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	Kt = 3;
 
 	dt = DELTA_T;
-	dx = al * a / Km;
+	dx = a / ( Km - 1 );
 
 	betta = 0.25;
 
