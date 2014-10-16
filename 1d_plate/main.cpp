@@ -6,6 +6,7 @@
 //#include "hyperDual.h"
 //#include "hyperDual2.h"
 #include <omp.h>
+#include "HagerOptFuncs.h"
 
 using std::cout;
 using std::endl;
@@ -21,21 +22,21 @@ int main()
 	//N_PRES weightJ = 50000.0l;
 	//N_PRES weightB = 1.0l / 6.0 / 6.0 / 6.0 * 6.0;
 
-	N_PRES J0start =  0.01;
-	N_PRES tauStart = 0.0048;
-	N_PRES tauStartExp = 0.0048;
+	N_PRES J0start =  0.0215698;
+	N_PRES tauStart = 0.0111486;
+	N_PRES tauStartExp = 0.0198796;
 
-	N_PRES J0start_1 =  0.01;
-	N_PRES tauStart_1 = 0.0048;
-	N_PRES tauStartExp_1 = 0.0048;
+	N_PRES J0start_1 =  1.0;
+	N_PRES tauStart_1 = 0.00515053;
+	N_PRES tauStartExp_1 = 0.00259337;
 
-	N_PRES J0start_2 =  0.01;
-	N_PRES tauStart_2 = 0.0048;
-	N_PRES tauStartExp_2 = 0.0048;
+	N_PRES J0start_2 =  0.00991937;
+	N_PRES tauStart_2 = 0.00682416;
+	N_PRES tauStartExp_2 = 0.00001;
 
-	N_PRES J0start_3 =  0.01;
-	N_PRES tauStart_3 = 0.0048;
-	N_PRES tauStartExp_3 = 0.0048;
+	N_PRES J0start_3 =  1.0;
+	N_PRES tauStart_3 = 0.00370372;
+	N_PRES tauStartExp_3 = 0.00295792;
 
 	N_PRES ByStart = 1.0;
 
@@ -74,8 +75,14 @@ int main()
 		J0start_2, tauStart_2, tauStartExp_2,
 		J0start_3, tauStart_3, tauStartExp_3;
 
+	double x[GRAD_SIZE_FULL] = { 0.0213812, 0.0111541, 0.0198321, 
+								1.0, 0.00515865, 0.0025922,
+								0.00991937, 0.00682416, 0.00001,
+								1.0, 0.00370119, 0.00295973 };
+	calcValTaus( x, 0 );
+
 	//Optimizer<HPD<N_PRES, GRAD_SIZE> > optimizer( solver, weightJ, weightB, CHAR_TIME );
-	optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
+	//optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
 
 	delete solver;
 
