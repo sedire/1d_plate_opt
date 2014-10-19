@@ -24,30 +24,6 @@ using std::stringstream;
 using std::complex;
 using namespace Eigen;
 
-//template<class PL_NUM>
-//struct SolverPar
-//{
-////parameters of the material
-//	PL_NUM E1;				//Young's modulus
-//	PL_NUM E2;				//Young's modulus
-//	PL_NUM nu21;			//Poisson's ratio	
-//	PL_NUM rho;				//composite's density
-//
-//	PL_NUM sigma_x;			//electric conductivity
-//	PL_NUM sigma_x_mu;
-//
-//	N_PRES h;				//thickness of the plate
-//	N_PRES a;				//width of the plate
-////other
-//	PL_NUM dt;
-////stress
-//	PL_NUM J0;
-//	PL_NUM omega;
-//	PL_NUM  p0;				//constant mechanical load
-//	int stress_type;
-//	int current_type;
-//};
-
 template<class PL_NUM>
 class Solver
 {
@@ -115,8 +91,8 @@ private:
 	PL_NUM J0;
 	PL_NUM J0_1;
 	PL_NUM  p0;				//constant mechanical load
-	int stress_type;
-	int current_type;
+	int stressType;
+	int currentType;
 
 	PL_NUM B11;
 	PL_NUM B22;
@@ -258,8 +234,8 @@ SolverPar inline Solver<N_PRES>::saveParamsToStruct()
 	saveTo.tauP = tauP;
 	saveTo.rad = rad;
 
-	saveTo.stress_type = stress_type;
-	saveTo.current_type = current_type;
+	saveTo.stressType = stressType;
+	saveTo.currentType = currentType;
 
 	saveTo.beta = beta;
 
@@ -362,8 +338,8 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	omega = (long double)M_PI / tauSin;
 	omega_1 = (long double)M_PI / tauSin_1;
 	
-	stress_type = stress_centered;
-	current_type = current_exp_sin;
+	stressType = stress_centered;
+	currentType = current_exp_sin;
 
 	By0 = _By0;
 	By0 *= BY0_SCALE;
@@ -476,15 +452,15 @@ template<class PL_NUM>
 void Solver<PL_NUM>::calc_nonlin_system( int _x )
 {
 	PL_NUM Jx = 0.0;
-	if( current_type == current_const )
+	if( currentType == current_const )
 	{
 		Jx = J0;
 	}
-	else if( current_type == current_sin )
+	else if( currentType == current_sin )
 	{
 		Jx = J0 * sin( omega * cur_t );
 	}
-	else if( current_type == current_exp_sin )
+	else if( currentType == current_exp_sin )
 	{
 		if( cur_t <= switchTime )
 		{
@@ -496,7 +472,7 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 		}
 	}
 	PL_NUM Pimp = 0.0l;
-	if( stress_type == stress_centered )
+	if( stressType == stress_centered )
 	{
 		if( cur_t < tauP && fabs( (long double)_x * dx - a / 2.0 ) < rad )
 		{
@@ -504,7 +480,7 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 				* sin( (long double)M_PI * cur_t / tauP );
 		}
 	}
-	else if( stress_type == stress_whole )
+	else if( stressType == stress_whole )
 	{
 		Pimp = p0;
 	}
@@ -693,13 +669,13 @@ PL_NUM Solver<PL_NUM>::do_step()
 
 	copyToResArr();
 
-	PL_NUM sum = 0.0l;
-	for( int y = 0; y < Km; ++y )
-	{
-		sum += mesh[y].Nk1[1] * mesh[y].Nk1[1];
-	}
-	//return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
-	return sum;
+	//PL_NUM sum = 0.0l;
+	//for( int y = 0; y < Km; ++y )
+	//{
+	//	sum += mesh[y].Nk1[1] * mesh[y].Nk1[1];
+	//}
+	return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
+	//return sum;
 }
 
 template<class PL_NUM>

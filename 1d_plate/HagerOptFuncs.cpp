@@ -94,8 +94,8 @@ double calcValGradTaus( double* g, double* x, long n )
 
 	HPD<N_PRES, GRAD_SIZE_SECOND> funcVal1[SCEN_NUMBER];
 	HPD<N_PRES, GRAD_SIZE_SECOND> funcVal2[SCEN_NUMBER];
-	N_PRES mechLoad[SCEN_NUMBER] = { 7500000, 10000000, 20000000 };
-	N_PRES mechTaus[SCEN_NUMBER] = { 0.008, 0.01, 0.012 };
+	N_PRES mechLoad[SCEN_NUMBER] = { GlobalP01, GlobalP02, GlobalP03 };
+	N_PRES mechTaus[SCEN_NUMBER] = { GlobalTauP1, GlobalTauP2, GlobalTauP3 };
 
 #pragma omp parallel for
 	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
@@ -111,29 +111,31 @@ double calcValGradTaus( double* g, double* x, long n )
 
 		while( solver_second[scen].cur_t <= SWITCH_TIME )
 		{
-			sum += solver_second[scen].do_step();
+			//sum += solver_second[scen].do_step();
+			sum = solver_second[scen].do_step();
+			funcVal1[scen] += sum * sum;
 
 			solver_second[scen].increaseTime();
 
 			//solver_second.dump_check_sol( -1 );
 		}
-		funcVal1[scen] = sum * dt * dy / SWITCH_TIME;
+		//funcVal1[scen] = sum * dt * dy / SWITCH_TIME;
+		funcVal1[scen] /= SWITCH_TIME;
 
 		funcVal2[scen] = 0.0l;
 		HPD<N_PRES, GRAD_SIZE_SECOND> val2;
 		sum = 0.0;
 		while( solver_second[scen].cur_t <= charTime )
 		{
-			//cout << "\t\t both -- " << solver.cur_t.real() << " params: " << x[0] << " " << x[1] << " " << x[2] << endl;
-			sum += solver_second[scen].do_step();
+			sum = solver_second[scen].do_step();
+			funcVal2[scen] += sum * sum; 
 
 			solver_second[scen].increaseTime();
-			//solver_second[scen].cur_t += solver_second[scen].dt;
-			//++( solver_second[i].curTimeStep );
 
 			//solver_second.dump_check_sol( -1 );
 		}
-		funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
+		//funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
+		funcVal2[scen] /= ( charTime - SWITCH_TIME );
 	}
 
 	cout << "\tfunc val done\n";
@@ -266,8 +268,8 @@ double calcValTaus( double* x, long n )
 
 	N_PRES funcVal1[SCEN_NUMBER];
 	N_PRES funcVal2[SCEN_NUMBER];
-	N_PRES mechLoad[SCEN_NUMBER] = { 7500000, 10000000, 20000000 };
-	N_PRES mechTaus[SCEN_NUMBER] = { 0.008, 0.01, 0.012 };
+	N_PRES mechLoad[SCEN_NUMBER] = { GlobalP01, GlobalP02, GlobalP03 };
+	N_PRES mechTaus[SCEN_NUMBER] = { GlobalTauP1, GlobalTauP2, GlobalTauP3 };
 
 #pragma omp parallel for
 	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
@@ -280,24 +282,30 @@ double calcValTaus( double* x, long n )
 
 		while( solver[scen].cur_t <= SWITCH_TIME )
 		{
-			sum += solver[scen].do_step();
+			//sum += solver[scen].do_step();
+			sum = solver[scen].do_step();
+			funcVal1[scen] += sum * sum; 
 
 			solver[scen].increaseTime(); 
 
 			//solver_second.dump_check_sol( -1 );
 		}
-		funcVal1[scen] = sum * dt * dy / SWITCH_TIME;
+		//funcVal1[scen] = sum * dt * dy / SWITCH_TIME;
+		funcVal1[scen] /= SWITCH_TIME;
 
 		sum = 0.0;
 		while( solver[scen].cur_t <= charTime )
 		{
-			sum += solver[scen].do_step();
+			//sum += solver[scen].do_step();
+			sum = solver[scen].do_step();
+			funcVal2[scen] += sum * sum;
 
 			solver[scen].increaseTime();
 
 			//solver_second.dump_check_sol( -1 );
 		}
-		funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
+		//funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
+		funcVal2[scen] /= ( charTime - SWITCH_TIME );
 	}
 
 	cout << "\tfunc val done\n";

@@ -32,8 +32,8 @@ AdjSolver::AdjSolver() :
 	tauP( 0 ),
 	rad( 0 ),
 
-	stress_type( 0 ),
-	current_type( 0 ),
+	stressType( 0 ),
+	currentType( 0 ),
 
 	beta( 0 ),
 
@@ -130,8 +130,8 @@ void AdjSolver::loadParamsFromStruct( const SolverPar& loadFrom )
 	tauP = loadFrom.tauP;
 	rad = loadFrom.rad;
 
-	stress_type = loadFrom.stress_type;
-	current_type = loadFrom.current_type;
+	stressType = loadFrom.stressType;
+	currentType = loadFrom.currentType;
 
 	beta = loadFrom.beta;
 
@@ -263,15 +263,15 @@ void AdjSolver::calcNewmarkAB( int y )
 void AdjSolver::calcSystemMatrices( int y )
 {
 	N_PRES Jx = 0.0;
-	if( current_type == current_const )
+	if( currentType == current_const )
 	{
 		Jx = J0;
 	}
-	else if( current_type == current_sin )
+	else if( currentType == current_sin )
 	{
 		Jx = J0 * sin( (long double)M_PI / tauSin * curTime );
 	}
-	else if( current_type == current_exp_sin )
+	else if( currentType == current_exp_sin )
 	{
 		if( curTime <= switchTime )
 		{
@@ -339,15 +339,15 @@ void AdjSolver::calcSystemMatrices( int y )
 //{
 //	N_PRES coef = 1;
 //	N_PRES Jx = 0.0;
-//	if( current_type == current_const )
+//	if( currentType == current_const )
 //	{
 //		Jx = J0;
 //	}
-//	else if( current_type == current_sin )
+//	else if( currentType == current_sin )
 //	{
 //		Jx = J0 * sin( (long double)M_PI / tauSin * curTime );
 //	}
-//	else if( current_type == current_exp_sin )
+//	else if( currentType == current_exp_sin )
 //	{
 //		if( curTime <= switchTime )
 //		{

@@ -32,8 +32,8 @@ struct SolverPar
 	N_PRES tauP;
 	N_PRES rad;
 
-	int stress_type;
-	int current_type;
+	int stressType;
+	int currentType;
 //Newmark params
 	N_PRES beta;
 //some other
