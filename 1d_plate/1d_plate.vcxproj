@@ -118,6 +118,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AdjSolver.cpp" />
     <ClCompile Include="asa_cg.cpp" />
     <ClCompile Include="HagerOptFuncs.cpp" />
     <ClCompile Include="main.cpp" />
@@ -129,6 +130,7 @@
     <ClCompile Include="VarVect.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AdjSolver.h" />
     <ClInclude Include="asa_cg.h" />
     <ClInclude Include="asa_user.h" />
     <ClInclude Include="cg_blas.h" />
@@ -141,6 +143,7 @@
     <ClInclude Include="plate_var_types.h" />
     <ClInclude Include="RungeKutta.h" />
     <ClInclude Include="Solver.h" />
+    <ClInclude Include="SolverPar.h" />
     <ClInclude Include="VarVect.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

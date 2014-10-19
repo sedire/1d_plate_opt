@@ -3,10 +3,10 @@
 #include "Solver.h"
 #include "Plate.h"
 #include "Optimizer.h"
-//#include "hyperDual.h"
-//#include "hyperDual2.h"
-#include <omp.h>
 #include "HagerOptFuncs.h"
+#include <omp.h>
+#include "SolverPar.h"
+#include "AdjSolver.h"
 
 using std::cout;
 using std::endl;
@@ -17,26 +17,40 @@ int main()
 
 	omp_set_num_threads( THREAD_NUM );
 
-	Solver<HPD<N_PRES, GRAD_SIZE> >* solver = new Solver<HPD<N_PRES, GRAD_SIZE> >();
+	time_t adjTime = 0;
+	time_t hpdTime = 0;
 
-	//N_PRES weightJ = 50000.0l;
-	//N_PRES weightB = 1.0l / 6.0 / 6.0 / 6.0 * 6.0;
+	//N_PRES J0start =  0.0215698;
+	//N_PRES tauStart = 0.0111486;
+	//N_PRES tauStartExp = 0.0198796;
 
-	N_PRES J0start =  0.0215698;
-	N_PRES tauStart = 0.0111486;
-	N_PRES tauStartExp = 0.0198796;
+	//N_PRES J0start_1 =  1.0;
+	//N_PRES tauStart_1 = 0.00515053;
+	//N_PRES tauStartExp_1 = 0.00259337;
 
-	N_PRES J0start_1 =  1.0;
-	N_PRES tauStart_1 = 0.00515053;
-	N_PRES tauStartExp_1 = 0.00259337;
+	//N_PRES J0start_2 =  0.00991937;
+	//N_PRES tauStart_2 = 0.00682416;
+	//N_PRES tauStartExp_2 = 0.00001;
 
-	N_PRES J0start_2 =  0.00991937;
-	N_PRES tauStart_2 = 0.00682416;
-	N_PRES tauStartExp_2 = 0.00001;
+	//N_PRES J0start_3 =  1.0;
+	//N_PRES tauStart_3 = 0.00370372;
+	//N_PRES tauStartExp_3 = 0.00295792;
 
-	N_PRES J0start_3 =  1.0;
-	N_PRES tauStart_3 = 0.00370372;
-	N_PRES tauStartExp_3 = 0.00295792;
+	N_PRES J0start =  0.01;
+	N_PRES tauStart = 0.0048;
+	N_PRES tauStartExp = 0.0048;
+
+	N_PRES J0start_1 =  0.01;
+	N_PRES tauStart_1 = 0.0048;
+	N_PRES tauStartExp_1 = 0.0048;
+
+	N_PRES J0start_2 =  0.01;
+	N_PRES tauStart_2 = 0.0048;
+	N_PRES tauStartExp_2 = 0.0048;
+
+	N_PRES J0start_3 =  0.01;
+	N_PRES tauStart_3 = 0.0048;
+	N_PRES tauStartExp_3 = 0.0048;
 
 	N_PRES ByStart = 1.0;
 
@@ -58,15 +72,10 @@ int main()
 	//cout << ".........\n";
 	//cout << "... done!\n";
 
-	//cout << " total time: " << solver2->totalTime << endl;
-	//cout << " rgk time: " << solver2->rgkTime << endl;
-	//cout << " matr time: " << solver2->matrTime << endl;
-	//cout << " buildSoln time: " << solver2->buildSolnTime << endl;
-	//cout << "  ortho time: " << solver2->orthoTime << endl;
-	//cout << " ortho time from orthoBuilder: " << solver2->getOrthoBTime() << endl;
 
-	//std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-	//return 0;
+	cout << " adjTime " << adjTime << endl;
+	cout << " hpdTIme " << hpdTime << endl;
+
 ///////////////////////////////////////
 
 	Matrix<N_PRES, GRAD_SIZE_FULL, 1> params;
@@ -75,16 +84,15 @@ int main()
 		J0start_2, tauStart_2, tauStartExp_2,
 		J0start_3, tauStart_3, tauStartExp_3;
 
-	double x[GRAD_SIZE_FULL] = { 0.0213812, 0.0111541, 0.0198321, 
-								1.0, 0.00515865, 0.0025922,
-								0.00991937, 0.00682416, 0.00001,
-								1.0, 0.00370119, 0.00295973 };
-	calcValTaus( x, 0 );
+	//double x[GRAD_SIZE_FULL] = { 0.0267403, 0.0110724, 0.0213401, 
+	//							1.0, 0.00514927, 0.00271984,
+	//							0.00991937, 0.00682416, 0.00001,
+	//							1.0, 0.00371071, 0.00313839 };
+	//calcValTaus( x, 0 );
 
-	//Optimizer<HPD<N_PRES, GRAD_SIZE> > optimizer( solver, weightJ, weightB, CHAR_TIME );
-	//optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
+	optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
 
-	delete solver;
+	cout << "\n -- Deleting the solution arrays now...\n";
 
 	cout << ".........\n";
 	cout << "... done!\n";

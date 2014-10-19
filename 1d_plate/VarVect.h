@@ -22,7 +22,7 @@ public:
 	vector<PL_NUM> d1N;
 	vector<PL_NUM> d2N;
 
-	vector<PL_NUM> Nk0;			//don't really know why we need these. some computational tricks, probably
+	vector<PL_NUM> Nk0;
 	vector<PL_NUM> d1N0;
 	vector<PL_NUM> d2N0;
 };
@@ -65,5 +65,20 @@ void VarVect<PL_NUM>::setup( int _eq_num )
 	d1N0.resize( _eq_num, 0.0 );
 	d2N0.resize( _eq_num, 0.0 );
 }
+
+class VarVectAdj
+{
+public:
+	VarVectAdj();
+	VarVectAdj( int _eq_num );
+	~VarVectAdj();
+	void setup( int _eq_num );
+
+	vector<N_PRES> N;	//soln for the current time step
+
+	vector<N_PRES> N1;	//soln from the previous time step (at t + dt)
+	vector<N_PRES> d1N1;
+	vector<N_PRES> d2N1;
+};
 
 #endif
