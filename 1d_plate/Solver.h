@@ -31,6 +31,8 @@ public:
 	Solver();
 	~Solver();
 
+	int maxNewtonIterReached();
+
 	N_PRES* resArr;		//array to keep all the results obtained
 	N_PRES* resArrDt;
 
@@ -74,6 +76,8 @@ public:
 	time_t buildSolnTime1;
 private:
 	void calcConsts();
+
+	int maxNewtonIterReached;
 
 	PL_NUM E1;				//Young's modulus
 	PL_NUM E2;				//Young's modulus
@@ -170,9 +174,16 @@ Solver<PL_NUM>::Solver() :
 	matrTime( 0 ),
 	buildSolnTime1( 0 ),
 	buildSolnTime( 0 ),
-	resArr( 0 )
+	resArr( 0 ),
+	maxNewtonIterReached( 0 )
 {
 	
+}
+
+template<class PL_NUM>
+int Solver<PL_NUM>::maxNewtonIterReached()
+{
+	return maxNewtonIterReached;
 }
 
 template<class PL_NUM>
@@ -650,7 +661,12 @@ PL_NUM Solver<PL_NUM>::do_step()
 		}
 		++iter;
 		//cout << " : " << iter << endl;
-	}while( cont == 1 );
+	}while( cont == 1 && iter <= MAX_NEWTON_ITER );
+
+	if( iter >= MAX_NEWTON_ITER )
+	{
+		maxNewtonIterReached = 1;
+	}
 
 	for( int x = 0; x < Km; ++x )
 	{
