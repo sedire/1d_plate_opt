@@ -650,7 +650,12 @@ PL_NUM Solver<PL_NUM>::do_step()
 		}
 		++iter;
 		//cout << " : " << iter << endl;
-	}while( cont == 1 );
+	}while( cont == 1 && iter <= 10 );
+
+	if( iter >= 10 )
+	{
+		cout << " -- solver required " << iter << " iterations\n";
+	}
 
 	for( int x = 0; x < Km; ++x )
 	{
