@@ -102,8 +102,7 @@ double calcValGradTaus( double* g, double* x, long n )
 	{
 		cout << omp_get_thread_num() << endl;
 		
-		solver_second[scen].setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen], B0begin2, 10000000, 0.01 );
-		solver_second[scen].setMechLoad( mechLoad[scen], mechTaus[scen] );
+		solver_second[scen].setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen], B0begin2, mechLoad[scen], mechTaus[scen] );
 
 		HPD<N_PRES, GRAD_SIZE_SECOND> sum = 0.0;
 		funcVal1[scen] = 0.0l;
@@ -136,6 +135,11 @@ double calcValGradTaus( double* g, double* x, long n )
 		}
 		//funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
 		funcVal2[scen] /= ( charTime - SWITCH_TIME );
+
+		if( solver[scen].maxNewtonIterReached() == 1 )
+		{
+			cout << " WARNING: scenario " << scen << " solver used too many newton iterations\n";
+		}
 	}
 
 	cout << "\tfunc val done\n";
@@ -276,8 +280,7 @@ double calcValTaus( double* x, long n )
 	{
 		funcVal1[scen] = 0.0l;
 		funcVal2[scen] = 0.0l;
-		solver[scen].setTask( J0begin, tauBeginSin, tauBeginExp, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen], B0begin, 10000000, 0.01 );
-		solver[scen].setMechLoad( mechLoad[scen], mechTaus[scen] );
+		solver[scen].setTask( J0begin, tauBeginSin, tauBeginExp, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen], B0begin, mechLoad[scen], mechTaus[scen] );
 		N_PRES sum = 0.0;
 
 		while( solver[scen].cur_t <= SWITCH_TIME )
@@ -306,6 +309,11 @@ double calcValTaus( double* x, long n )
 		}
 		//funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
 		funcVal2[scen] /= ( charTime - SWITCH_TIME );
+
+		if( solver[scen].maxNewtonIterReached() == 1 )
+		{
+			cout << " WARNING: scenario " << scen << " solver used too many newton iterations\n";
+		}
 	}
 
 	cout << "\tfunc val done\n";

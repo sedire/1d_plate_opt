@@ -23,6 +23,8 @@
 #define GRAD_SIZE_FIRST 3
 #define GRAD_SIZE_SECOND 6
 
+#define MAX_NEWTON_ITER 10
+
 #define SCEN_NUMBER 3
 
 enum {stress_whole, stress_centered};
