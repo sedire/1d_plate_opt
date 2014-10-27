@@ -13,7 +13,7 @@ AdjSolver::AdjSolver() :
 	a( 0 ),
 
 	dt( 0 ),
-	totTimeSteps( CHAR_TIME / DELTA_T + 1 ),
+	totTimeSteps( ( int )( CHAR_TIME / DELTA_T + 1 ) ),
 	Km( 0 ),
 	dx( 0 ),
 
@@ -242,6 +242,10 @@ void AdjSolver::setAdjointSolnData( N_PRES* _adjSoln )
 	if( _adjSoln != 0 )
 	{
 		adjSoln = _adjSoln;
+		for( int i = 0; i < ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM; ++i )
+		{
+			adjSoln[i] = 0.0;
+		}
 	}
 	else
 	{
@@ -518,7 +522,7 @@ N_PRES AdjSolver::calcJDeriv()
 		}
 	}
 
-	return sum;
+	return sum * J0_SCALE;
 }
 
 N_PRES AdjSolver::calcJ0Deriv()
@@ -541,7 +545,7 @@ N_PRES AdjSolver::calcJ0Deriv()
 		}
 	}
 
-	return sum;
+	return sum * J0_SCALE;
 }
 
 N_PRES AdjSolver::calcJ1Deriv()
@@ -564,7 +568,7 @@ N_PRES AdjSolver::calcJ1Deriv()
 		}
 	}
 
-	return sum;
+	return sum * J0_SCALE;
 }
 
 N_PRES AdjSolver::calcTauSinDeriv()

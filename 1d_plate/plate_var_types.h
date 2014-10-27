@@ -3,7 +3,7 @@
 
 #define _USE_MATH_DEFINES
 
-#define THREAD_NUM 4
+#define THREAD_NUM 2
 
 #define N_PRES long double
 //#define PL_NUM complex<long double>
@@ -14,7 +14,7 @@
 #define CHAR_TIME 0.05l
 #define SWITCH_TIME 0.01l
 #define DELTA_T 0.0001
-#define NODES_Y 10002	//CHANGE THIS BACK to 10001
+#define NODES_Y 10001	//CHANGE THIS BACK to 10001
 
 #define J_WEIGHT 1.0l
 
@@ -37,5 +37,10 @@ const N_PRES GlobalP03( 20000000 );
 const N_PRES GlobalTauP1( 0.008 );
 const N_PRES GlobalTauP2( 0.01 );
 const N_PRES GlobalTauP3( 0.012 );
+
+//global arrays for adjoint
+extern N_PRES* GlobalResArrays;
+extern N_PRES* GlobalResDtArrays;
+extern N_PRES* GlobalResAdjArrays;
 
 #endif

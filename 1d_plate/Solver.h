@@ -42,7 +42,7 @@ public:
 	void setMechLoad( PL_NUM _p0, PL_NUM _tauP );
 	void setSwitchTime( N_PRES _switchTime );
 	void setResArray( N_PRES* _resArr );
-	void setResArrayDt( N_PRES* _resArrDt );
+	void setResDtArray( N_PRES* _resArrDt );
 
 	PL_NUM increaseTime();
 
@@ -175,6 +175,7 @@ Solver<PL_NUM>::Solver() :
 	buildSolnTime1( 0 ),
 	buildSolnTime( 0 ),
 	resArr( 0 ),
+	resArrDt( 0 ),
 	maxNewtonIterReached( 0 )
 {
 	
@@ -195,7 +196,7 @@ void Solver<PL_NUM>::copyToResArr() 	//do nothing in this case
 template<>
 void inline Solver<N_PRES>::copyToResArr() 	//do nothing in this case
 {
-	if( resArr != 0 )
+	if( resArr != 0 && resArrDt != 0 )
 	{
 		for( int y = 0; y < Km; ++y )
 		{
@@ -273,13 +274,35 @@ Solver<PL_NUM>::~Solver()
 template<class PL_NUM>
 void Solver<PL_NUM>::setResArray( N_PRES* _resArr )
 {
-	resArr = _resArr;
+	if( _resArr != 0 )
+	{
+		resArr = _resArr;
+		for( int i = 0; i < ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM; ++i )
+		{
+			resArr[i] = 0.0;
+		}
+	}
+	else
+	{
+		cout << "WARNING! pointer to the solution of the primal problem is NULL!\n";
+	}
 }
 
 template<class PL_NUM>
-void Solver<PL_NUM>::setResArrayDt( N_PRES* _resArrDt )
+void Solver<PL_NUM>::setResDtArray( N_PRES* _resArrDt )
 {
-	resArrDt = _resArrDt;
+	if( _resArrDt != 0 )
+	{
+		resArrDt = _resArrDt;
+		for( int i = 0; i < ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM; ++i )
+		{
+			resArrDt[i] = 0.0;
+		}
+	}
+	else
+	{
+		cout << "WARNING! pointer to the solution of the dt of the primal problem is NULL!\n";
+	}
 }
 
 template<class PL_NUM>
@@ -685,13 +708,13 @@ PL_NUM Solver<PL_NUM>::do_step()
 
 	copyToResArr();
 
-	//PL_NUM sum = 0.0l;
-	//for( int y = 0; y < Km; ++y )
-	//{
-	//	sum += mesh[y].Nk1[1] * mesh[y].Nk1[1];
-	//}
-	return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
-	//return sum;
+	PL_NUM sum = 0.0l;
+	for( int y = 0; y < Km; ++y )
+	{
+		sum += mesh[y].Nk1[1] * mesh[y].Nk1[1];
+	}
+	//return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
+	return sum;
 }
 
 template<class PL_NUM>

@@ -11,6 +11,10 @@
 using std::cout;
 using std::endl;
 
+N_PRES* GlobalResArrays = new N_PRES[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
+N_PRES* GlobalResDtArrays = new N_PRES[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
+N_PRES* GlobalResAdjArrays = new N_PRES[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
+
 int main()
 {
 	cout << "hello\n";
@@ -88,15 +92,32 @@ int main()
 	//							1.0, 0.00514927, 0.00271984,
 	//							0.00991937, 0.00682416, 0.00001,
 	//							1.0, 0.00371071, 0.00313839 };
-	//calcValTaus( x, 0 );
+	double x[GRAD_SIZE_FULL] = { 0.01, 0.0048, 0.0048, 
+								0.01, 0.0048, 0.0048, 
+								0.01, 0.0048, 0.0048, 
+								0.01, 0.0048, 0.0048 };
 
-	optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
+	double gAdj[GRAD_SIZE_FULL];
+	double g[GRAD_SIZE_FULL];
 
-	//double oldOpt[GRAD_SIZE_FULL] = { 0.0215738, 0.0111453, 0.0198357, 1, 0.00515025, 0.00259262, 0.00382125, 0.00760656, 1e-005, 1, 0.00370397, 0.00295957 };
-	//double oldObjVal = calcValTaus( oldOpt, 1 );
-	//cout << " old obj is " << oldObjVal << endl;
+	double valAdj = calcValGradTausAdj( gAdj, x, 0 );
+	double val = calcValGradTaus( g, x, 0 );
+
+	cout << " ----------\n";
+	cout << " == " << val << " " << valAdj << endl;
+	for( int i = 0; i < GRAD_SIZE_FULL; ++i )
+	{
+		cout << " :: " << g[i] << " " << gAdj[i] << endl;
+	}
+	cout << " ----------\n";
+
+	//optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
 
 	cout << "\n -- Deleting the solution arrays now...\n";
+
+	delete[] GlobalResArrays;
+	delete[] GlobalResDtArrays;
+	delete[] GlobalResAdjArrays;
 
 	cout << ".........\n";
 	cout << "... done!\n";
