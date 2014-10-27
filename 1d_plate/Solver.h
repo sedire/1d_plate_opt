@@ -31,7 +31,7 @@ public:
 	Solver();
 	~Solver();
 
-	int maxNewtonIterReached();
+	int getMaxNewtonIterReached();
 
 	N_PRES* resArr;		//array to keep all the results obtained
 	N_PRES* resArrDt;
@@ -181,7 +181,7 @@ Solver<PL_NUM>::Solver() :
 }
 
 template<class PL_NUM>
-int Solver<PL_NUM>::maxNewtonIterReached()
+int Solver<PL_NUM>::getMaxNewtonIterReached()
 {
 	return maxNewtonIterReached;
 }

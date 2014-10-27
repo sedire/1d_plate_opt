@@ -136,7 +136,7 @@ double calcValGradTaus( double* g, double* x, long n )
 		//funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
 		funcVal2[scen] /= ( charTime - SWITCH_TIME );
 
-		if( solver[scen].maxNewtonIterReached() == 1 )
+		if( solver_second[scen].getMaxNewtonIterReached() == 1 )
 		{
 			cout << " WARNING: scenario " << scen << " solver used too many newton iterations\n";
 		}
@@ -310,7 +310,7 @@ double calcValTaus( double* x, long n )
 		//funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
 		funcVal2[scen] /= ( charTime - SWITCH_TIME );
 
-		if( solver[scen].maxNewtonIterReached() == 1 )
+		if( solver[scen].getMaxNewtonIterReached() == 1 )
 		{
 			cout << " WARNING: scenario " << scen << " solver used too many newton iterations\n";
 		}

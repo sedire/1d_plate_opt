@@ -92,6 +92,10 @@ int main()
 
 	optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
 
+	//double oldOpt[GRAD_SIZE_FULL] = { 0.0215738, 0.0111453, 0.0198357, 1, 0.00515025, 0.00259262, 0.00382125, 0.00760656, 1e-005, 1, 0.00370397, 0.00295957 };
+	//double oldObjVal = calcValTaus( oldOpt, 1 );
+	//cout << " old obj is " << oldObjVal << endl;
+
 	cout << "\n -- Deleting the solution arrays now...\n";
 
 	cout << ".........\n";

@@ -44,6 +44,17 @@
 #include "asa_cg.h"
 #include "cg_blas.h"
 
+#include <fstream>
+
+using std::ofstream;
+
+void printCurF( int _iter, double _f, double _g )
+{
+	ofstream of( "f_iters.txt", ofstream::app );
+	of << _iter << " " << _f << " " << _g << "\n";
+	of.close();
+}
+
 /* begin external variables */
 double one [1], zero [1] ;
 BLAS_INT blas_one [1] ;
@@ -814,6 +825,7 @@ PRIVATE int asa_descent /*  return:
     {
         printf ("iter: %5i f = %14.6e pgnorm = %14.6e ginorm = %14.6e "
                 "memk: %i\n", (int) 0, f, pgnorm, ginorm, memk) ;
+		printCurF( 0, f, pgnorm );
     }
 
     dphi0 = -gnorm2 ;
@@ -2080,6 +2092,7 @@ PRIVATE int asa_descent /*  return:
             printf ("\niter: %5i f = %14.6e pgnorm = %14.6e ginorm = %14.6e "
                     "memk: %i Subspace: %i\n",
                     (int) iter, f, pgnorm, ginorm, memk, Subspace) ;
+			printCurF( iter, f, pgnorm );
         }
 
         if ( Parm->debug )
@@ -2136,6 +2149,7 @@ Exit1:
     {
         printf ("\niter: %5i f = %14.6e pgnorm = %14.6e ginorm = %14.6e\n",
                 (int) iter, f, pgnorm, ginorm) ;
+		printCurF( iter, f, pgnorm );
     }
     if ( PrintLevel >= 2 )
     {
