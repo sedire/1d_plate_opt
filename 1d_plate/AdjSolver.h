@@ -28,6 +28,8 @@ public:
 	void setAdjointSolnData( N_PRES* _adjSoln );
 
 	N_PRES doStep();		//the adjoint problem is solved backwards in time
+	void scalePrevTimeStepSoln();
+
 	void decreaseTime();
 	N_PRES getCurTime();
 	int getCurTimeStep();
@@ -36,14 +38,20 @@ public:
 	N_PRES calcJDeriv();
 	N_PRES calcJ0Deriv();
 	N_PRES calcJ1Deriv();
+	N_PRES calcJ0DerivS();
+	N_PRES calcJ1DerivS();
 
 	N_PRES calcTauSinDeriv();
 	N_PRES calcTauSin0Deriv();
 	N_PRES calcTauSin1Deriv();
+	N_PRES calcTauSin0DerivS();
+	N_PRES calcTauSin1DerivS();
 
 	N_PRES calcTauExpDeriv();
 	N_PRES calcTauExp0Deriv();
 	N_PRES calcTauExp1Deriv();
+	N_PRES calcTauExp0DerivS();
+	N_PRES calcTauExp1DerivS();
 
 private:
 //parameters of the material

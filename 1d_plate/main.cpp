@@ -92,7 +92,7 @@ int main()
 	//							1.0, 0.00514927, 0.00271984,
 	//							0.00991937, 0.00682416, 0.00001,
 	//							1.0, 0.00371071, 0.00313839 };
-	double x[GRAD_SIZE_FULL] = { 0.01, 0.0048, 0.0048, 
+	/*double x[GRAD_SIZE_FULL] = { 0.01, 0.0048, 0.0048, 
 								0.01, 0.0048, 0.0048, 
 								0.01, 0.0048, 0.0048, 
 								0.01, 0.0048, 0.0048 };
@@ -107,11 +107,11 @@ int main()
 	cout << " == " << val << " " << valAdj << endl;
 	for( int i = 0; i < GRAD_SIZE_FULL; ++i )
 	{
-		cout << " :: " << g[i] << " " << gAdj[i] << endl;
+		cout << " :: " << g[i] << " " << gAdj[i] << " " << fabs( ( g[i] - gAdj[i] ) / g[i] ) * 100.0 << " % " << endl;
 	}
-	cout << " ----------\n";
+	cout << " ----------\n";*/
 
-	//optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
+	optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
 
 	cout << "\n -- Deleting the solution arrays now...\n";
 

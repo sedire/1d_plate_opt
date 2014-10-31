@@ -63,7 +63,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>D:\research\EigenLib;$(IncludePath)</IncludePath>
+    <IncludePath>D:\research\libraries\eigen-eigen-2249f9c22fe8;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>D:\research\libraries\eigen-eigen-2249f9c22fe8;$(IncludePath)</IncludePath>
