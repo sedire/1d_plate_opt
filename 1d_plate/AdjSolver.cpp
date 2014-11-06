@@ -422,8 +422,8 @@ N_PRES AdjSolver::doStep()
 	N1( 2 ) = 0.0;	N2( 2 ) = 0.0;	N3( 2 ) = 0.0;	N4( 2 ) = 0.0;	N5( 2 ) = 0.0;
 	N1( 3 ) = 0.0;	N2( 3 ) = 0.0;	N3( 3 ) = 0.0;	N4( 3 ) = 0.0;	N5( 3 ) = 0.0;
 	N1( 4 ) = 0.0;	N2( 4 ) = 0.0;	N3( 4 ) = 0.0;	N4( 4 ) = 0.0;	N5( 4 ) = 0.0;
-	N1( 5 ) = 0.0;	N2( 5 ) = 0.0;	N3( 5 ) = 1.0;	N4( 5 ) = 0.0;	N5( 5 ) = 0.0;
-	N1( 6 ) = 0.0;	N2( 6 ) = 0.0;	N3( 6 ) = 0.0;	N4( 6 ) = 1.0;	N5( 6 ) = 0.0;
+	N1( 5 ) = 0.0;	N2( 5 ) = 0.0;	N3( 5 ) = 1.0;	N4( 5 ) = 0.0;	N5( 5 ) = 0.5;
+	N1( 6 ) = 0.0;	N2( 6 ) = 0.0;	N3( 6 ) = 0.0;	N4( 6 ) = 1.0;	N5( 6 ) = 0.5;
 	N1( 7 ) = 0.0;	N2( 7 ) = 0.0;	N3( 7 ) = 0.0;	N4( 7 ) = 0.0;	N5( 7 ) = 0.0;
 
 	orthoBuilder->flushO( 0 );
@@ -649,7 +649,7 @@ N_PRES AdjSolver::calcTauSinDeriv()
 		for( int t = 0; t < totTimeSteps; ++t )
 		{
 			N_PRES innerSum = 0.0;
-			for( int y = 0; y < Km - 1; ++y )
+			for( int y = 0; y < Km; ++y )
 			{
 				innerSum += ( adjSoln[t * ( Km * eq_num ) + y * eq_num + 3] * h * primSoln[t * ( Km * eq_num ) + y * eq_num + 7]
 					- adjSoln[t * ( Km * eq_num ) + y * eq_num + 4] * 0.5 * h * By1 );
@@ -673,7 +673,7 @@ N_PRES AdjSolver::calcTauSin0Deriv()
 			if( t * dt <= SWITCH_TIME )
 			{
 				N_PRES innerSum = 0.0;
-				for( int y = 0; y < Km - 1; ++y )
+				for( int y = 0; y < Km; ++y )
 				{
 					innerSum += ( adjSoln[t * ( Km * eq_num ) + y * eq_num + 3] * h * primSoln[t * ( Km * eq_num ) + y * eq_num + 7]
 						- adjSoln[t * ( Km * eq_num ) + y * eq_num + 4] * 0.5 * h * By1 );
@@ -698,7 +698,7 @@ N_PRES AdjSolver::calcTauSin0DerivS()
 			if( t * dt < SWITCH_TIME )
 			{
 				N_PRES innerSum = 0.0;
-				for( int y = 0; y < Km - 1; ++y )
+				for( int y = 0; y < Km; ++y )
 				{
 					innerSum += ( adjSoln[t * ( Km * eq_num ) + y * eq_num + 3] * h * primSoln[t * ( Km * eq_num ) + y * eq_num + 7]
 						- adjSoln[t * ( Km * eq_num ) + y * eq_num + 4] * 0.5 * h * By1 );
@@ -709,7 +709,7 @@ N_PRES AdjSolver::calcTauSin0DerivS()
 			{
 				N_PRES coef = SWITCH_TIME / ( CHAR_TIME - SWITCH_TIME );
 				N_PRES innerSum = 0.0;
-				for( int y = 0; y < Km - 1; ++y )
+				for( int y = 0; y < Km; ++y )
 				{
 					innerSum += ( coef * adjSoln[t * ( Km * eq_num ) + y * eq_num + 3] * h * primSoln[t * ( Km * eq_num ) + y * eq_num + 7]
 						- coef * adjSoln[t * ( Km * eq_num ) + y * eq_num + 4] * 0.5 * h * By1 );
@@ -734,7 +734,7 @@ N_PRES AdjSolver::calcTauSin1Deriv()
 			if( t * dt > SWITCH_TIME )
 			{
 				N_PRES innerSum = 0.0;
-				for( int y = 0; y < Km - 1; ++y )
+				for( int y = 0; y < Km; ++y )
 				{
 					innerSum += ( adjSoln[t * ( Km * eq_num ) + y * eq_num + 3] * h * primSoln[t * ( Km * eq_num ) + y * eq_num + 7]
 						- adjSoln[t * ( Km * eq_num ) + y * eq_num + 4] * 0.5 * h * By1 );
@@ -759,7 +759,7 @@ N_PRES AdjSolver::calcTauSin1DerivS()
 			if( t * dt > SWITCH_TIME )
 			{
 				N_PRES innerSum = 0.0;
-				for( int y = 0; y < Km - 1; ++y )
+				for( int y = 0; y < Km; ++y )
 				{
 					innerSum += ( adjSoln[t * ( Km * eq_num ) + y * eq_num + 3] * h * primSoln[t * ( Km * eq_num ) + y * eq_num + 7]
 						- adjSoln[t * ( Km * eq_num ) + y * eq_num + 4] * 0.5 * h * By1 );

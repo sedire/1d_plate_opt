@@ -131,6 +131,12 @@ private:
 	//vector<PL_NUM> nonlin_matr_A;		//matrix A for the nonlinear system at certain t and x
 	//vector<PL_NUM> nonlin_vect_f;		//vector f on right part of nonlinear system at certain t and x
 	PL_NUM nonlin_matr_A[EQ_NUM][EQ_NUM];		//matrix A for the nonlinear system at certain t and x
+	Matrix<PL_NUM, EQ_NUM, EQ_NUM> matrAn;
+	Matrix<PL_NUM, EQ_NUM, EQ_NUM> matrAn1;
+	Matrix<PL_NUM, EQ_NUM, 1> vectFn;
+	Matrix<PL_NUM, EQ_NUM, 1> vectFn1;
+	Matrix<PL_NUM, EQ_NUM, 4> Phi;	//for A-B method
+
 	//PL_NUM nonlin_vect_f[EQ_NUM];		//vector f on right part of nonlinear system at certain t and x
 
 	//Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> nonlin_matr_A;
@@ -372,7 +378,7 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	omega = (long double)M_PI / tauSin;
 	omega_1 = (long double)M_PI / tauSin_1;
 	
-	stressType = stress_centered;
+	stressType = stress_whole;
 	currentType = current_exp_sin;
 
 	By0 = _By0;
@@ -652,10 +658,36 @@ PL_NUM Solver<PL_NUM>::do_step()
 
 			calc_Newmark_AB( x, 0 );
 			matrTime1 = time( 0 );
+			// caution!
+			//calc_nonlin_system( x + 1 );
+			//for( int i = 0; i < EQ_NUM; ++i )
+			//{
+			//	for( int j = 0; j < EQ_NUM; ++j )
+			//	{
+			//		matrAn1( i, j ) = nonlin_matr_A[i][j];
+			//	}
+			//	vectFn1( i ) = nonlin_vect_f( i );
+			//}
 			calc_nonlin_system( x );
+			//for( int i = 0; i < EQ_NUM; ++i )
+			//{
+			//	for( int j = 0; j < EQ_NUM; ++j )
+			//	{
+			//		matrAn( i, j ) = nonlin_matr_A[i][j];
+			//	}
+			//	vectFn( i ) = nonlin_vect_f( i );
+			//}
+
+
 			matrTime += time( 0 ) - matrTime1;
 
 			rgkTime1 = time( 0 );
+
+			//rungeKutta->calc2( matrAn, matrAn1, vectFn, vectFn1, dx, 0, &N1 );
+			//rungeKutta->calc2( matrAn, matrAn1, vectFn, vectFn1, dx, 0, &N2 );
+			//rungeKutta->calc2( matrAn, matrAn1, vectFn, vectFn1, dx, 0, &N3 );
+			//rungeKutta->calc2( matrAn, matrAn1, vectFn, vectFn1, dx, 0, &N4 );
+			//rungeKutta->calc2( matrAn, matrAn1, vectFn, vectFn1, dx, 1, &N5 );
 
 			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N1 );
 			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N2 );
@@ -795,7 +827,7 @@ void Solver<PL_NUM>::dump_check_sol( int fNum )
 
 	int minusOne = -1;
 	PL_NUM sum = 0.0;
-	for( int i = 0; i <= 1000000; ++i )
+	for( int i = 0; i <= 100000; ++i )
 	{
 		PL_NUM omg = (long double)( (long double)M_PI * (long double)M_PI * ( 2.0 * i + 1.0 ) * ( 2.0 * i + 1.0 ) ) * h / 2.0l / a / a * sqrt( B22 / 3.0l / rho );
 
@@ -816,8 +848,8 @@ void Solver<PL_NUM>::dump_check_sol( int fNum )
 		ss << "test_sol.txt";
 	}
 	ofstream of1( ss.str(), ofstream::app );
-	of1 << cur_t << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[1] << " ; " << wTheor << " ; " << resArr[ curTimeStep * Km * eq_num + ( Km - 1 ) / 2 * eq_num + 1]
-		<< /*" ; " << fabs( ( wTheor - mesh[ ( Km - 1 ) / 2 ].Nk1[1] ) / wTheor ) <<*/ endl;
+	of1 << cur_t << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[1] << " ; " << wTheor /*<< " ; " << resArr[ curTimeStep * Km * eq_num + ( Km - 1 ) / 2 * eq_num + 1]*/
+		<< " ; " << fabs( ( wTheor - mesh[ ( Km - 1 ) / 2 ].Nk1[1] ) / wTheor ) << endl;
 	of1.close();
 }
 

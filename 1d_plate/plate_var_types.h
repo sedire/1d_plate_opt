@@ -3,7 +3,7 @@
 
 #define _USE_MATH_DEFINES
 
-#define THREAD_NUM 4
+#define THREAD_NUM 2
 
 #define N_PRES long double
 //#define PL_NUM complex<long double>

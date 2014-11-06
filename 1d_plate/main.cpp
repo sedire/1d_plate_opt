@@ -40,7 +40,7 @@ int main()
 	//N_PRES tauStart_3 = 0.00370372;
 	//N_PRES tauStartExp_3 = 0.00295792;
 
-	N_PRES J0start =  0.01;
+	N_PRES J0start =  0.0;//0.01;
 	N_PRES tauStart = 0.0048;
 	N_PRES tauStartExp = 0.0048;
 
@@ -56,25 +56,26 @@ int main()
 	N_PRES tauStart_3 = 0.0048;
 	N_PRES tauStartExp_3 = 0.0048;
 
-	N_PRES ByStart = 1.0;
+	N_PRES ByStart = 0.0;//1.0;
 
 //////////////////////////////////
-	//Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >* solver2 = new Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >();
-	//solver2->setTask( J0start, tauStart, tauStartExp, J0start, tauStart, tauStartExp, ByStart, 10000000, 0.01 );
-	//time_t tBegin = time( 0 );
+	Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >* solver = new Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >();
+	solver->setTask( J0start, tauStart, tauStartExp, J0start, tauStart, tauStartExp, ByStart, 100.0, GlobalTauP2 );
+	time_t tBegin = time( 0 );
 
-	//while( solver2->cur_t <= 0.05 )
-	//{
-	//	cout << solver2->cur_t << endl;
-	//	solver2->do_step();
-	//	solver2->cur_t += solver2->dt;
-	//	++( solver2->curTimeStep );
-	//	solver2->dump_check_sol( -1 );
-	//}
-	//time_t tEnd = time( 0 );
-	//cout << " \n computations are done in " << tEnd - tBegin << endl;
-	//cout << ".........\n";
-	//cout << "... done!\n";
+	while( solver->cur_t <= CHAR_TIME )
+	{
+		cout << solver->cur_t << endl;
+		solver->do_step();
+		solver->dump_check_sol( -1 );
+		solver->dump_whole_sol( 1 );
+
+		solver->increaseTime();
+	}
+	time_t tEnd = time( 0 );
+	cout << " \n computations are done in " << tEnd - tBegin << endl;
+	cout << ".........\n";
+	cout << "... done!\n";
 
 
 	cout << " adjTime " << adjTime << endl;
@@ -92,26 +93,26 @@ int main()
 	//							1.0, 0.00514927, 0.00271984,
 	//							0.00991937, 0.00682416, 0.00001,
 	//							1.0, 0.00371071, 0.00313839 };
-	/*double x[GRAD_SIZE_FULL] = { 0.01, 0.0048, 0.0048, 
-								0.01, 0.0048, 0.0048, 
-								0.01, 0.0048, 0.0048, 
-								0.01, 0.0048, 0.0048 };
+	//double x[GRAD_SIZE_FULL] = { 0.01, 0.0048, 0.0048, 
+	//							0.01, 0.0048, 0.0048, 
+	//							0.01, 0.0048, 0.0048, 
+	//							0.01, 0.0048, 0.0048 };
 
-	double gAdj[GRAD_SIZE_FULL];
-	double g[GRAD_SIZE_FULL];
+	//double gAdj[GRAD_SIZE_FULL];
+	//double g[GRAD_SIZE_FULL];
 
-	double valAdj = calcValGradTausAdj( gAdj, x, 0 );
-	double val = calcValGradTaus( g, x, 0 );
+	//double valAdj = calcValGradTausAdjSolid( gAdj, x, 0 );
+	//double val = calcValGradTaus( g, x, 0 );
 
-	cout << " ----------\n";
-	cout << " == " << val << " " << valAdj << endl;
-	for( int i = 0; i < GRAD_SIZE_FULL; ++i )
-	{
-		cout << " :: " << g[i] << " " << gAdj[i] << " " << fabs( ( g[i] - gAdj[i] ) / g[i] ) * 100.0 << " % " << endl;
-	}
-	cout << " ----------\n";*/
+	//cout << " ----------\n";
+	//cout << " == " << val << " " << valAdj << endl;
+	//for( int i = 0; i < GRAD_SIZE_FULL; ++i )
+	//{
+	//	cout << " :: " << g[i] << " " << gAdj[i] << " " << fabs( ( g[i] - gAdj[i] ) / g[i] ) * 100.0 << " % " << endl;
+	//}
+	//cout << " ----------\n";
 
-	optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
+	//optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
 
 	cout << "\n -- Deleting the solution arrays now...\n";
 
