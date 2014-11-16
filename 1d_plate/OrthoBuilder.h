@@ -43,6 +43,15 @@ public:
 	virtual void setParams( int _Km );
 	//virtual void orthonorm( int baseV, int n, vector<PL_NUM>* NtoOrt ) {};
 	inline virtual void orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM, 1>* NtoOrt ) {};
+	inline virtual int checkOrtho( int n, const Matrix<PL_NUM, EQ_NUM, 1>& N2, 
+											const Matrix<PL_NUM, EQ_NUM, 1>& N3,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N4, 
+											const Matrix<PL_NUM, EQ_NUM, 1>& N5, 
+
+											const Matrix<PL_NUM, EQ_NUM, 1>& N2orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N3orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N4orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N5orig ) { return 1; };
 	virtual void buildSolution( vector<VarVect<PL_NUM> >* _mesh ) {};
 	virtual void buildSolutionAdj( vector<VarVectAdj>* _mesh ) {};
 	virtual void flushO( int x );
@@ -66,6 +75,15 @@ public:
 	~OrthoBuilderGSh() {};
 	//void orthonorm( int baseV, int n, vector<PL_NUM>* NtoOrt );
 	inline void orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM, 1>* NtoOrt );
+	inline int checkOrtho( int n, const Matrix<PL_NUM, EQ_NUM, 1>& N2, 
+											const Matrix<PL_NUM, EQ_NUM, 1>& N3,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N4, 
+											const Matrix<PL_NUM, EQ_NUM, 1>& N5, 
+
+											const Matrix<PL_NUM, EQ_NUM, 1>& N2orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N3orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N4orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N5orig );
 	void buildSolution( vector<VarVect<PL_NUM> >* _mesh );
 	void buildSolutionAdj( vector<VarVectAdj>* _mesh );
 };
@@ -179,6 +197,54 @@ void OrthoBuilder<PL_NUM>::orthogTest( int x )
 
 }
 
+template<class PL_NUM>
+int OrthoBuilderGSh<PL_NUM>::checkOrtho( int n, const Matrix<PL_NUM, EQ_NUM, 1>& N2, 
+											const Matrix<PL_NUM, EQ_NUM, 1>& N3,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N4, 
+											const Matrix<PL_NUM, EQ_NUM, 1>& N5, 
+
+											const Matrix<PL_NUM, EQ_NUM, 1>& N2orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N3orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N4orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N5orig )
+{
+	cout << " warning in checkOrtho\n";
+	return 1;
+}
+
+template<>
+int inline OrthoBuilderGSh<N_PRES>::checkOrtho( int n, const Matrix<N_PRES, EQ_NUM, 1>& N2, 
+											const Matrix<N_PRES, EQ_NUM, 1>& N3,
+											const Matrix<N_PRES, EQ_NUM, 1>& N4, 
+											const Matrix<N_PRES, EQ_NUM, 1>& N5, 
+
+											const Matrix<N_PRES, EQ_NUM, 1>& N2orig,
+											const Matrix<N_PRES, EQ_NUM, 1>& N3orig,
+											const Matrix<N_PRES, EQ_NUM, 1>& N4orig,
+											const Matrix<N_PRES, EQ_NUM, 1>& N5orig )
+{
+	int ret = 0;
+	N_PRES eps = 1e-3;
+	
+	if( ( N2 * solInfoMap[n + 1].o[1 * eq_num + 1] ).lpNorm<Infinity>() < eps * N2orig.lpNorm<Infinity>() )
+	{
+		ret = 1;
+	}
+	if( ( N3 * solInfoMap[n + 1].o[1 * eq_num + 1] ).lpNorm<Infinity>() < eps * N3orig.lpNorm<Infinity>() )
+	{
+		ret = 1;
+	}
+	if( ( N4 * solInfoMap[n + 1].o[1 * eq_num + 1] ).lpNorm<Infinity>() < eps * N4orig.lpNorm<Infinity>() )
+	{
+		ret = 1;
+	}
+	if( N5.lpNorm<Infinity>() < eps * N5orig.lpNorm<Infinity>() )
+	{
+		ret = 1;
+	}
+
+	return ret;
+}
 template<class PL_NUM>
 void OrthoBuilderGSh<PL_NUM>::orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM, 1>* NtoOrt )
 {

@@ -11,9 +11,9 @@
 using std::cout;
 using std::endl;
 
-N_PRES* GlobalResArrays = new N_PRES[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
-N_PRES* GlobalResDtArrays = new N_PRES[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
-N_PRES* GlobalResAdjArrays = new N_PRES[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
+N_PRES* GlobalResArrays = new N_PRES[1];//[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
+N_PRES* GlobalResDtArrays = new N_PRES[1];//[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
+N_PRES* GlobalResAdjArrays = new N_PRES[1];//[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
 
 int main()
 {
@@ -40,7 +40,7 @@ int main()
 	//N_PRES tauStart_3 = 0.00370372;
 	//N_PRES tauStartExp_3 = 0.00295792;
 
-	N_PRES J0start =  0.0;//0.01;
+	N_PRES J0start =  0.01;
 	N_PRES tauStart = 0.0048;
 	N_PRES tauStartExp = 0.0048;
 
@@ -56,7 +56,7 @@ int main()
 	N_PRES tauStart_3 = 0.0048;
 	N_PRES tauStartExp_3 = 0.0048;
 
-	N_PRES ByStart = 0.0;//1.0;
+	N_PRES ByStart = 1.0;
 
 //////////////////////////////////
 	Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >* solver = new Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >();
@@ -67,8 +67,8 @@ int main()
 	{
 		cout << solver->cur_t << endl;
 		solver->do_step();
-		solver->dump_check_sol( -1 );
-		solver->dump_whole_sol( 1 );
+		//solver->dump_check_sol( -1 );
+		solver->dump_whole_sol( 5 );
 
 		solver->increaseTime();
 	}

@@ -135,6 +135,7 @@ private:
 	Matrix<PL_NUM, EQ_NUM, EQ_NUM> matrAn1;
 	Matrix<PL_NUM, EQ_NUM, 1> vectFn;
 	Matrix<PL_NUM, EQ_NUM, 1> vectFn1;
+
 	Matrix<PL_NUM, EQ_NUM, 4> Phi;	//for A-B method
 
 	//PL_NUM nonlin_vect_f[EQ_NUM];		//vector f on right part of nonlinear system at certain t and x
@@ -600,7 +601,13 @@ PL_NUM Solver<PL_NUM>::do_step()
 
 	int iter( 0 );
 	int preLin( 0 );
-	int cont( 1 ); 
+	int cont( 1 );
+
+	Matrix<PL_NUM, EQ_NUM, 1> N1copy;
+	Matrix<PL_NUM, EQ_NUM, 1> N2copy;
+	Matrix<PL_NUM, EQ_NUM, 1> N3copy;
+	Matrix<PL_NUM, EQ_NUM, 1> N4copy;
+	Matrix<PL_NUM, EQ_NUM, 1> N5copy;
 
 	do{
 		//cout << " proc num " << omp_get_thread_num() << endl;
@@ -683,11 +690,11 @@ PL_NUM Solver<PL_NUM>::do_step()
 
 			rgkTime1 = time( 0 );
 
-			//rungeKutta->calc2( matrAn, matrAn1, vectFn, vectFn1, dx, 0, &N1 );
-			//rungeKutta->calc2( matrAn, matrAn1, vectFn, vectFn1, dx, 0, &N2 );
-			//rungeKutta->calc2( matrAn, matrAn1, vectFn, vectFn1, dx, 0, &N3 );
-			//rungeKutta->calc2( matrAn, matrAn1, vectFn, vectFn1, dx, 0, &N4 );
-			//rungeKutta->calc2( matrAn, matrAn1, vectFn, vectFn1, dx, 1, &N5 );
+			//rungeKutta->calcTrap( matrAn, matrAn1, vectFn, vectFn1, dx, 0, &N1 );
+			//rungeKutta->calcTrap( matrAn, matrAn1, vectFn, vectFn1, dx, 0, &N2 );
+			//rungeKutta->calcTrap( matrAn, matrAn1, vectFn, vectFn1, dx, 0, &N3 );
+			//rungeKutta->calcTrap( matrAn, matrAn1, vectFn, vectFn1, dx, 0, &N4 );
+			//rungeKutta->calcTrap( matrAn, matrAn1, vectFn, vectFn1, dx, 1, &N5 );
 
 			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N1 );
 			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N2 );
@@ -697,6 +704,12 @@ PL_NUM Solver<PL_NUM>::do_step()
 
 			rgkTime += time( 0 ) - rgkTime1;
 
+			N1copy = N1;
+			N2copy = N2;
+			N3copy = N3;
+			N4copy = N4;
+			N5copy = N5;
+
 			orthoTime1 = time( 0 );
 			orthoBuilder->orthonorm( 1, x, &N1 );
 			orthoBuilder->orthonorm( 2, x, &N2 );
@@ -704,7 +717,22 @@ PL_NUM Solver<PL_NUM>::do_step()
 			orthoBuilder->orthonorm( 4, x, &N4 );
 			orthoBuilder->orthonorm( 5, x, &N5 );
 			orthoTime += time( 0 ) - orthoTime1;
+
+			if( orthoBuilder->checkOrtho( x, N2, N3, N4, N5, N2copy, N3copy, N4copy, N5copy ) == 0 )
+			{
+				N1 = N1copy;
+				N2 = N2copy;
+				N3 = N3copy;
+				N4 = N4copy;
+				N5 = N5copy;
+			}
+			else
+			{
+				cout << " --- at x = " << x << " ortho is needed\n";
+			}
 		}
+		cout << " --- done\n";
+		std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 
 		buildSolnTime1 = time( 0 );
 		orthoBuilder->buildSolution( &mesh );

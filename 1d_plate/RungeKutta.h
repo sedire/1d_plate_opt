@@ -28,6 +28,13 @@ public:
 						PL_NUM dx, 
 						int hom, 
 						Matrix<PL_NUM, EQ_NUM, 1>* x );
+	inline void calcTrap( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An, 
+						const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An1, 
+						const Matrix<PL_NUM, EQ_NUM, 1> &fn,
+						const Matrix<PL_NUM, EQ_NUM, 1> &fn1,
+						PL_NUM dx, 
+						int hom, 
+						Matrix<PL_NUM, EQ_NUM, 1>* x );
 	inline void adjCalc( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &A, const Matrix<PL_NUM, EQ_NUM, 1> &f, PL_NUM dx, int hom, Matrix<PL_NUM, EQ_NUM, 1>* x );
 	int eq_num;
 private:
@@ -45,6 +52,11 @@ private:
 	Matrix<PL_NUM, EQ_NUM, 1> Af1;
 	Matrix<PL_NUM, EQ_NUM, 1> Af2;
 	Matrix<PL_NUM, EQ_NUM, 1> Af3;
+
+	Matrix<PL_NUM, EQ_NUM, EQ_NUM> I;
+	Matrix<PL_NUM, EQ_NUM, EQ_NUM> AA;
+	Matrix<PL_NUM, EQ_NUM, 1> bb;
+	Matrix<PL_NUM, EQ_NUM, 1> tmpRes;
 };
 
 
@@ -71,6 +83,21 @@ RungeKutta<PL_NUM>::RungeKutta( int _eq_num )
 	//f2.resize( eq_num );
 	//f3.resize( eq_num );
 	//f4.resize( eq_num );
+	for( int i = 0; i < EQ_NUM; ++i )
+	{
+		for( int j = 0; j < EQ_NUM; ++j )
+		{
+			if( i == j )
+			{
+				I( i, j ) = 1.0;
+			}
+			else
+			{
+				I( i, j ) = 0.0;
+			}
+		}
+	}
+
 }
 
 template<class PL_NUM>
@@ -83,17 +110,37 @@ void RungeKutta<PL_NUM>::calc2( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &
 						Matrix<PL_NUM, EQ_NUM, 1>* x )
 {
 	f1 = An * (*x);
-	if( hom != 0 )
-	{
-		f1 += fn;
-	}
+	f1 += fn * hom;
 	f2 = An1 * ( (*x) + dx * f1 );
-	if( hom != 0 )
-	{
-		f2 += fn1;
-	}
+	f2 += fn1 * hom;
 
 	(*x) += dx * ( 0.5 * f1 + 0.5 * f2 );
+}
+
+template<class PL_NUM>
+void RungeKutta<PL_NUM>::calcTrap( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An, 
+						const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An1, 
+						const Matrix<PL_NUM, EQ_NUM, 1> &fn,
+						const Matrix<PL_NUM, EQ_NUM, 1> &fn1,
+						PL_NUM dx, 
+						int hom, 
+						Matrix<PL_NUM, EQ_NUM, 1>* x )
+{
+}
+
+template<>
+void inline RungeKutta<N_PRES>::calcTrap( const Matrix<N_PRES, EQ_NUM, EQ_NUM, RowMajor> &An, 
+						const Matrix<N_PRES, EQ_NUM, EQ_NUM, RowMajor> &An1, 
+						const Matrix<N_PRES, EQ_NUM, 1> &fn,
+						const Matrix<N_PRES, EQ_NUM, 1> &fn1,
+						N_PRES dx, 
+						int hom, 
+						Matrix<N_PRES, EQ_NUM, 1>* x )
+{
+	AA = I - An1 * 0.5 * dx;
+	bb = ( I + An * 0.5 * dx ) * (*x) + ( fn + fn1 ) * hom * 0.5 * dx;
+	tmpRes = AA.fullPivLu().solve( bb );
+	(*x) = tmpRes;
 }
 
 template<class PL_NUM>
