@@ -600,4 +600,10 @@ HPD<D_PRES, NN> fabs( const HPD<D_PRES, NN>& arg )
 	return ret;
 }
 
+template<class D_PRES, int NN>
+HPD<D_PRES, NN> abs( const HPD<D_PRES, NN>& arg )
+{
+	return fabs( arg );
+}
+
 #endif

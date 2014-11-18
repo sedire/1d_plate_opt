@@ -38,8 +38,8 @@ public:
 
 	void setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 				PL_NUM _J0_1, PL_NUM _tauSin_1, PL_NUM _tauExp_1,
-				PL_NUM _By0, PL_NUM _p0, PL_NUM _tauP );
-	void setMechLoad( PL_NUM _p0, PL_NUM _tauP );
+				PL_NUM _By0, int _stressType, PL_NUM _p0, PL_NUM _tauP );
+	void setMechLoad( int _stressType, PL_NUM _p0, PL_NUM _tauP );
 	void setSwitchTime( N_PRES _switchTime );
 	void setResArray( N_PRES* _resArr );
 	void setResDtArray( N_PRES* _resArrDt );
@@ -131,12 +131,6 @@ private:
 	//vector<PL_NUM> nonlin_matr_A;		//matrix A for the nonlinear system at certain t and x
 	//vector<PL_NUM> nonlin_vect_f;		//vector f on right part of nonlinear system at certain t and x
 	PL_NUM nonlin_matr_A[EQ_NUM][EQ_NUM];		//matrix A for the nonlinear system at certain t and x
-	Matrix<PL_NUM, EQ_NUM, EQ_NUM> matrAn;
-	Matrix<PL_NUM, EQ_NUM, EQ_NUM> matrAn1;
-	Matrix<PL_NUM, EQ_NUM, 1> vectFn;
-	Matrix<PL_NUM, EQ_NUM, 1> vectFn1;
-
-	Matrix<PL_NUM, EQ_NUM, 4> Phi;	//for A-B method
 
 	//PL_NUM nonlin_vect_f[EQ_NUM];		//vector f on right part of nonlinear system at certain t and x
 
@@ -151,6 +145,12 @@ private:
 	Matrix<PL_NUM, EQ_NUM, 1> N3;
 	Matrix<PL_NUM, EQ_NUM, 1> N4;
 	Matrix<PL_NUM, EQ_NUM, 1> N5;
+
+	Matrix<PL_NUM, EQ_NUM, 1> N1orthog;
+	Matrix<PL_NUM, EQ_NUM, 1> N2orthog;
+	Matrix<PL_NUM, EQ_NUM, 1> N3orthog;
+	Matrix<PL_NUM, EQ_NUM, 1> N4orthog;
+	Matrix<PL_NUM, EQ_NUM, 1> N5orthog;
 
 	RungeKutta<PL_NUM>* rungeKutta;
 	OrthoBuilder<PL_NUM>* orthoBuilder;
@@ -319,10 +319,11 @@ time_t Solver<PL_NUM>::getOrthoBTime()
 }
 
 template<class PL_NUM>
-void Solver<PL_NUM>::setMechLoad( PL_NUM _p0, PL_NUM _tauP )
+void Solver<PL_NUM>::setMechLoad( int _stressType, PL_NUM _p0, PL_NUM _tauP )
 {
-	tauP = _tauP;//0.01;
-	p0 = _p0;//10000000;
+	stressType = _stressType;
+	p0 = _p0;
+	tauP = _tauP;
 	rad = 0.0021 / 100.0;
 }
 
@@ -335,7 +336,7 @@ void Solver<PL_NUM>::setSwitchTime( N_PRES _switchTime )
 template<class PL_NUM>
 void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 							PL_NUM _J0_1, PL_NUM _tauSin_1, PL_NUM _tauExp_1,
-							PL_NUM _By0, PL_NUM _p0, PL_NUM _tauP )
+							PL_NUM _By0, int _stressType, PL_NUM _p0, PL_NUM _tauP )
 {
 	totalTime1 = 0;
 	totalTime = 0;
@@ -379,7 +380,7 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	omega = (long double)M_PI / tauSin;
 	omega_1 = (long double)M_PI / tauSin_1;
 	
-	stressType = stress_whole;
+	stressType = _stressType;
 	currentType = current_exp_sin;
 
 	By0 = _By0;
@@ -603,12 +604,6 @@ PL_NUM Solver<PL_NUM>::do_step()
 	int preLin( 0 );
 	int cont( 1 );
 
-	Matrix<PL_NUM, EQ_NUM, 1> N1copy;
-	Matrix<PL_NUM, EQ_NUM, 1> N2copy;
-	Matrix<PL_NUM, EQ_NUM, 1> N3copy;
-	Matrix<PL_NUM, EQ_NUM, 1> N4copy;
-	Matrix<PL_NUM, EQ_NUM, 1> N5copy;
-
 	do{
 		//cout << " proc num " << omp_get_thread_num() << endl;
 		if( iter == 0 && curTimeStep == 1 )
@@ -621,8 +616,8 @@ PL_NUM Solver<PL_NUM>::do_step()
 		}
 		calc_Newmark_AB( 0, 1 );
 
-		//solInfoMap[0].flushO();
 		orthoBuilder->flushO( 0 );
+		orthoBuilder->resetOrthoDoneInfo();
 
 		N1( 0 ) = 0.0; N1( 1 ) = 0.0; N1( 2 ) = 1.0; N1( 3 ) = 0.0; N1( 4 ) = 0.0; N1( 5 ) = 0.0; N1( 6 ) = 0.0; N1( 7 ) = 0.0;
 		N2( 0 ) = 0.0; N2( 1 ) = 0.0; N2( 2 ) = 0.0; N2( 3 ) = 1.0; N2( 4 ) = 0.0; N2( 5 ) = 0.0; N2( 6 ) = 0.0; N2( 7 ) = 0.0;
@@ -634,19 +629,20 @@ PL_NUM Solver<PL_NUM>::do_step()
 		}
 		else
 		{
-			N4( 6 ) = 0.0;//mesh[0].Nk1[0] / 2.0l / beta / dt + newmark_B[0];
+			N4( 6 ) = mesh[0].Nk1[0] / 2.0l / beta / dt + newmark_B[0];
 		}
-		N4( 7 ) = 1.0; //sign!
+		N4( 7 ) = -1.0;
+
 		N5( 0 ) = 0.0; N5( 1 ) = 0.0; N5( 2 ) = 0.0; N5( 3 ) = 0.0; N5( 4 ) = 0.0; N5( 5 ) = 0.0; 
 		if( preLin == 0 )
 		{
 			N5( 6 ) = 0.0;
 			N5( 7 ) = 0.0;
 		}
-		else	//WARNING!!! I have changed the sign here!!
+		else
 		{
-			N5( 6 ) = 0.0;//-( newmark_B[0] * mesh[0].Nk1[7] - newmark_B[1] * By0 );
-			N5( 7 ) = 0.0;//mesh[0].Nk1[7];
+			N5( 6 ) = -( newmark_B[0] * mesh[0].Nk1[7] - newmark_B[1] * By0 );
+			N5( 7 ) = mesh[0].Nk1[7];
 		}
 
 		orthoBuilder->setInitVects( N1, N2, N3, N4, N5 );
@@ -664,28 +660,9 @@ PL_NUM Solver<PL_NUM>::do_step()
 			orthoBuilder->flushO( x + 1 );
 
 			calc_Newmark_AB( x, 0 );
+
 			matrTime1 = time( 0 );
-			// caution!
-			//calc_nonlin_system( x + 1 );
-			//for( int i = 0; i < EQ_NUM; ++i )
-			//{
-			//	for( int j = 0; j < EQ_NUM; ++j )
-			//	{
-			//		matrAn1( i, j ) = nonlin_matr_A[i][j];
-			//	}
-			//	vectFn1( i ) = nonlin_vect_f( i );
-			//}
 			calc_nonlin_system( x );
-			//for( int i = 0; i < EQ_NUM; ++i )
-			//{
-			//	for( int j = 0; j < EQ_NUM; ++j )
-			//	{
-			//		matrAn( i, j ) = nonlin_matr_A[i][j];
-			//	}
-			//	vectFn( i ) = nonlin_vect_f( i );
-			//}
-
-
 			matrTime += time( 0 ) - matrTime1;
 
 			rgkTime1 = time( 0 );
@@ -704,35 +681,36 @@ PL_NUM Solver<PL_NUM>::do_step()
 
 			rgkTime += time( 0 ) - rgkTime1;
 
-			N1copy = N1;
-			N2copy = N2;
-			N3copy = N3;
-			N4copy = N4;
-			N5copy = N5;
+			N1orthog = N1;
+			N2orthog = N2;
+			N3orthog = N3;
+			N4orthog = N4;
+			N5orthog = N5;
 
 			orthoTime1 = time( 0 );
-			orthoBuilder->orthonorm( 1, x, &N1 );
-			orthoBuilder->orthonorm( 2, x, &N2 );
-			orthoBuilder->orthonorm( 3, x, &N3 );
-			orthoBuilder->orthonorm( 4, x, &N4 );
-			orthoBuilder->orthonorm( 5, x, &N5 );
+			orthoBuilder->orthonorm( 1, x, &N1orthog );
+			orthoBuilder->orthonorm( 2, x, &N2orthog );
+			orthoBuilder->orthonorm( 3, x, &N3orthog );
+			orthoBuilder->orthonorm( 4, x, &N4orthog );
+			orthoBuilder->orthonorm( 5, x, &N5orthog );
 			orthoTime += time( 0 ) - orthoTime1;
 
-			if( orthoBuilder->checkOrtho( x, N2, N3, N4, N5, N2copy, N3copy, N4copy, N5copy ) == 0 )
+			if( orthoBuilder->checkOrtho( x, N2orthog, N3orthog, N4orthog, N5orthog, N2, N3, N4, N5 ) == 1 )	//if the orthonormalization is needed
 			{
-				N1 = N1copy;
-				N2 = N2copy;
-				N3 = N3copy;
-				N4 = N4copy;
-				N5 = N5copy;
+				N1 = N1orthog;
+				N2 = N2orthog;
+				N3 = N3orthog;
+				N4 = N4orthog;
+				N5 = N5orthog;
+				
+				orthoBuilder->setOrthoDoneInfo( x );
+				cout << " --- at x = " << x << " ortho is needed\n";
 			}
 			else
 			{
-				cout << " --- at x = " << x << " ortho is needed\n";
+				orthoBuilder->setNextSolVects( x, N1, N2, N3, N4, N5 );
 			}
 		}
-		cout << " --- done\n";
-		std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 
 		buildSolnTime1 = time( 0 );
 		orthoBuilder->buildSolution( &mesh );
