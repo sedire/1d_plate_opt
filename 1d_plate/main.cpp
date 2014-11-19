@@ -67,8 +67,8 @@ int main()
 	{
 		cout << solver->cur_t << endl;
 		solver->do_step();
-		solver->dump_check_sol( -1 );
-		//solver->dump_whole_sol( 5 );
+		//solver->dump_check_sol( -1 );
+		solver->dump_whole_sol( 5 );
 
 		solver->increaseTime();
 	}

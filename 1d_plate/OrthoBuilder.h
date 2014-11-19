@@ -250,7 +250,7 @@ int OrthoBuilderGSh<PL_NUM>::checkOrtho( int n, const Matrix<PL_NUM, EQ_NUM, 1>&
 											const Matrix<PL_NUM, EQ_NUM, 1>& N5orig )
 {
 	int ret = 0;
-	N_PRES eps = 1e-7;
+	N_PRES eps = ORTHONORM_CHECK_EPS;
 	
 	if( N2orthog.lpNorm<Infinity>() * solInfoMap[n + 1].o[1 * eq_num + 1] < eps * N2orig.lpNorm<Infinity>() ||
 		N3orthog.lpNorm<Infinity>() * solInfoMap[n + 1].o[2 * eq_num + 2] < eps * N3orig.lpNorm<Infinity>() || 

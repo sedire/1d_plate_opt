@@ -16,6 +16,8 @@
 #define DELTA_T 0.0001
 #define NODES_Y 10001	//CHANGE THIS BACK to 10001
 
+#define ORTHONORM_CHECK_EPS 1e-7
+
 #define J_WEIGHT 1.0l
 
 #define GRAD_SIZE 3

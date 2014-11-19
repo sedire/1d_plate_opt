@@ -136,6 +136,11 @@ private:
 
 	//Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> nonlin_matr_A;
 	Matrix<PL_NUM, EQ_NUM, 1> nonlin_vect_f;
+	
+	Matrix<PL_NUM, EQ_NUM, EQ_NUM> matrA;
+	Matrix<PL_NUM, EQ_NUM, EQ_NUM> matrA1;
+	Matrix<PL_NUM, EQ_NUM, 1> vectF;
+	Matrix<PL_NUM, EQ_NUM, 1> vectF1;
 
 	vector<PL_NUM> newmark_A;
 	vector<PL_NUM> newmark_B;
@@ -155,14 +160,10 @@ private:
 	RungeKutta<PL_NUM>* rungeKutta;
 	OrthoBuilder<PL_NUM>* orthoBuilder;
 
-	void calc_Newmark_AB( int _x, int mode );		//don't really know why we need this stuff with mode need to FIX
-	void calc_nonlin_system( int _x );
-	//void calc_lin_system( int _x );
+	void calc_Newmark_AB( int _x );		//don't really know why we need this stuff with mode need to FIX -- UPD "mode" removed
+	void calc_nonlin_system( int _x );	//though in fact, the system is linear, "nonlinear" means that this is for the solution of the nonlinear problem
+	void calcLinSystem( int _x, Matrix<PL_NUM, EQ_NUM, EQ_NUM>* A, Matrix<PL_NUM, EQ_NUM, 1>* f );
 
-	//vector<SolInfo> solInfoMap;
-	//void orthonorm( int baseV, int n );		//baseV - number of the basis vector to orthonormalize 
-											//n - spatial node (i.e, x coordinate). this orthonormalizes N1, ... , N5 and builds Omega
-	//void buildSolution();					//builds solution for the current time step
 	int checkConv();
 	void copyToResArr();
 };
@@ -466,27 +467,14 @@ PL_NUM Solver<PL_NUM>::increaseTime()
 }
 
 template<class PL_NUM>
-void Solver<PL_NUM>::calc_Newmark_AB( int _x, int mode )
+void Solver<PL_NUM>::calc_Newmark_AB( int _x )
 {
-	if( mode == 0 )
+	for( int i = 0; i < eq_num; ++i)
 	{
-		for( int i = 0; i < eq_num; ++i)
-		{
-			newmark_A[i] = -mesh[_x].Nk0[i] / beta / dt / dt - mesh[_x].d1N0[i] / beta / dt
-							- ( 0.5l - beta ) / beta * mesh[_x].d2N0[i];
-			newmark_B[i] = -0.5l * mesh[_x].Nk0[i] / beta / dt + ( 1.0l - 0.5l / beta ) * mesh[_x].d1N0[i]
-							- 0.5l * dt * ( 1.0l- 1.0l / beta * ( 0.5l - beta ) ) * mesh[_x].d2N0[i];
-		}
-	}
-	else
-	{
-		for( int i = 0; i < eq_num; ++i)
-		{
-			newmark_A[i] = -mesh[_x].Nk1[i] / beta / dt / dt - mesh[_x].d1N[i] / beta / dt
-							- ( 0.5l - beta ) / beta * mesh[_x].d2N[i];
-			newmark_B[i] = -0.5l * mesh[_x].Nk1[i] / beta / dt + ( 1.0l - 0.5l / beta ) * mesh[_x].d1N[i]
-							- 0.5l * dt * ( 1.0l - 1.0l / beta * ( 0.5l - beta ) ) * mesh[_x].d2N[i];
-		}
+		newmark_A[i] = -mesh[_x].Nk0[i] / beta / dt / dt - mesh[_x].d1N0[i] / beta / dt
+						- ( 0.5l - beta ) / beta * mesh[_x].d2N0[i];
+		newmark_B[i] = -0.5l * mesh[_x].Nk0[i] / beta / dt + ( 1.0l - 0.5l / beta ) * mesh[_x].d1N0[i]
+						- 0.5l * dt * ( 1.0l- 1.0l / beta * ( 0.5l - beta ) ) * mesh[_x].d2N0[i];
 	}
 }
 
@@ -527,8 +515,6 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 		Pimp = p0;
 	}
 
-	//long r;
-
 	nonlin_matr_A[ 0][3 ] = 1.0l / al / h / B22;
 	nonlin_matr_A[ 1][2 ] = 1.0l / al;
 	nonlin_matr_A[ 2][5 ] = -12.0l /al / h / h / h / B22;
@@ -555,7 +541,7 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 	nonlin_matr_A[ 4][7 ] = -1.0l / al * ( sigma_x * h / 2.0l * By1 * ( 1.0 / 2.0l / beta * mesh[_x].Nk[0] / dt 
 									+ newmark_B[0] ) - ( - eps_x_0 * h * mesh[_x].Nk[6] ) * ( 1.0 / 2.0l / beta * mesh[_x].Nk[2] / dt + newmark_B[2] ) );
 
-	//nonlin_matr_A[ 5][1 ] = -sigma_x * h * h / 24.0l / beta / dt / al * By2 * mesh[_x].Nk[7];
+	//nonlin_matr_A[ 5][1 ] = -sigma_x * h * h / 24.0l / beta / dt / al * By2 * mesh[_x].Nk[7];	//because By2 is always 0 for the problems that we consider
 	nonlin_matr_A[ 5][2 ] = -1.0 / 2.0l / beta / dt / al * ( sigma_x * h * h * h / 12.0l * mesh[_x].Nk[7] 
 									* mesh[_x].Nk[7] ) - h * h * h / 12.0l / beta / dt / dt * rho / al;
 	nonlin_matr_A[ 5][4 ] = 1.0l / al;
@@ -593,6 +579,105 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 }
 
 template<class PL_NUM>
+void Solver<PL_NUM>::calcLinSystem( int _x, Matrix<PL_NUM, EQ_NUM, EQ_NUM>* A, Matrix<PL_NUM, EQ_NUM, 1>* f )
+{
+	PL_NUM Jx = 0.0;
+	if( currentType == current_const )
+	{
+		Jx = J0;
+	}
+	else if( currentType == current_sin )
+	{
+		Jx = J0 * sin( omega * cur_t );
+	}
+	else if( currentType == current_exp_sin )
+	{
+		if( cur_t <= switchTime )
+		{
+			Jx = J0 * exp( -cur_t / tauExp ) * sin( omega * cur_t );
+		}
+		else
+		{
+			Jx = J0_1 * exp( -cur_t / tauExp_1 ) * sin( omega_1 * cur_t );
+		}
+	}
+	PL_NUM Pimp = 0.0l;
+	if( stressType == stress_centered )
+	{
+		if( cur_t < tauP && fabs( (long double)_x * dx - a / 2.0 ) < rad )
+		{
+			Pimp = p0 * sqrt( 1.0l - fabs( (long double)_x * dx - a / 2.0l ) * fabs( (long double)_x * dx - a / 2.0 ) / rad / rad	) 
+				* sin( (long double)M_PI * cur_t / tauP );
+		}
+	}
+	else if( stressType == stress_whole )
+	{
+		Pimp = p0;
+	}
+
+	(*A)( 0, 3 ) = 1.0l / al / h / B22;
+	(*A)( 1, 2 ) = 1.0l / al;
+	(*A)( 2, 5 ) = -12.0l /al / h / h / h / B22;
+
+	(*A)( 3, 0 ) = rho / al * h / beta / dt / dt + sigma_x * h / 2.0l / beta / dt / al * mesh[_x].Nk[7] * mesh[_x].Nk[7];
+	(*A)( 3, 1 ) = -sigma_x * h / 4.0l / beta / dt / al * By1 * mesh[_x].Nk[7];
+	(*A)( 3, 2 ) = -eps_x_0 / 4.0l / beta / dt / al * h * By1 * mesh[_x].Nk[6];
+	(*A)( 3, 3 ) = eps_x_0 / 2.0l / beta / dt / B22 / al * h * mesh[_x].Nk[6] * mesh[_x].Nk[7];
+	(*A)( 3, 6 ) = 1.0l / al * ( sigma_x * h * mesh[_x].Nk[7] + eps_x_0 * h / B22 * mesh[_x].Nk[7] * ( 1.0 / 2.0l / beta / dt 
+									* mesh[_x].Nk[3]
+									+ newmark_B[3] ) - eps_x_0 / 2.0l * h * By1 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[2] + newmark_B[2] ) );
+	(*A)( 3, 7 ) = 1.0l / al * ( sigma_x * h * mesh[_x].Nk[6] + 2.0l * sigma_x * h * mesh[_x].Nk[7] 
+									* ( 1.0 / 2.0l / beta / dt * mesh[_x].Nk[0] + newmark_B[0] )
+									- sigma_x * h / 2.0l * By1 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[1] + newmark_B[1] ) 
+									+ eps_x_0 * h / B22 * mesh[_x].Nk[6]
+									* ( 1.0 / 2.0l / beta / dt * mesh[_x].Nk[3] 
+									+ newmark_B[3] ) + h * Jx );
+
+	(*A)( 4, 0 ) = -sigma_x * h / 4.0l / beta / dt / al * By1 * mesh[_x].Nk[7];
+	(*A)( 4, 1 ) = rho / al * h / beta / dt / dt + sigma_x * h / 8.0l / beta / al / dt * ( By1 * By1 );
+	(*A)( 4, 2 ) = 1.0 / 2.0l / beta / al * ( -eps_x_0 * h * mesh[_x].Nk[6] * mesh[_x].Nk[7] ) / dt;
+	(*A)( 4, 6 ) = -1.0l / al * ( sigma_x * h / 2.0l * By1 + eps_x_0 * h 
+									* mesh[_x].Nk[7] * ( 1.0 / 2.0l / beta * mesh[_x].Nk[2] / dt + newmark_B[2] ) );
+	(*A)( 4, 7 ) = -1.0l / al * ( sigma_x * h / 2.0l * By1 * ( 1.0 / 2.0l / beta * mesh[_x].Nk[0] / dt 
+									+ newmark_B[0] ) - ( - eps_x_0 * h * mesh[_x].Nk[6] ) * ( 1.0 / 2.0l / beta * mesh[_x].Nk[2] / dt + newmark_B[2] ) );
+
+	(*A)( 5, 2 ) = -1.0 / 2.0l / beta / dt / al * ( sigma_x * h * h * h / 12.0l * mesh[_x].Nk[7] 
+									* mesh[_x].Nk[7] ) - h * h * h / 12.0l / beta / dt / dt * rho / al;
+	(*A)( 5, 4 ) = 1.0l / al;
+	(*A)( 5, 5 ) = eps_x_0 / 2.0l / beta / B22 / dt / al * mesh[_x].Nk[6] * mesh[_x].Nk[7];
+	(*A)( 5, 6 ) = -eps_x_0 / al * ( -mesh[_x].Nk[7] / B22 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[5] + newmark_B[5] ) );
+	(*A)( 5, 7 ) = -1.0l / al * ( sigma_x * h * h * h / 6.0l * mesh[_x].Nk[7] * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[2] 
+									+ newmark_B[2] ) - eps_x_0 / B22 * mesh[_x].Nk[6] * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[5] + newmark_B[5] ) );
+
+	(*A)( 6, 7 ) = 1.0l / 2.0l / ( beta * al * dt );
+
+	(*A)( 7, 0 ) = sigma_x_mu / 2.0l / beta / ( dt * al ) * mesh[_x].Nk[7];
+	(*A)( 7, 1 ) = -sigma_x_mu / 4.0l / beta / ( dt * al ) * By1;
+	(*A)( 7, 6 ) = sigma_x_mu / al;
+	(*A)( 7, 7 ) = sigma_x_mu / al * ( 1.0 / 2.0l / beta / dt * mesh[_x].Nk[0] + newmark_B[0]);
+
+	(*f)( 3 ) = rho / al * h * newmark_A[0] + 1.0l / al * ( -sigma_x * h * mesh[_x].Nk[6] 
+						* mesh[_x].Nk[7] - sigma_x * h / beta / dt * mesh[_x].Nk[7] 
+						* mesh[_x].Nk[7] * mesh[_x].Nk[0] - sigma_x * h * mesh[_x].Nk[7] 
+						* mesh[_x].Nk[7] * newmark_B[0] 
+						+ sigma_x * h / 4.0l / beta / dt * By1 * mesh[_x].Nk[7] * mesh[_x].Nk[1] 
+						- eps_x_0 * h / beta / dt / B22 * mesh[_x].Nk[6] * mesh[_x].Nk[7] * mesh[_x].Nk[3] - eps_x_0 * h / B22 
+						* mesh[_x].Nk[6] * mesh[_x].Nk[7] * newmark_B[3] 
+						+ eps_x_0 * h / 4.0l / beta / dt * By1 * mesh[_x].Nk[6] * mesh[_x].Nk[2] );
+	(*f)( 4 ) = rho / al * h * newmark_A[1] + Pimp / al + 1.0l / al * ( sigma_x * h / 4.0l / beta * By1 / dt	//55454 h
+						* mesh[_x].Nk[7] * mesh[_x].Nk[0] + sigma_x * h / 4.0l * ( By1 * By1 ) * newmark_B[1] 
+						+ eps_x_0 * h / beta / dt 
+						* mesh[_x].Nk[6] * mesh[_x].Nk[7] * mesh[_x].Nk[2] + eps_x_0 * h * mesh[_x].Nk[6] 
+						* mesh[_x].Nk[7] * newmark_B[2] - h / 2.0l * Jx * By1 );			//By1
+	(*f)( 5 ) = 1.0l / al * ( sigma_x * h * h * h / 12.0l / beta / dt * mesh[_x].Nk[7] * mesh[_x].Nk[7] * mesh[_x].Nk[2] 
+						+ sigma_x * h * h * h / 12.0l * mesh[_x].Nk[7] * mesh[_x].Nk[7] * newmark_B[2] - eps_x_0 / beta / dt / B22 * mesh[_x].Nk[6] 
+						* mesh[_x].Nk[7] * mesh[_x].Nk[5] - eps_x_0 / B22 * mesh[_x].Nk[6] * mesh[_x].Nk[7] 
+						* newmark_B[5] ) - h * h * h / 12.0l * newmark_A[2] * rho  / al;
+	(*f)( 6 ) = newmark_B[7] / al;
+	(*f)( 7 ) = 1.0l / al * ( -sigma_x_mu / 2.0l / beta / dt * mesh[_x].Nk[7] * mesh[_x].Nk[0] - 0.5l * sigma_x_mu * By1 * newmark_B[1] );
+}
+
+template<class PL_NUM>
 PL_NUM Solver<PL_NUM>::do_step()
 {	
 	totalTime1 = time( 0 );
@@ -606,46 +691,6 @@ PL_NUM Solver<PL_NUM>::do_step()
 
 	do{
 		//cout << " proc num " << omp_get_thread_num() << endl;
-		if( iter == 0 && curTimeStep == 1 )
-		{
-			preLin = 0;
-		}
-		else
-		{
-			preLin = 1;
-		}
-		calc_Newmark_AB( 0, 1 );
-
-		orthoBuilder->flushO( 0 );
-		orthoBuilder->resetOrthoDoneInfo();
-
-		N1( 0 ) = 0.0; N1( 1 ) = 0.0; N1( 2 ) = 1.0; N1( 3 ) = 0.0; N1( 4 ) = 0.0; N1( 5 ) = 0.0; N1( 6 ) = 0.0; N1( 7 ) = 0.0;
-		N2( 0 ) = 0.0; N2( 1 ) = 0.0; N2( 2 ) = 0.0; N2( 3 ) = 1.0; N2( 4 ) = 0.0; N2( 5 ) = 0.0; N2( 6 ) = 0.0; N2( 7 ) = 0.0;
-		N3( 0 ) = 0.0; N3( 1 ) = 0.0; N3( 2 ) = 0.0; N3( 3 ) = 0.0; N3( 4 ) = 1.0; N3( 5 ) = 0.0; N3( 6 ) = 0.0; N3( 7 ) = 0.0;
-		N4( 0 ) = 0.0; N4( 1 ) = 0.0; N4( 2 ) = 0.0; N4( 3 ) = 0.0; N4( 4 ) = 0.0; N4( 5 ) = 0.0; 
-		if( preLin == 0 )
-		{
-			N4( 6 ) = 0.0;
-		}
-		else
-		{
-			N4( 6 ) = mesh[0].Nk1[0] / 2.0l / beta / dt + newmark_B[0];
-		}
-		N4( 7 ) = -1.0;
-
-		N5( 0 ) = 0.0; N5( 1 ) = 0.0; N5( 2 ) = 0.0; N5( 3 ) = 0.0; N5( 4 ) = 0.0; N5( 5 ) = 0.0; 
-		if( preLin == 0 )
-		{
-			N5( 6 ) = 0.0;
-			N5( 7 ) = 0.0;
-		}
-		else
-		{
-			N5( 6 ) = -( newmark_B[0] * mesh[0].Nk1[7] - newmark_B[1] * By0 );
-			N5( 7 ) = mesh[0].Nk1[7];
-		}
-
-		orthoBuilder->setInitVects( N1, N2, N3, N4, N5 );
 
 		for( int x = 0; x < Km; ++x )
 		{
@@ -655,11 +700,44 @@ PL_NUM Solver<PL_NUM>::do_step()
 			}
 		}
 
+		if( iter == 0 && curTimeStep == 1 )
+		{
+			preLin = 0;
+		}
+		else
+		{
+			preLin = 1;
+		}
+		calc_Newmark_AB( 0 );
+
+		orthoBuilder->flushO( 0 );
+		orthoBuilder->resetOrthoDoneInfo();
+
+		N1( 0 ) = 0.0; N2( 0 ) = 0.0; N3( 0 ) = 0.0; N4( 0 ) = 0.0;     
+		N1( 1 ) = 0.0; N2( 1 ) = 0.0; N3( 1 ) = 0.0; N4( 1 ) = 0.0;
+		N1( 2 ) = 1.0; N2( 2 ) = 0.0; N3( 2 ) = 0.0; N4( 2 ) = 0.0;
+		N1( 3 ) = 0.0; N2( 3 ) = 1.0; N3( 3 ) = 0.0; N4( 3 ) = 0.0;
+		N1( 4 ) = 0.0; N2( 4 ) = 0.0; N3( 4 ) = 1.0; N4( 4 ) = 0.0;
+		N1( 5 ) = 0.0; N2( 5 ) = 0.0; N3( 5 ) = 0.0; N4( 5 ) = 0.0; 
+		N1( 6 ) = 0.0; N2( 6 ) = 0.0; N3( 6 ) = 0.0; N4( 6 ) = mesh[0].Nk[0] / 2.0l / beta / dt + newmark_B[0];
+		N1( 7 ) = 0.0; N2( 7 ) = 0.0; N3( 7 ) = 0.0; N4( 7 ) = -1.0;
+
+		N5( 0 ) = 0.0; 
+		N5( 1 ) = 0.0; 
+		N5( 2 ) = 0.0; 
+		N5( 3 ) = 0.0; 
+		N5( 4 ) = 0.0; 
+		N5( 5 ) = 0.0; 
+		N5( 6 ) = -( newmark_B[0] * mesh[0].Nk[7] - newmark_B[1] * By0 );
+		N5( 7 ) = mesh[0].Nk[7];
+
+		orthoBuilder->setInitVects( N1, N2, N3, N4, N5 );
+
 		for( int x = 0; x < Km - 1; ++x )
 		{
 			orthoBuilder->flushO( x + 1 );
 
-			calc_Newmark_AB( x, 0 );
+			calc_Newmark_AB( x );
 
 			matrTime1 = time( 0 );
 			calc_nonlin_system( x );
@@ -733,12 +811,12 @@ PL_NUM Solver<PL_NUM>::do_step()
 	{
 		for( int i = 0; i < eq_num; ++i )
 		{
-			mesh[x].d2N[i] = ( mesh[x].Nk1[i] - mesh[x].Nk0[i] ) / beta / dt / dt - mesh[x].d1N0[i] / beta / dt
+			PL_NUM tmpD2N = ( mesh[x].Nk1[i] - mesh[x].Nk0[i] ) / beta / dt / dt - mesh[x].d1N0[i] / beta / dt
 						- ( 0.5l - beta ) / beta * mesh[x].d2N0[i];
-			mesh[x].d1N[i] = mesh[x].d1N0[i] + 0.5l * dt * ( mesh[x].d2N0[i] + mesh[x].d2N[i] );
+			PL_NUM tmpD1N = mesh[x].d1N0[i] + 0.5l * dt * ( mesh[x].d2N0[i] + tmpD2N );
 			mesh[x].Nk0[i] = mesh[x].Nk1[i];
-			mesh[x].d1N0[i] = mesh[x].d1N[i];
-			mesh[x].d2N0[i] = mesh[x].d2N[i];
+			mesh[x].d1N0[i] = tmpD1N;
+			mesh[x].d2N0[i] = tmpD2N;
 		}
 	}
 
