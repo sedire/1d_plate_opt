@@ -82,6 +82,9 @@ void RungeKutta<PL_NUM>::adjCalc( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor>
 	//		f1[i] += dx * A[eq_num * i + j] * (x)[j];
 	//	}
 	//}
+	if( hom != 0 ) {
+		f1 += dx * f;
+	}
 
 	Af1 = dx * ( A * f1 );
 	//f2 += dx * ( A * ( (*x) + rgk_d21 * f1 ) );
@@ -112,18 +115,12 @@ void RungeKutta<PL_NUM>::adjCalc( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor>
 	//		f4[i] += dx * A[eq_num * i + j] * ( (x)[j] + rgk_d41 * f1[j] + rgk_d42 * f2[j] + rgk_d43 * f3[j] );
 	//	}
 	//}
-	if( hom != 0 ) {
-		f1 += dx * f;
-		f2 += dx * f;
-		f3 += dx * f;
-		f4 += dx * f;
-		//for( int i = 0; i < eq_num; ++i ) {
-		//	f1[i] += dx * f[i];
-		//	f2[i] += dx * f[i];
-		//	f3[i] += dx * f[i];
-		//	f4[i] += dx * f[i];
-		//}
-	}
+	//if( hom != 0 ) {
+	//	f1 += dx * f;
+	//	f2 += dx * f;
+	//	f3 += dx * f;
+	//	f4 += dx * f;
+	//}
 
 	//for( int i = 0; i < eq_num; ++i ) {
 	//		(*Phi)[i] = f1[i];
@@ -149,6 +146,10 @@ void RungeKutta<PL_NUM>::calc( const PL_NUM A[EQ_NUM][EQ_NUM], const Matrix<PL_N
 			 + A[ 5][6] * (*x)( 6 ) + A[ 5][7 ] * (*x)( 7 ) );
 	f1( 6 ) = dx * A[ 6][7] * (*x)( 7 );
 	f1( 7 ) = dx * ( A[ 7][0] * (*x)( 0 ) + A[ 7][1] * (*x)( 1 ) + A[ 7][6] * (*x)( 6 ) + A[ 7][7] * (*x)( 7 ) );
+
+	if( hom != 0 ) {
+		f1 += dx * f;
+	}
 
 	Af1( 0 ) = dx * A[0][3] * f1( 3 );
 	Af1( 1 ) = dx * A[1][2] * f1( 2 );
@@ -190,12 +191,12 @@ void RungeKutta<PL_NUM>::calc( const PL_NUM A[EQ_NUM][EQ_NUM], const Matrix<PL_N
 	Af3( 7 ) = dx * ( A[ 7][0] * f3( 0 ) + A[ 7][1] * f3( 1 ) + A[ 7][6] * f3( 6 ) + A[ 7][7] * f3( 7 ) );
 	f4 = rgk_d41 * Af1 + rgk_d42 * Af2 + rgk_d43 * Af3 + f1;
 
-	if( hom != 0 ) {
-		f1 += dx * f;
-		f2 += dx * f;
-		f3 += dx * f;
-		f4 += dx * f;
-	}
+	//if( hom != 0 ) {
+	//	f1 += dx * f;
+	//	f2 += dx * f;
+	//	f3 += dx * f;
+	//	f4 += dx * f;
+	//}
 
 	(*x) += rgk_C1 * f1 + rgk_C2 * f2 + rgk_C3 * f3 + rgk_C4 * f4;
 }

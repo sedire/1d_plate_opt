@@ -708,13 +708,13 @@ PL_NUM Solver<PL_NUM>::do_step()
 
 	copyToResArr();
 
-	PL_NUM sum = 0.0l;
-	for( int y = 0; y < Km; ++y )
-	{
-		sum += mesh[y].Nk1[1] * mesh[y].Nk1[1];
-	}
-	//return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
-	return sum;
+	//PL_NUM sum = 0.0l;
+	//for( int y = 0; y < Km; ++y )
+	//{
+	//	sum += mesh[y].Nk1[1] * mesh[y].Nk1[1];
+	//}
+	return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
+	//return sum;
 }
 
 template<class PL_NUM>

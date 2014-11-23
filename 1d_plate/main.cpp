@@ -24,27 +24,11 @@ int main()
 	time_t adjTime = 0;
 	time_t hpdTime = 0;
 
-	//N_PRES J0start =  0.0215698;
-	//N_PRES tauStart = 0.0111486;
-	//N_PRES tauStartExp = 0.0198796;
-
-	//N_PRES J0start_1 =  1.0;
-	//N_PRES tauStart_1 = 0.00515053;
-	//N_PRES tauStartExp_1 = 0.00259337;
-
-	//N_PRES J0start_2 =  0.00991937;
-	//N_PRES tauStart_2 = 0.00682416;
-	//N_PRES tauStartExp_2 = 0.00001;
-
-	//N_PRES J0start_3 =  1.0;
-	//N_PRES tauStart_3 = 0.00370372;
-	//N_PRES tauStartExp_3 = 0.00295792;
-
 	N_PRES J0start =  0.01;
 	N_PRES tauStart = 0.0048;
 	N_PRES tauStartExp = 0.0048;
 
-	N_PRES J0start_1 =  0.01;
+	N_PRES J0start_1 = 0.01;
 	N_PRES tauStart_1 = 0.0048;
 	N_PRES tauStartExp_1 = 0.0048;
 
