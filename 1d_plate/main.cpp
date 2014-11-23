@@ -40,27 +40,27 @@ int main()
 	//N_PRES tauStart_3 = 0.00370372;
 	//N_PRES tauStartExp_3 = 0.00295792;
 
-	N_PRES J0start =  0.0;//0.01;
-	N_PRES tauStart = 0.0048;
-	N_PRES tauStartExp = 0.0048;
+	N_PRES J0start =  0.0215701;//0.01;
+	N_PRES tauStart = 0.0111491;
+	N_PRES tauStartExp = 0.0198698;
 
-	N_PRES J0start_1 =  0.01;
-	N_PRES tauStart_1 = 0.0048;
-	N_PRES tauStartExp_1 = 0.0048;
+	N_PRES J0start_1 =  1.0;
+	N_PRES tauStart_1 = 0.0051509;
+	N_PRES tauStartExp_1 = 0.00259362;
 
-	N_PRES J0start_2 =  0.01;
-	N_PRES tauStart_2 = 0.0048;
-	N_PRES tauStartExp_2 = 0.0048;
+	N_PRES J0start_2 =  0.0100736;
+	N_PRES tauStart_2 = 0.00745042;
+	N_PRES tauStartExp_2 = 0.00001;
 
-	N_PRES J0start_3 =  0.01;
-	N_PRES tauStart_3 = 0.0048;
-	N_PRES tauStartExp_3 = 0.0048;
+	N_PRES J0start_3 =  1.0;
+	N_PRES tauStart_3 = 0.00370382;
+	N_PRES tauStartExp_3 = 0.00295845;
 
-	N_PRES ByStart = 0.0;//1.0;
+	N_PRES ByStart = 1.0;
 
 //////////////////////////////////
 	Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >* solver = new Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >();
-	solver->setTask( J0start, tauStart, tauStartExp, J0start, tauStart, tauStartExp, ByStart, stress_whole, 100.0, GlobalTauP2 );
+	solver->setTask( J0start, tauStart, tauStartExp, J0start_2, tauStart_2, tauStartExp_2, ByStart, stress_whole, 100.0, GlobalTauP2 );
 	time_t tBegin = time( 0 );
 
 	while( solver->cur_t <= CHAR_TIME )
@@ -68,7 +68,7 @@ int main()
 		cout << solver->cur_t << endl;
 		solver->do_step();
 		//solver->dump_check_sol( -1 );
-		solver->dump_whole_sol( 5 );
+		solver->dump_whole_sol( 4 );
 
 		solver->increaseTime();
 	}

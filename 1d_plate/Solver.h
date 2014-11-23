@@ -137,8 +137,8 @@ private:
 	//Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> nonlin_matr_A;
 	Matrix<PL_NUM, EQ_NUM, 1> nonlin_vect_f;
 	
-	Matrix<PL_NUM, EQ_NUM, EQ_NUM> matrA;
-	Matrix<PL_NUM, EQ_NUM, EQ_NUM> matrA1;
+	Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> matrA;
+	Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> matrA1;
 	Matrix<PL_NUM, EQ_NUM, 1> vectF;
 	Matrix<PL_NUM, EQ_NUM, 1> vectF1;
 
@@ -157,12 +157,24 @@ private:
 	Matrix<PL_NUM, EQ_NUM, 1> N4orthog;
 	Matrix<PL_NUM, EQ_NUM, 1> N5orthog;
 
+	Matrix<PL_NUM, EQ_NUM, 1> tmpPhi1;
+	Matrix<PL_NUM, EQ_NUM, 1> tmpPhi2;
+	Matrix<PL_NUM, EQ_NUM, 1> tmpPhi3;
+	Matrix<PL_NUM, EQ_NUM, 1> tmpPhi4;
+	Matrix<PL_NUM, EQ_NUM, 1> tmpPhi5;
+
+	PL_NUM Phi1[ABM_STAGE_NUM][EQ_NUM];
+	PL_NUM Phi2[ABM_STAGE_NUM][EQ_NUM];
+	PL_NUM Phi3[ABM_STAGE_NUM][EQ_NUM];
+	PL_NUM Phi4[ABM_STAGE_NUM][EQ_NUM];
+	PL_NUM Phi5[ABM_STAGE_NUM][EQ_NUM];
+
 	RungeKutta<PL_NUM>* rungeKutta;
 	OrthoBuilder<PL_NUM>* orthoBuilder;
 
 	void calc_Newmark_AB( int _x );		//don't really know why we need this stuff with mode need to FIX -- UPD "mode" removed
 	void calc_nonlin_system( int _x );	//though in fact, the system is linear, "nonlinear" means that this is for the solution of the nonlinear problem
-	void calcLinSystem( int _x, Matrix<PL_NUM, EQ_NUM, EQ_NUM>* A, Matrix<PL_NUM, EQ_NUM, 1>* f );
+	void calcLinSystem( int _x, Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor>* A, Matrix<PL_NUM, EQ_NUM, 1>* f );
 
 	int checkConv();
 	void copyToResArr();
@@ -393,6 +405,8 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	Km = NODES_Y;
 	dx = a / ( Km - 1 );
 
+	cout << " dx and rad are: " << dx << " " << rad << endl;
+
 	dt = DELTA_T;
 	cur_t = dt;
 	curTimeStep = 1;
@@ -424,23 +438,39 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	{
 		for( int j = 0; j < EQ_NUM; ++j )
 		{
-			nonlin_matr_A[i][j] = 0.0;
+			nonlin_matr_A[i][j] = 0.0l;
+			matrA( i, j ) = 0.0l;
+			matrA1( i, j ) = 0.0l;
 		}
-		nonlin_vect_f( i ) = 0.0;
+		nonlin_vect_f( i ) = 0.0l;
+		vectF( i ) = 0.0l;
+		vectF1( i ) = 0.0l;
 	}
 
-	newmark_A.resize( eq_num, 0.0 );
-	newmark_B.resize( eq_num, 0.0 );
+	newmark_A.resize( eq_num );
+	newmark_B.resize( eq_num );
 
 	for( int i = 0; i < EQ_NUM; ++i )
 	{
-		newmark_A[i] = 0.0;
-		newmark_B[i] = 0.0;
-		N1( i ) = 0.0;
-		N2( i ) = 0.0;
-		N3( i ) = 0.0;
-		N4( i ) = 0.0;
-		N5( i ) = 0.0;
+		newmark_A[i] = 0.0l;
+		newmark_B[i] = 0.0l;
+		N1( i ) = 0.0l;
+		N2( i ) = 0.0l;
+		N3( i ) = 0.0l;
+		N4( i ) = 0.0l;
+		N5( i ) = 0.0l;
+	}
+
+	for( int i = 0; i < ABM_STAGE_NUM; ++i )
+	{
+		for( int j = 0; j < EQ_NUM; ++j )
+		{
+			Phi1[i][j] = 0.0l;
+			Phi2[i][j] = 0.0l;
+			Phi3[i][j] = 0.0l;
+			Phi4[i][j] = 0.0l;
+			Phi5[i][j] = 0.0l;
+		}
 	}
 
 	calcConsts();
@@ -454,7 +484,7 @@ void Solver<PL_NUM>::calcConsts()
 	B12 = nu21 * E2 * E1 / ( E1 - nu21 * nu21 * E2 );
 
 	By1 = 2.0l * By0;                                      // in considered boundary-value problem
-	By2 = 0.0;
+	By2 = 0.0l;
 	eps_x_0 = eps_x - eps_0;
 }
 
@@ -579,7 +609,7 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 }
 
 template<class PL_NUM>
-void Solver<PL_NUM>::calcLinSystem( int _x, Matrix<PL_NUM, EQ_NUM, EQ_NUM>* A, Matrix<PL_NUM, EQ_NUM, 1>* f )
+void Solver<PL_NUM>::calcLinSystem( int _x, Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor>* A, Matrix<PL_NUM, EQ_NUM, 1>* f )
 {
 	PL_NUM Jx = 0.0;
 	if( currentType == current_const )
@@ -692,6 +722,8 @@ PL_NUM Solver<PL_NUM>::do_step()
 	do{
 		//cout << " proc num " << omp_get_thread_num() << endl;
 
+		int active = 1;
+
 		for( int x = 0; x < Km; ++x )
 		{
 			for( int i = 0; i < eq_num; ++i )
@@ -709,6 +741,7 @@ PL_NUM Solver<PL_NUM>::do_step()
 			preLin = 1;
 		}
 		calc_Newmark_AB( 0 );
+		calcLinSystem( 0, &matrA1, &vectF1 );
 
 		orthoBuilder->flushO( 0 );
 		orthoBuilder->resetOrthoDoneInfo();
@@ -737,25 +770,108 @@ PL_NUM Solver<PL_NUM>::do_step()
 		{
 			orthoBuilder->flushO( x + 1 );
 
-			calc_Newmark_AB( x );
+			//calc_Newmark_AB( x );
 
-			matrTime1 = time( 0 );
-			calc_nonlin_system( x );
-			matrTime += time( 0 ) - matrTime1;
+			//matrTime1 = time( 0 );
+			//calc_nonlin_system( x );
+			//matrTime += time( 0 ) - matrTime1;
+
+			matrA = matrA1;
+			vectF = vectF1;
+
+			tmpPhi1 = matrA * N1;
+			tmpPhi2 = matrA * N2;
+			tmpPhi3 = matrA * N3;
+			tmpPhi4 = matrA * N4;
+			tmpPhi5 = matrA * N5 + vectF;
+
+			int PhiInd = 0;
+
+			if( active <= ABM_STAGE_NUM )
+			{
+				PhiInd = active - 1;
+			}
+			else
+			{
+				for( int i = 0; i < ABM_STAGE_NUM - 1; ++i )
+				{
+					for( int j = 0; j < EQ_NUM; ++j )
+					{
+						Phi1[i][j] = Phi1[i + 1][j];
+						Phi2[i][j] = Phi2[i + 1][j];
+						Phi3[i][j] = Phi3[i + 1][j];
+						Phi4[i][j] = Phi4[i + 1][j];
+						Phi5[i][j] = Phi5[i + 1][j];
+					}
+				}
+				PhiInd = ABM_STAGE_NUM - 1;
+			}
+		
+			for( int i = 0; i < EQ_NUM; ++i )
+			{
+				Phi1[PhiInd][i] = tmpPhi1( i );
+				Phi2[PhiInd][i] = tmpPhi2( i );
+				Phi3[PhiInd][i] = tmpPhi3( i );
+				Phi4[PhiInd][i] = tmpPhi4( i );
+				Phi5[PhiInd][i] = tmpPhi5( i );
+			}
+
+			calc_Newmark_AB( x + 1 );
+			calcLinSystem( x + 1, &matrA1, &vectF1 );
 
 			rgkTime1 = time( 0 );
 
-			//rungeKutta->calcTrap( matrAn, matrAn1, vectFn, vectFn1, dx, 0, &N1 );
-			//rungeKutta->calcTrap( matrAn, matrAn1, vectFn, vectFn1, dx, 0, &N2 );
-			//rungeKutta->calcTrap( matrAn, matrAn1, vectFn, vectFn1, dx, 0, &N3 );
-			//rungeKutta->calcTrap( matrAn, matrAn1, vectFn, vectFn1, dx, 0, &N4 );
-			//rungeKutta->calcTrap( matrAn, matrAn1, vectFn, vectFn1, dx, 1, &N5 );
-
-			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N1 );
+			/*rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N1 );
 			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N2 );
 			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N3 );
 			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 0, &N4 );
-			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 1, &N5 );
+			rungeKutta->calc( nonlin_matr_A, nonlin_vect_f, dx, 1, &N5 );*/
+
+			if( active >= 4 )
+			{
+				//use ABM method
+				//predictor:
+				for( int i = 0; i < EQ_NUM; ++i )
+				{
+					tmpPhi1( i ) = N1( i ) + dx / 24.0l
+									* ( 55.0l * Phi1[3][i] - 59.0l * Phi1[2][i] + 37.0l * Phi1[1][i] - 9.0l * Phi1[0][i] );
+					tmpPhi2( i ) = N2( i ) + dx / 24.0l
+									* ( 55.0l * Phi2[3][i] - 59.0l * Phi2[2][i] + 37.0l * Phi2[1][i] - 9.0l * Phi2[0][i] );
+					tmpPhi3( i ) = N3( i ) + dx / 24.0l
+									* ( 55.0l * Phi3[3][i] - 59.0l * Phi3[2][i] + 37.0l * Phi3[1][i] - 9.0l * Phi3[0][i] );
+					tmpPhi4( i ) = N4( i ) + dx / 24.0l
+									* ( 55.0l * Phi4[3][i] - 59.0l * Phi4[2][i] + 37.0l * Phi4[1][i] - 9.0l * Phi4[0][i] );
+					tmpPhi5( i ) = N5( i ) + dx / 24.0l
+									* ( 55.0l * Phi5[3][i] - 59.0l * Phi5[2][i] + 37.0l * Phi5[1][i] - 9.0l * Phi5[0][i] );
+				}
+				//corrector:
+				tmpPhi1 = matrA1 * tmpPhi1;
+				tmpPhi2 = matrA1 * tmpPhi2;
+				tmpPhi3 = matrA1 * tmpPhi3;
+				tmpPhi4 = matrA1 * tmpPhi4;
+				tmpPhi5 = matrA1 * tmpPhi5 + vectF1;
+				for( int i = 0; i < EQ_NUM; ++i )
+				{
+					N1( i ) = N1( i ) + dx / 24.0l
+									* ( 9.0l * tmpPhi1( i ) + 19.0l * Phi1[3][i] - 5.0l * Phi1[2][i] + Phi1[1][i] );
+					N2( i ) = N2( i ) + dx / 24.0l
+									* ( 9.0l * tmpPhi2( i ) + 19.0l * Phi2[3][i] - 5.0l * Phi2[2][i] + Phi2[1][i] );
+					N3( i ) = N3( i ) + dx / 24.0l
+									* ( 9.0l * tmpPhi3( i ) + 19.0l * Phi3[3][i] - 5.0l * Phi3[2][i] + Phi3[1][i] );
+					N4( i ) = N4( i ) + dx / 24.0l
+									* ( 9.0l * tmpPhi4( i ) + 19.0l * Phi4[3][i] - 5.0l * Phi4[2][i] + Phi4[1][i] );
+					N5( i ) = N5( i ) + dx / 24.0l
+									* ( 9.0l * tmpPhi5( i ) + 19.0l * Phi5[3][i] - 5.0l * Phi5[2][i] + Phi5[1][i] );
+				}
+			}
+			else
+			{
+				rungeKutta->calc3( matrA, matrA1, vectF, vectF1, dx, 0, &N1 );
+				rungeKutta->calc3( matrA, matrA1, vectF, vectF1, dx, 0, &N2 );
+				rungeKutta->calc3( matrA, matrA1, vectF, vectF1, dx, 0, &N3 );
+				rungeKutta->calc3( matrA, matrA1, vectF, vectF1, dx, 0, &N4 );
+				rungeKutta->calc3( matrA, matrA1, vectF, vectF1, dx, 1, &N5 );
+			}
 
 			rgkTime += time( 0 ) - rgkTime1;
 
@@ -775,6 +891,8 @@ PL_NUM Solver<PL_NUM>::do_step()
 
 			if( orthoBuilder->checkOrtho( x, N2orthog, N3orthog, N4orthog, N5orthog, N2, N3, N4, N5 ) == 1 )	//if the orthonormalization is needed
 			{
+				active = 1;		//if orthonormalization has been performed, we have to restart the ABM method
+
 				N1 = N1orthog;
 				N2 = N2orthog;
 				N3 = N3orthog;
@@ -786,6 +904,7 @@ PL_NUM Solver<PL_NUM>::do_step()
 			}
 			else
 			{
+				++active;	//if no orthonormalization has been done, we have one more solution that can be used in ABM method
 				orthoBuilder->setNextSolVects( x, N1, N2, N3, N4, N5 );
 			}
 		}
@@ -864,7 +983,7 @@ int Solver<PL_NUM>::checkConv()
 		{
 			if( fabs( mesh[x].Nk[i] ) > ALMOST_ZERO )
 			{
-				if( fabs( ( mesh[x].Nk1[i] - mesh[x].Nk[i] ) / mesh[x].Nk[i] ) > 0.000001l )
+				if( fabs( ( mesh[x].Nk1[i] - mesh[x].Nk[i] ) / mesh[x].Nk[i] ) > 0.0000001l )
 				{
 					return 1;
 				}
