@@ -19,8 +19,8 @@ public:
 
 	vector<PL_NUM> Nk;
 	vector<PL_NUM> Nk1;
-	vector<PL_NUM> d1N;
-	vector<PL_NUM> d2N;
+	//vector<PL_NUM> d1N;
+	//vector<PL_NUM> d2N;
 
 	vector<PL_NUM> Nk0;
 	vector<PL_NUM> d1N0;
@@ -45,8 +45,8 @@ VarVect<PL_NUM>::VarVect( int _eq_num )
 {
 	Nk.resize( _eq_num, 0.0 );
 	Nk1.resize( _eq_num, 0.0 );
-	d1N.resize( _eq_num, 0.0 );
-	d2N.resize( _eq_num, 0.0 );
+	//d1N.resize( _eq_num, 0.0 );
+	//d2N.resize( _eq_num, 0.0 );
 
 	Nk0.resize( _eq_num, 0.0 );
 	d1N0.resize( _eq_num, 0.0 );
@@ -58,8 +58,8 @@ void VarVect<PL_NUM>::setup( int _eq_num )
 {
 	Nk.resize( _eq_num, 0.0 );
 	Nk1.resize( _eq_num, 0.0 );
-	d1N.resize( _eq_num, 0.0 );
-	d2N.resize( _eq_num, 0.0 );
+	//d1N.resize( _eq_num, 0.0 );
+	//d2N.resize( _eq_num, 0.0 );
 
 	Nk0.resize( _eq_num, 0.0 );
 	d1N0.resize( _eq_num, 0.0 );

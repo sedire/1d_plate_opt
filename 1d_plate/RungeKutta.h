@@ -21,6 +21,27 @@ public:
 	RungeKutta( int _eq_num );
 	~RungeKutta() {};
 	inline void calc( const PL_NUM A[EQ_NUM][EQ_NUM], const Matrix<PL_NUM, EQ_NUM, 1> &f, PL_NUM dx, int hom, Matrix<PL_NUM, EQ_NUM, 1>* x );			//method for solving a system of ODE like dy/dx = Ax + f
+	inline void calc2( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An, 
+						const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An1, 
+						const Matrix<PL_NUM, EQ_NUM, 1> &fn,
+						const Matrix<PL_NUM, EQ_NUM, 1> &fn1,
+						PL_NUM dx, 
+						int hom, 
+						Matrix<PL_NUM, EQ_NUM, 1>* x );
+	inline void calc3( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An, 
+						const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An1, 
+						const Matrix<PL_NUM, EQ_NUM, 1> &fn,
+						const Matrix<PL_NUM, EQ_NUM, 1> &fn1,
+						PL_NUM dx, 
+						int hom, 
+						Matrix<PL_NUM, EQ_NUM, 1>* x );
+	inline void calcTrap( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An, 
+						const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An1, 
+						const Matrix<PL_NUM, EQ_NUM, 1> &fn,
+						const Matrix<PL_NUM, EQ_NUM, 1> &fn1,
+						PL_NUM dx, 
+						int hom, 
+						Matrix<PL_NUM, EQ_NUM, 1>* x );
 	inline void adjCalc( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &A, const Matrix<PL_NUM, EQ_NUM, 1> &f, PL_NUM dx, int hom, Matrix<PL_NUM, EQ_NUM, 1>* x );
 	int eq_num;
 private:
@@ -38,6 +59,11 @@ private:
 	Matrix<PL_NUM, EQ_NUM, 1> Af1;
 	Matrix<PL_NUM, EQ_NUM, 1> Af2;
 	Matrix<PL_NUM, EQ_NUM, 1> Af3;
+
+	Matrix<PL_NUM, EQ_NUM, EQ_NUM> I;
+	Matrix<PL_NUM, EQ_NUM, EQ_NUM> AA;
+	Matrix<PL_NUM, EQ_NUM, 1> bb;
+	Matrix<PL_NUM, EQ_NUM, 1> tmpRes;
 };
 
 
@@ -64,6 +90,64 @@ RungeKutta<PL_NUM>::RungeKutta( int _eq_num )
 	//f2.resize( eq_num );
 	//f3.resize( eq_num );
 	//f4.resize( eq_num );
+	for( int i = 0; i < EQ_NUM; ++i )
+	{
+		for( int j = 0; j < EQ_NUM; ++j )
+		{
+			if( i == j )
+			{
+				I( i, j ) = 1.0;
+			}
+			else
+			{
+				I( i, j ) = 0.0;
+			}
+		}
+	}
+
+}
+
+template<class PL_NUM>
+void RungeKutta<PL_NUM>::calc2( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An, 
+						const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An1, 
+						const Matrix<PL_NUM, EQ_NUM, 1> &fn,
+						const Matrix<PL_NUM, EQ_NUM, 1> &fn1,
+						PL_NUM dx, 
+						int hom, 
+						Matrix<PL_NUM, EQ_NUM, 1>* x )
+{
+	f1 = An * (*x);
+	f1 += fn * hom;
+	f2 = An1 * ( (*x) + dx * f1 );
+	f2 += fn1 * hom;
+
+	(*x) += dx * ( 0.5 * f1 + 0.5 * f2 );
+}
+
+template<class PL_NUM>
+void RungeKutta<PL_NUM>::calcTrap( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An, 
+						const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An1, 
+						const Matrix<PL_NUM, EQ_NUM, 1> &fn,
+						const Matrix<PL_NUM, EQ_NUM, 1> &fn1,
+						PL_NUM dx, 
+						int hom, 
+						Matrix<PL_NUM, EQ_NUM, 1>* x )
+{
+}
+
+template<>
+void inline RungeKutta<N_PRES>::calcTrap( const Matrix<N_PRES, EQ_NUM, EQ_NUM, RowMajor> &An, 
+						const Matrix<N_PRES, EQ_NUM, EQ_NUM, RowMajor> &An1, 
+						const Matrix<N_PRES, EQ_NUM, 1> &fn,
+						const Matrix<N_PRES, EQ_NUM, 1> &fn1,
+						N_PRES dx, 
+						int hom, 
+						Matrix<N_PRES, EQ_NUM, 1>* x )
+{
+	AA = I - An1 * 0.5 * dx;
+	bb = ( I + An * 0.5 * dx ) * (*x) + ( fn + fn1 ) * hom * 0.5 * dx;
+	tmpRes = AA.fullPivLu().solve( bb );
+	(*x) = tmpRes;
 }
 
 template<class PL_NUM>
@@ -122,14 +206,68 @@ void RungeKutta<PL_NUM>::adjCalc( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor>
 	//	f4 += dx * f;
 	//}
 
-	//for( int i = 0; i < eq_num; ++i ) {
-	//		(*Phi)[i] = f1[i];
-	//}
-
 	(*x) += rgk_C1 * f1 + rgk_C2 * f2 + rgk_C3 * f3 + rgk_C4 * f4;
 	//for( int i = 0; i < eq_num; ++i ) {
 	//	(x)[i] = (x)[i] + rgk_C1 * f1[i] + rgk_C2 * f2[i] + rgk_C3 * f3[i] + rgk_C4 * f4[i];
 	//}
+}
+
+template<class PL_NUM>
+void RungeKutta<PL_NUM>::calc3( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An, 
+						const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An1, 
+						const Matrix<PL_NUM, EQ_NUM, 1> &fn,
+						const Matrix<PL_NUM, EQ_NUM, 1> &fn1,
+						PL_NUM dx, 
+						int hom, 
+						Matrix<PL_NUM, EQ_NUM, 1>* x )
+{
+	f1( 0 ) = dx * An( 0, 3 ) * (*x)( 3 );
+	f1( 1 ) = dx * An( 1, 2 ) * (*x)( 2 );
+	f1( 2 ) = dx * An( 2, 5 ) * (*x)( 5 );
+	f1( 3 ) = dx * ( An( 3, 0 ) * (*x)( 0 ) + An( 3, 1 ) * (*x)( 1 ) + An( 3, 2 ) * (*x)( 2 ) + An( 3, 3 ) * (*x)( 3 )
+			 + An( 3, 6 ) * (*x)( 6 ) + An( 3, 7 ) * (*x)( 7 ) );
+	f1( 4 ) = dx * ( An( 4, 0 ) * (*x)( 0 ) + An( 4, 1 ) * (*x)( 1 ) + An( 4, 2 ) * (*x)( 2 ) + An( 4, 6 ) * (*x)( 6 )
+			 + An( 4, 7 ) * (*x)( 7 ) );
+	f1( 5 ) = dx * ( An( 5, 1 ) * (*x)( 1 ) + An( 5, 2 ) * (*x)( 2 ) + An( 5, 4 ) * (*x)( 4 ) + An( 5, 5 ) * (*x)( 5 )
+			 + An( 5, 6 ) * (*x)( 6 ) + An( 5, 7 ) * (*x)( 7 ) );
+	f1( 6 ) = dx * An( 6, 7 ) * (*x)( 7 );
+	f1( 7 ) = dx * ( An( 7, 0 ) * (*x)( 0 ) + An( 7, 1 ) * (*x)( 1 ) + An( 7, 6 ) * (*x)( 6 ) + An( 7, 7 ) * (*x)( 7 ) );
+	if( hom != 0 ) {
+		f1 += dx * fn;
+	}
+
+	Af1( 0 ) = dx * An( 0, 3 ) * f1( 3 );
+	Af1( 1 ) = dx * An( 1, 2 ) * f1( 2 );
+	Af1( 2 ) = dx * An( 2, 5 ) * f1( 5 );
+	Af1( 3 ) = dx * ( An( 3, 0 ) * f1( 0 ) + An( 3, 1 ) * f1( 1 ) + An( 3, 2 ) * f1( 2 ) + An( 3, 3 ) * f1( 3 )
+			 + An( 3, 6 ) * f1( 6 ) + An( 3, 7 ) * f1( 7 ) );
+	Af1( 4 ) = dx * ( An( 4, 0 ) * f1( 0 ) + An( 4, 1 ) * f1( 1 ) + An( 4, 2 ) * f1( 2 ) + An( 4, 6 ) * f1( 6 )
+			 + An( 4, 7 ) * f1( 7 ) );
+	Af1( 5 ) = dx * ( An( 5, 1 ) * f1( 1 ) + An( 5, 2 ) * f1( 2 ) + An( 5, 4 ) * f1( 4 ) + An( 5, 5 ) * f1( 5 )
+			 + An( 5, 6 ) * f1( 6 ) + An( 5, 7 ) * f1( 7 ) );
+	Af1( 6 ) = dx * An( 6, 7 ) * f1( 7 );
+	Af1( 7 ) = dx * ( An( 7, 0 ) * f1( 0 ) + An( 7, 1 ) * f1( 1 ) + An( 7, 6 ) * f1( 6 ) + An( 7, 7 ) * f1( 7 ) );
+	f2 = rgk_d21 * Af1 + f1;
+
+	Af2( 0 ) = dx * An( 0, 3 ) * f2( 3 );
+	Af2( 1 ) = dx * An( 1, 2 ) * f2( 2 );
+	Af2( 2 ) = dx * An( 2, 5 ) * f2( 5 );
+	Af2( 3 ) = dx * ( An( 3, 0 ) * f2( 0 ) + An( 3, 1 ) * f2( 1 ) + An( 3, 2 ) * f2( 2 ) + An( 3, 3 ) * f2( 3 )
+			 + An( 3, 6 ) * f2( 6 ) + An( 3, 7 ) * f2( 7 ) );
+	Af2( 4 ) = dx * ( An( 4, 0 ) * f2( 0 ) + An( 4, 1 ) * f2( 1 ) + An( 4, 2 ) * f2( 2 ) + An( 4, 6 ) * f2( 6 )
+			 + An( 4, 7 ) * f2( 7 ) );
+	Af2( 5 ) = dx * ( An( 5, 1 ) * f2( 1 ) + An( 5, 2 ) * f2( 2 ) + An( 5, 4 ) * f2( 4 ) + An( 5, 5 ) * f2( 5 )
+			 + An( 5, 6 ) * f2( 6 ) + An( 5, 7 ) * f2( 7 ) );
+	Af2( 6 ) = dx * An( 6, 7 ) * f2( 7 );
+	Af2( 7 ) = dx * ( An( 7, 0 ) * f2( 0 ) + An( 7, 1 ) * f2( 1 ) + An( 7, 6 ) * f2( 6 ) + An( 7, 7 ) * f2( 7 ) );
+	f3 = rgk_d31 * Af1 + rgk_d32 * Af2 + f1;
+
+	f4 = dx * An1 * ( (*x) + rgk_d41 * f1 + rgk_d42 * f2 + rgk_d43 * f3 );
+	if( hom != 0 ) {
+		f4 += dx * fn1;
+	}
+
+	(*x) += rgk_C1 * f1 + rgk_C2 * f2 + rgk_C3 * f3 + rgk_C4 * f4;
 }
 
 template<class PL_NUM>

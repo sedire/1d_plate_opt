@@ -52,7 +52,8 @@ double calcValGradTausAdj( double* g, double* x, long n )
 	{
 		cout << omp_get_thread_num() << endl;
 		
-		solver[scen].setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen], B0begin2, mechLoad[scen], mechTaus[scen] );
+		solver[scen].setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen], 
+								B0begin2, stress_centered, mechLoad[scen], mechTaus[scen] );
 		solver[scen].setResArray( GlobalResArrays + scen * resArrSize );
 		solver[scen].setResDtArray( GlobalResDtArrays + scen * resArrSize );
 
@@ -178,7 +179,8 @@ double calcValGradTausAdjSolid( double* g, double* x, long n )
 	{
 		cout << omp_get_thread_num() << endl;
 		
-		solver[scen].setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen], B0begin2, mechLoad[scen], mechTaus[scen] );
+		solver[scen].setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen],
+								B0begin2, stress_centered, mechLoad[scen], mechTaus[scen] );
 		solver[scen].setResArray( GlobalResArrays + scen * resArrSize );
 		solver[scen].setResDtArray( GlobalResDtArrays + scen * resArrSize );
 
@@ -326,7 +328,7 @@ double calcValGradTaus( double* g, double* x, long n )
 
 	Solver<HPD<N_PRES, GRAD_SIZE_SECOND> > solver_second[SCEN_NUMBER];
 
-	cout << "\tcalculating func val\n";
+	cout << "\tcalculating func and grad val\n";
 
 	double charTime = CHAR_TIME;
 
@@ -340,7 +342,8 @@ double calcValGradTaus( double* g, double* x, long n )
 	{
 		cout << omp_get_thread_num() << endl;
 		
-		solver_second[scen].setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen], B0begin2, mechLoad[scen], mechTaus[scen] );
+		solver_second[scen].setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen],
+										B0begin2, stress_centered, mechLoad[scen], mechTaus[scen] );
 
 		HPD<N_PRES, GRAD_SIZE_SECOND> sum = 0.0;
 		funcVal1[scen] = 0.0l;
@@ -512,7 +515,8 @@ double calcValTaus( double* x, long n )
 	{
 		funcVal1[scen] = 0.0l;
 		funcVal2[scen] = 0.0l;
-		solver[scen].setTask( J0begin, tauBeginSin, tauBeginExp, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen], B0begin, mechLoad[scen], mechTaus[scen] );
+		solver[scen].setTask( J0begin, tauBeginSin, tauBeginExp, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen],
+								B0begin, stress_centered, mechLoad[scen], mechTaus[scen] );
 		N_PRES sum = 0.0;
 
 		while( solver[scen].cur_t <= SWITCH_TIME )

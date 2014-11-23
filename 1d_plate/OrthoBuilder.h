@@ -29,7 +29,7 @@ public:
 	vector<PL_NUM> z4;
 	vector<PL_NUM> z5;
 
-	vector<PL_NUM> C;
+	//vector<PL_NUM> C;
 
 	void flushO();
 };
@@ -43,11 +43,31 @@ public:
 	virtual void setParams( int _Km );
 	//virtual void orthonorm( int baseV, int n, vector<PL_NUM>* NtoOrt ) {};
 	inline virtual void orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM, 1>* NtoOrt ) {};
+	inline virtual int checkOrtho( int n, const Matrix<PL_NUM, EQ_NUM, 1>& N2orthog, 
+											const Matrix<PL_NUM, EQ_NUM, 1>& N3orthog,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N4orthog, 
+											const Matrix<PL_NUM, EQ_NUM, 1>& N5orthog, 
+
+											const Matrix<PL_NUM, EQ_NUM, 1>& N2orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N3orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N4orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N5orig ) { return 1; };
+	inline virtual void setNextSolVects( int n, const Matrix<PL_NUM, EQ_NUM, 1>& N1, 
+									const Matrix<PL_NUM, EQ_NUM, 1>& N2, 
+									const Matrix<PL_NUM, EQ_NUM, 1>& N3,
+									const Matrix<PL_NUM, EQ_NUM, 1>& N4, 
+									const Matrix<PL_NUM, EQ_NUM, 1>& N5 ) {};
+	inline virtual void normNextSolVects( int n, Matrix<PL_NUM, EQ_NUM, 1>* N1, 
+									Matrix<PL_NUM, EQ_NUM, 1>* N2, 
+									Matrix<PL_NUM, EQ_NUM, 1>* N3,
+									Matrix<PL_NUM, EQ_NUM, 1>* N4 ) {};
 	virtual void buildSolution( vector<VarVect<PL_NUM> >* _mesh ) {};
 	virtual void buildSolutionAdj( vector<VarVectAdj>* _mesh ) {};
 	virtual void flushO( int x );
 	virtual void setInitVects( const Matrix<PL_NUM, EQ_NUM, 1> &N1, const Matrix<PL_NUM, EQ_NUM, 1> &N2, const Matrix<PL_NUM, EQ_NUM, 1> &N3, const Matrix<PL_NUM, EQ_NUM, 1> &N4, const Matrix<PL_NUM, EQ_NUM, 1> &N5 );
 	virtual void orthogTest( int x );
+	virtual void resetOrthoDoneInfo();
+	virtual void setOrthoDoneInfo( int y );
 
 	time_t orthoStart;
 	time_t orthoTotal;
@@ -56,6 +76,9 @@ protected:
 	int Km;
 	vector<SolInfo<PL_NUM> > solInfoMap;
 	vector<PL_NUM> omega2;
+	vector<bool> orthoDone;
+	vector<PL_NUM> Cx1;		//to keep coefficients for the superposition solution from the next orthonormalization interval
+	vector<PL_NUM> Cx;		//to keep coefficients for the superposition solution from the current orthonormalization interval
 };
 
 template<class PL_NUM>
@@ -66,6 +89,24 @@ public:
 	~OrthoBuilderGSh() {};
 	//void orthonorm( int baseV, int n, vector<PL_NUM>* NtoOrt );
 	inline void orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM, 1>* NtoOrt );
+	inline int checkOrtho( int n, const Matrix<PL_NUM, EQ_NUM, 1>& N2, 
+											const Matrix<PL_NUM, EQ_NUM, 1>& N3,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N4, 
+											const Matrix<PL_NUM, EQ_NUM, 1>& N5, 
+
+											const Matrix<PL_NUM, EQ_NUM, 1>& N2orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N3orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N4orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N5orig );
+	inline void setNextSolVects( int n, const Matrix<PL_NUM, EQ_NUM, 1>& N1, 
+									const Matrix<PL_NUM, EQ_NUM, 1>& N2, 
+									const Matrix<PL_NUM, EQ_NUM, 1>& N3,
+									const Matrix<PL_NUM, EQ_NUM, 1>& N4, 
+									const Matrix<PL_NUM, EQ_NUM, 1>& N5 );
+	inline void normNextSolVects( int n, Matrix<PL_NUM, EQ_NUM, 1>* N1, 
+									Matrix<PL_NUM, EQ_NUM, 1>* N2, 
+									Matrix<PL_NUM, EQ_NUM, 1>* N3,
+									Matrix<PL_NUM, EQ_NUM, 1>* N4 );
 	void buildSolution( vector<VarVect<PL_NUM> >* _mesh );
 	void buildSolutionAdj( vector<VarVectAdj>* _mesh );
 };
@@ -81,7 +122,7 @@ SolInfo<PL_NUM>::SolInfo()
 	z4.resize( EQ_NUM );
 	z5.resize( EQ_NUM );
 
-	C.resize( EQ_NUM / 2 );
+	//C.resize( EQ_NUM / 2 );
 }
 
 template<class PL_NUM>
@@ -106,6 +147,8 @@ OrthoBuilder<PL_NUM>::OrthoBuilder() :
 	orthoTotal( 0 )
 {
 	omega2.resize( eq_num * eq_num, 0.0 );
+	Cx1.resize( eq_num / 2, 0.0 );
+	Cx.resize( eq_num / 2, 0.0 );
 }
 
 template<class PL_NUM>
@@ -125,6 +168,7 @@ void OrthoBuilder<PL_NUM>::setParams( int _Km )
 {
 	Km = _Km;
 
+	orthoDone.resize( Km - 1, 0 );
 	solInfoMap.resize( Km );
 }
 
@@ -180,6 +224,76 @@ void OrthoBuilder<PL_NUM>::orthogTest( int x )
 }
 
 template<class PL_NUM>
+void OrthoBuilder<PL_NUM>::resetOrthoDoneInfo()
+{
+	for( int y = 0; y < orthoDone.size(); ++y )
+	{
+		orthoDone[y] = false;
+	}
+}
+
+template<class PL_NUM>
+void OrthoBuilder<PL_NUM>::setOrthoDoneInfo( int y )
+{
+	orthoDone[y] = true;
+}
+
+template<class PL_NUM>
+int OrthoBuilderGSh<PL_NUM>::checkOrtho( int n, const Matrix<PL_NUM, EQ_NUM, 1>& N2orthog, 
+											const Matrix<PL_NUM, EQ_NUM, 1>& N3orthog,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N4orthog, 
+											const Matrix<PL_NUM, EQ_NUM, 1>& N5orthog, 
+
+											const Matrix<PL_NUM, EQ_NUM, 1>& N2orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N3orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N4orig,
+											const Matrix<PL_NUM, EQ_NUM, 1>& N5orig )
+{
+	int ret = 0;
+	N_PRES eps = ORTHONORM_CHECK_EPS;
+	
+	if( N2orthog.lpNorm<Infinity>() * solInfoMap[n + 1].o[1 * eq_num + 1] < eps * N2orig.lpNorm<Infinity>() ||
+		N3orthog.lpNorm<Infinity>() * solInfoMap[n + 1].o[2 * eq_num + 2] < eps * N3orig.lpNorm<Infinity>() || 
+		N4orthog.lpNorm<Infinity>() * solInfoMap[n + 1].o[3 * eq_num + 3] < eps * N4orig.lpNorm<Infinity>() ||
+		N5orthog.lpNorm<Infinity>() < eps * N5orig.lpNorm<Infinity>() )
+	{
+		ret = 1;
+		orthoDone[n] = true;
+	}
+
+	return ret;
+}
+
+template<class PL_NUM>
+inline void OrthoBuilderGSh<PL_NUM>::setNextSolVects( int n, const Matrix<PL_NUM, EQ_NUM, 1>& N1, 
+									const Matrix<PL_NUM, EQ_NUM, 1>& N2, 
+									const Matrix<PL_NUM, EQ_NUM, 1>& N3,
+									const Matrix<PL_NUM, EQ_NUM, 1>& N4, 
+									const Matrix<PL_NUM, EQ_NUM, 1>& N5 )
+{
+	for( int i = 0; i < eq_num; ++i )
+	{
+		solInfoMap[n + 1].z1[i] = N1( i );
+		solInfoMap[n + 1].z2[i] = N2( i );
+		solInfoMap[n + 1].z3[i] = N3( i );
+		solInfoMap[n + 1].z4[i] = N4( i );
+		solInfoMap[n + 1].z5[i] = N5( i );
+	}
+}
+
+template<class PL_NUM>
+inline void OrthoBuilderGSh<PL_NUM>::normNextSolVects( int n, Matrix<PL_NUM, EQ_NUM, 1>* N1, 
+									Matrix<PL_NUM, EQ_NUM, 1>* N2, 
+									Matrix<PL_NUM, EQ_NUM, 1>* N3,
+									Matrix<PL_NUM, EQ_NUM, 1>* N4 )
+{
+	(*N1) /= solInfoMap[n + 1].o[0 * eq_num + 0];
+	(*N2) /= solInfoMap[n + 1].o[1 * eq_num + 1];
+	(*N3) /= solInfoMap[n + 1].o[2 * eq_num + 2];
+	(*N4) /= solInfoMap[n + 1].o[3 * eq_num + 3];
+}
+
+template<class PL_NUM>
 void OrthoBuilderGSh<PL_NUM>::orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM, 1>* NtoOrt )
 {
 	orthoStart = time( 0 );
@@ -191,11 +305,11 @@ void OrthoBuilderGSh<PL_NUM>::orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM
 		omega2[i] = 0.0;
 	}
 
-	//if( baseV < 1 || baseV > 5 || n < 0 || n > Km - 1 )
-	//{
-	//	cout << "Error in orthonorm: bad input\n";
-	//	return;
-	//}
+	if( baseV < 1 || baseV > 5 || n < 0 || n > Km - 1 )
+	{
+		cout << "Error in orthonorm: bad input\n";
+		return;
+	}
 
 	if( baseV == 1 )
 	{
@@ -373,7 +487,6 @@ void OrthoBuilderGSh<PL_NUM>::orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM
 		}
 		else
 		{
-			//cout << "N4 > k11\n";
 			for( int i = 0; i < eq_num; ++i )
 			{
 				omega2[ 3 * eq_num + 0 ] += (*NtoOrt)( i ) * solInfoMap[n + 1].z1[i];
@@ -426,11 +539,11 @@ void OrthoBuilderGSh<PL_NUM>::orthonorm( int baseV, int n, Matrix<PL_NUM, EQ_NUM
 		}
 		for( int i = 0; i < eq_num; ++i )
 		{
-			solInfoMap[n + 1].z5[i] = (*NtoOrt)( i ) - solInfoMap[n + 1].o[4 * eq_num + 0] * solInfoMap[n + 1].z1[i]
+			(*NtoOrt)( i ) = (*NtoOrt)( i ) - solInfoMap[n + 1].o[4 * eq_num + 0] * solInfoMap[n + 1].z1[i]
 									- solInfoMap[n + 1].o[4 * eq_num + 1] * solInfoMap[n + 1].z2[i]
 									- solInfoMap[n + 1].o[4 * eq_num + 2] * solInfoMap[n + 1].z3[i]
 									- solInfoMap[n + 1].o[4 * eq_num + 3] * solInfoMap[n + 1].z4[i];
-			(*NtoOrt)( i ) = solInfoMap[n + 1].z5[i];
+			solInfoMap[n + 1].z5[i] = (*NtoOrt)( i );
 		}
 	}
 
@@ -582,7 +695,7 @@ void OrthoBuilderGSh<PL_NUM>::buildSolution( vector<VarVect<PL_NUM> >* _mesh )
 
 	for( int i = 0; i < msize; ++i )
 	{
-		solInfoMap[Km - 1].C[i] = x1[i];
+		Cx1[i] = x1[i];
 	}
 
 	//m0 = solInfoMap[Km - 1].C[0];								//we changed the order in M matrix, so we must change it in C too
@@ -591,39 +704,57 @@ void OrthoBuilderGSh<PL_NUM>::buildSolution( vector<VarVect<PL_NUM> >* _mesh )
 
 	for( int j = 0; j < eq_num; ++j )
 	{
-		(*_mesh)[Km - 1].Nk1[j] = solInfoMap[Km - 1].C[0] * solInfoMap[Km - 1].z1[j]
-						+ solInfoMap[Km - 1].C[1] * solInfoMap[Km - 1].z2[j]
-						+ solInfoMap[Km - 1].C[2] * solInfoMap[Km - 1].z3[j]
-						+ solInfoMap[Km - 1].C[3] * solInfoMap[Km - 1].z4[j]
+		(*_mesh)[Km - 1].Nk1[j] = Cx1[0] * solInfoMap[Km - 1].z1[j]
+						+ Cx1[1] * solInfoMap[Km - 1].z2[j]
+						+ Cx1[2] * solInfoMap[Km - 1].z3[j]
+						+ Cx1[3] * solInfoMap[Km - 1].z4[j]
 						+ solInfoMap[Km - 1].z5[j];
+
 	}
 
 	for( int x = Km - 2; x >= 0; --x )			//calculate the coeeficients at all the other points and restore the solution there
 	{
-		solInfoMap[x].C[3] = ( solInfoMap[x + 1].C[3] 
-								- solInfoMap[x + 1].o[4 * eq_num + 3] ) 
-								/ solInfoMap[x + 1].o[3 * eq_num + 3];
-		solInfoMap[x].C[2] = ( solInfoMap[x + 1].C[2] 
-								- solInfoMap[x + 1].o[4 * eq_num + 2]
-								- solInfoMap[x + 1].o[3 * eq_num + 2] * solInfoMap[x].C[3] ) 
-								/ solInfoMap[x + 1].o[2 * eq_num + 2];
-		solInfoMap[x].C[1] = ( solInfoMap[x + 1].C[1] 
-								- solInfoMap[x + 1].o[4 * eq_num + 1]
-								- solInfoMap[x + 1].o[3 * eq_num + 1] * solInfoMap[x].C[3]
-								- solInfoMap[x + 1].o[2 * eq_num + 1] * solInfoMap[x].C[2] )
-								/ solInfoMap[x + 1].o[1 * eq_num + 1];
-		solInfoMap[x].C[0] = ( solInfoMap[x + 1].C[0] 
-								- solInfoMap[x + 1].o[4 * eq_num + 0]
-								- solInfoMap[x + 1].o[3 * eq_num + 0] * solInfoMap[x].C[3]
-								- solInfoMap[x + 1].o[2 * eq_num + 0] * solInfoMap[x].C[2]
-								- solInfoMap[x + 1].o[1 * eq_num + 0] * solInfoMap[x].C[1] )
-								/ solInfoMap[x + 1].o[0 * eq_num + 0];
+		if( orthoDone[x] == true )
+		{
+			Cx[3] = ( Cx1[3] 
+						- solInfoMap[x + 1].o[4 * eq_num + 3] ) 
+						/ solInfoMap[x + 1].o[3 * eq_num + 3];
+			Cx[2] = ( Cx1[2] 
+						- solInfoMap[x + 1].o[4 * eq_num + 2]
+						- solInfoMap[x + 1].o[3 * eq_num + 2] * Cx[3] ) 
+						/ solInfoMap[x + 1].o[2 * eq_num + 2];
+			Cx[1] = ( Cx1[1] 
+						- solInfoMap[x + 1].o[4 * eq_num + 1]
+						- solInfoMap[x + 1].o[3 * eq_num + 1] * Cx[3]
+						- solInfoMap[x + 1].o[2 * eq_num + 1] * Cx[2] )
+						/ solInfoMap[x + 1].o[1 * eq_num + 1];
+			Cx[0] = ( Cx1[0] 
+						- solInfoMap[x + 1].o[4 * eq_num + 0]
+						- solInfoMap[x + 1].o[3 * eq_num + 0] * Cx[3]
+						- solInfoMap[x + 1].o[2 * eq_num + 0] * Cx[2]
+						- solInfoMap[x + 1].o[1 * eq_num + 0] * Cx[1] )
+						/ solInfoMap[x + 1].o[0 * eq_num + 0];
+
+			//update the coefficients for the next interval
+			for( int i = 0; i < eq_num / 2; ++i )
+			{
+				Cx1[i] = Cx[i];
+			}
+		}
+		else
+		{
+			for( int i = 0; i < eq_num / 2; ++i )
+			{
+				Cx[i] = Cx1[i];
+			}
+			//... and there is no need to update the coefficients for the next interval
+		}
 		for( int j = 0; j < eq_num; ++j )
 		{
-			(*_mesh)[x].Nk1[j] = solInfoMap[x].C[0] * solInfoMap[x].z1[j]
-							+ solInfoMap[x].C[1] * solInfoMap[x].z2[j]
-							+ solInfoMap[x].C[2] * solInfoMap[x].z3[j]
-							+ solInfoMap[x].C[3] * solInfoMap[x].z4[j]
+			(*_mesh)[x].Nk1[j] = Cx[0] * solInfoMap[x].z1[j]
+							+ Cx[1] * solInfoMap[x].z2[j]
+							+ Cx[2] * solInfoMap[x].z3[j]
+							+ Cx[3] * solInfoMap[x].z4[j]
 							+ solInfoMap[x].z5[j];
 		}
 	}
@@ -686,7 +817,7 @@ void inline OrthoBuilderGSh<N_PRES>::buildSolutionAdj( vector<VarVectAdj>* _mesh
 
 	for( int i = 0; i < msize; ++i )
 	{
-		solInfoMap[Km - 1].C[i] = x1( i );
+		Cx1[i] = x1( i );
 	}
 
 	//m0 = solInfoMap[Km - 1].C[0];								//we changed the order in M matrix, so we must change it in C too
@@ -695,39 +826,56 @@ void inline OrthoBuilderGSh<N_PRES>::buildSolutionAdj( vector<VarVectAdj>* _mesh
 
 	for( int j = 0; j < eq_num; ++j )
 	{
-		(*_mesh)[Km - 1].N[j] = solInfoMap[Km - 1].C[0] * solInfoMap[Km - 1].z1[j]
-						+ solInfoMap[Km - 1].C[1] * solInfoMap[Km - 1].z2[j]
-						+ solInfoMap[Km - 1].C[2] * solInfoMap[Km - 1].z3[j]
-						+ solInfoMap[Km - 1].C[3] * solInfoMap[Km - 1].z4[j]
+		(*_mesh)[Km - 1].N[j] = Cx1[0] * solInfoMap[Km - 1].z1[j]
+						+ Cx1[1] * solInfoMap[Km - 1].z2[j]
+						+ Cx1[2] * solInfoMap[Km - 1].z3[j]
+						+ Cx1[3] * solInfoMap[Km - 1].z4[j]
 						+ solInfoMap[Km - 1].z5[j];
 	}
 
 	for( int x = Km - 2; x >= 0; --x )			//calculate the coeeficients at all the other points and restore the solution there
 	{
-		solInfoMap[x].C[3] = ( solInfoMap[x + 1].C[3] 
-								- solInfoMap[x + 1].o[4 * eq_num + 3] ) 
-								/ solInfoMap[x + 1].o[3 * eq_num + 3];
-		solInfoMap[x].C[2] = ( solInfoMap[x + 1].C[2] 
-								- solInfoMap[x + 1].o[4 * eq_num + 2]
-								- solInfoMap[x + 1].o[3 * eq_num + 2] * solInfoMap[x].C[3] ) 
-								/ solInfoMap[x + 1].o[2 * eq_num + 2];
-		solInfoMap[x].C[1] = ( solInfoMap[x + 1].C[1] 
-								- solInfoMap[x + 1].o[4 * eq_num + 1]
-								- solInfoMap[x + 1].o[3 * eq_num + 1] * solInfoMap[x].C[3]
-								- solInfoMap[x + 1].o[2 * eq_num + 1] * solInfoMap[x].C[2] )
-								/ solInfoMap[x + 1].o[1 * eq_num + 1];
-		solInfoMap[x].C[0] = ( solInfoMap[x + 1].C[0] 
-								- solInfoMap[x + 1].o[4 * eq_num + 0]
-								- solInfoMap[x + 1].o[3 * eq_num + 0] * solInfoMap[x].C[3]
-								- solInfoMap[x + 1].o[2 * eq_num + 0] * solInfoMap[x].C[2]
-								- solInfoMap[x + 1].o[1 * eq_num + 0] * solInfoMap[x].C[1] )
-								/ solInfoMap[x + 1].o[0 * eq_num + 0];
+		if( orthoDone[x] == true )
+		{
+			Cx[3] = ( Cx1[3] 
+						- solInfoMap[x + 1].o[4 * eq_num + 3] ) 
+						/ solInfoMap[x + 1].o[3 * eq_num + 3];
+			Cx[2] = ( Cx1[2] 
+						- solInfoMap[x + 1].o[4 * eq_num + 2]
+						- solInfoMap[x + 1].o[3 * eq_num + 2] * Cx[3] ) 
+						/ solInfoMap[x + 1].o[2 * eq_num + 2];
+			Cx[1] = ( Cx1[1] 
+						- solInfoMap[x + 1].o[4 * eq_num + 1]
+						- solInfoMap[x + 1].o[3 * eq_num + 1] * Cx[3]
+						- solInfoMap[x + 1].o[2 * eq_num + 1] * Cx[2] )
+						/ solInfoMap[x + 1].o[1 * eq_num + 1];
+			Cx[0] = ( Cx1[0] 
+						- solInfoMap[x + 1].o[4 * eq_num + 0]
+						- solInfoMap[x + 1].o[3 * eq_num + 0] * Cx[3]
+						- solInfoMap[x + 1].o[2 * eq_num + 0] * Cx[2]
+						- solInfoMap[x + 1].o[1 * eq_num + 0] * Cx[1] )
+						/ solInfoMap[x + 1].o[0 * eq_num + 0];
+
+			//update the coefficients for the next interval
+			for( int i = 0; i < eq_num / 2; ++i )
+			{
+				Cx1[i] = Cx[i];
+			}
+		}
+		else
+		{
+			for( int i = 0; i < eq_num / 2; ++i )
+			{
+				Cx[i] = Cx1[i];
+			}
+			//... and there is no need to update the coefficients for the next interval
+		}
 		for( int j = 0; j < eq_num; ++j )
 		{
-			(*_mesh)[x].N[j] = solInfoMap[x].C[0] * solInfoMap[x].z1[j]
-							+ solInfoMap[x].C[1] * solInfoMap[x].z2[j]
-							+ solInfoMap[x].C[2] * solInfoMap[x].z3[j]
-							+ solInfoMap[x].C[3] * solInfoMap[x].z4[j]
+			(*_mesh)[x].N[j] = Cx[0] * solInfoMap[x].z1[j]
+							+ Cx[1] * solInfoMap[x].z2[j]
+							+ Cx[2] * solInfoMap[x].z3[j]
+							+ Cx[3] * solInfoMap[x].z4[j]
 							+ solInfoMap[x].z5[j];
 		}
 	}

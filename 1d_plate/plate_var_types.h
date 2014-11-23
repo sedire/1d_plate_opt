@@ -8,13 +8,16 @@
 #define N_PRES long double
 //#define PL_NUM complex<long double>
 #define EQ_NUM 8
-#define ALMOST_ZERO 0.0000000001l
+#define ALMOST_ZERO 1e-11l
 #define J0_SCALE 100000000.0l
 #define BY0_SCALE 1.0l
 #define CHAR_TIME 0.05l
 #define SWITCH_TIME 0.01l
 #define DELTA_T 0.0001
 #define NODES_Y 10001	//CHANGE THIS BACK to 10001
+#define ABM_STAGE_NUM 4
+
+#define ORTHONORM_CHECK_EPS 1e-7
 
 #define J_WEIGHT 1.0l
 
