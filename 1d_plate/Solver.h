@@ -405,8 +405,6 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	Km = NODES_Y;
 	dx = a / ( Km - 1 );
 
-	cout << " dx and rad are: " << dx << " " << rad << endl;
-
 	dt = DELTA_T;
 	cur_t = dt;
 	curTimeStep = 1;
@@ -900,7 +898,7 @@ PL_NUM Solver<PL_NUM>::do_step()
 				N5 = N5orthog;
 				
 				orthoBuilder->setOrthoDoneInfo( x );
-				cout << " --- at x = " << x << " ortho is needed\n";
+				//cout << " --- at x = " << x << " ortho is needed\n";
 			}
 			else
 			{
@@ -943,13 +941,13 @@ PL_NUM Solver<PL_NUM>::do_step()
 
 	copyToResArr();
 
-	PL_NUM sum = 0.0l;
-	for( int y = 0; y < Km; ++y )
-	{
-		sum += mesh[y].Nk1[1] * mesh[y].Nk1[1];
-	}
-	//return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
-	return sum;
+	//PL_NUM sum = 0.0l;
+	//for( int y = 0; y < Km; ++y )
+	//{
+	//	sum += mesh[y].Nk1[1] * mesh[y].Nk1[1];
+	//}
+	//return sum;
+	return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
 }
 
 template<class PL_NUM>
