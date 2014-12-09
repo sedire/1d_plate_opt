@@ -455,7 +455,7 @@ HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator=( const HPD& rhs )
 template<class D_PRES, int NN>
 HPD<D_PRES, NN>& HPD<D_PRES, NN>::operator=( const D_PRES& rhs )
 {
-	for( int i = 0; i < NN + 1; ++i )
+	for( int i = 1; i < NN + 1; ++i )
 	{
 		elems[i] = 0.0;
 	}

@@ -45,12 +45,18 @@
 #include "cg_blas.h"
 
 #include <fstream>
+#include <iostream>
 
 using std::ofstream;
+using std::cout;
 
 void printCurF( int _iter, double _f, double _g )
 {
 	ofstream of( "f_iters.txt", ofstream::app );
+	if( !of.is_open() )
+	{
+		cout << " WARNING: can't open file f_iters.txt\n";
+	}
 	of << _iter << " " << _f << " " << _g << "\n";
 	of.close();
 }

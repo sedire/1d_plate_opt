@@ -10,6 +10,7 @@
 
 using std::cout;
 using std::endl;
+using std::ofstream;
 
 N_PRES* GlobalResArrays = new N_PRES[1];//[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
 N_PRES* GlobalResDtArrays = new N_PRES[1];//[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
@@ -111,6 +112,70 @@ int main()
 		cout << " :: " << g[i] << " " << gAdj[i] << " " << fabs( ( g[i] - gAdj[i] ) / g[i] ) * 100.0 << " % " << endl;
 	}
 	cout << " ----------\n";*/
+
+	//CHECKING DERIVATIVE COMPUTATION:
+	/*HPD<N_PRES, GRAD_SIZE_SECOND> J0 = J0start;
+	HPD<N_PRES, GRAD_SIZE_SECOND> tauSin = tauStart;
+	HPD<N_PRES, GRAD_SIZE_SECOND> tauExp = tauStartExp;
+	HPD<N_PRES, GRAD_SIZE_SECOND> J0_2 = J0start_2;
+	HPD<N_PRES, GRAD_SIZE_SECOND> tauSin_2 = tauStart_2;
+	HPD<N_PRES, GRAD_SIZE_SECOND> tauExp_2 = tauStartExp_2;
+
+	J0.elems[1] = 1.0l;
+	tauSin.elems[2] = 1.0l;
+	tauExp.elems[3] = 1.0l;
+	J0_2.elems[4] = 1.0l;
+	tauSin_2.elems[5] = 1.0l;
+	tauExp_2.elems[6] = 1.0l;
+
+	Solver<HPD<N_PRES, GRAD_SIZE_SECOND> > solverHPD;
+	solverHPD.setTask( J0, tauSin, tauExp, J0_2, tauSin_2, tauExp_2, ByStart, stress_centered, GlobalP02, GlobalTauP2 );
+
+	HPD<N_PRES, GRAD_SIZE_SECOND> valHPD;
+	HPD<N_PRES, GRAD_SIZE_SECOND> funcValHPD = 0.0l;
+	while( solverHPD.cur_t <= CHAR_TIME )
+	{
+		cout << " t= " << solverHPD.cur_t << endl;
+		valHPD = solverHPD.do_step();
+		funcValHPD += valHPD * valHPD;
+		solverHPD.increaseTime();
+	}
+
+	ofstream of1( "HPDderiv.txt" );
+	for( int i = 0; i < GRAD_SIZE_SECOND + 1; ++i )
+	{
+		of1 << funcValHPD.elems[i] << endl;
+	}
+	of1.close();*/
+
+	/*Solver<N_PRES> solverReg;
+	N_PRES dJ = 1e-6;
+	N_PRES dTau = 1e-8;
+	
+	N_PRES val = 0.0;
+	N_PRES funcVal1 = 0.0;
+	N_PRES funcVal2 = 0.0;
+
+	solverReg.setTask( J0start, tauStart, tauStartExp, J0start_2, tauStart_2, tauStartExp_2 + dTau, ByStart, stress_centered, GlobalP02, GlobalTauP2 );
+	while( solverReg.cur_t <= CHAR_TIME )
+	{
+		cout << " t= " << solverReg.cur_t << endl;
+		val = solverReg.do_step();
+		funcVal1 += val * val;
+		solverReg.increaseTime();
+	}
+
+	solverReg.setTask( J0start, tauStart, tauStartExp, J0start_2, tauStart_2, tauStartExp_2 - dTau, ByStart, stress_centered, GlobalP02, GlobalTauP2 );
+	while( solverReg.cur_t <= CHAR_TIME )
+	{
+		cout << " t= " << solverReg.cur_t << endl;
+		val = solverReg.do_step();
+		funcVal2 += val * val;
+		solverReg.increaseTime();
+	}
+
+	cout << " fin diff deriv " << ( funcVal1 - funcVal2 ) / ( 2.0 * dTau ) << endl;*/
+
 
 	optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
 

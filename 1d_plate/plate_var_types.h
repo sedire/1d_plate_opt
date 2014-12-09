@@ -9,6 +9,7 @@
 //#define PL_NUM complex<long double>
 #define EQ_NUM 8
 #define ALMOST_ZERO 1e-11l
+#define NEWTON_EPS 1e-6l
 #define J0_SCALE 100000000.0l
 #define BY0_SCALE 1.0l
 #define CHAR_TIME 0.05l
@@ -16,6 +17,7 @@
 #define DELTA_T 0.0001
 #define NODES_Y 10001	//CHANGE THIS BACK to 10001
 #define ABM_STAGE_NUM 4
+#define W_SCALE 1.0l
 
 #define ORTHONORM_CHECK_EPS 1e-7
 
@@ -33,9 +35,13 @@
 enum {stress_whole, stress_centered};
 enum {current_const, current_sin, current_exp_sin};
 
-const N_PRES GlobalP01( 7500000 );
-const N_PRES GlobalP02( 10000000 );
-const N_PRES GlobalP03( 20000000 );
+//const N_PRES GlobalP01( 7500000 );
+//const N_PRES GlobalP02( 10000000 );
+//const N_PRES GlobalP03( 20000000 );
+
+const N_PRES GlobalP01( 37500 );
+const N_PRES GlobalP02( 50000 );
+const N_PRES GlobalP03( 100000 );
 
 const N_PRES GlobalTauP1( 0.008 );
 const N_PRES GlobalTauP2( 0.01 );

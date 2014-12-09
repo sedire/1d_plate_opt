@@ -23,7 +23,7 @@ void optimizeASA_Taus( const Matrix<N_PRES, GRAD_SIZE_FULL, 1>& params )
 	time_t totOptStart = time( 0 );
 	cout << "optimizeASA enter\n";
 
-	const N_PRES threshold( 1.e-6 );
+	const N_PRES threshold( 1.e-6 * W_SCALE * W_SCALE );
 
 	double* x = new double[GRAD_SIZE_FULL];
 	for( int i = 0; i < GRAD_SIZE_FULL; ++i )

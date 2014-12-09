@@ -263,6 +263,20 @@ double calcValGradTaus( double* g, double* x, long n )
 	}
 	cout << " ====\n";
 
+	ofstream of( "ineq_check.txt", ofstream::app );
+	of << "calcValGradTaus\n";
+	double lb = 0.001;
+	if( x[1] < lb || x[4] < lb || x[7] < lb || x[10] < lb )
+	{
+		of << "ineq tauSin >= " << lb << " violated\n\n";
+		for( int i = 0; i < GRAD_SIZE_FULL; ++i )
+		{
+			of << x[i] << endl;
+		}
+		of << "----------------------\n\n";
+	}
+	of.close();
+
 	HPD<N_PRES, GRAD_SIZE_SECOND> J0begin1;
 	HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginSin1;
 	HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginExp1;
@@ -340,8 +354,6 @@ double calcValGradTaus( double* g, double* x, long n )
 #pragma omp parallel for
 	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
 	{
-		cout << omp_get_thread_num() << endl;
-		
 		solver_second[scen].setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen],
 										B0begin2, stress_centered, mechLoad[scen], mechTaus[scen] );
 
@@ -457,6 +469,13 @@ double calcValGradTaus( double* g, double* x, long n )
 						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[9] * exp( -SWITCH_TIME / x[11] ) * sin( M_PI * SWITCH_TIME / x[10] ) ) * 
 						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[9] * exp( -SWITCH_TIME / x[11] ) * sin( M_PI * SWITCH_TIME / x[10] ) ) )*/;
 
+	cout << " the grad is:\n";
+	for( int i = 0; i < GRAD_SIZE_FULL; ++i )
+	{
+		cout << "\t" << g[i] << endl;
+	}
+	cout << "-----------";
+
 	time_t endtime = time( 0 );
 	cout << "\tdone in " << endtime - begin << endl;
 
@@ -476,6 +495,20 @@ double calcValTaus( double* x, long n )
 		cout << x[i] << endl;
 	}
 	cout << " ====\n";
+
+	ofstream of( "ineq_check.txt", ofstream::app );
+	of << "calcValTaus\n";
+	double lb = 0.001;
+	if( x[1] < lb || x[4] < lb || x[7] < lb || x[10] < lb )
+	{
+		of << "ineq tauSin >= " << lb << " violated\n\n";
+		for( int i = 0; i < GRAD_SIZE_FULL; ++i )
+		{
+			of << x[i] << endl;
+		}
+		of << "----------------------\n\n";
+	}
+	of.close();
 
 	N_PRES J0begin;
 	N_PRES tauBeginSin;
