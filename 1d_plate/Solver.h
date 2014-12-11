@@ -46,8 +46,6 @@ public:
 
 	PL_NUM increaseTime();
 
-	void calc_nonlin_system_run_test( long  _x, long _t );
-
 	PL_NUM do_step();
 	void dump_sol();
 	void dump_check_sol( int fNum );
@@ -337,7 +335,7 @@ void Solver<PL_NUM>::setMechLoad( int _stressType, PL_NUM _p0, PL_NUM _tauP )
 	stressType = _stressType;
 	p0 = _p0;
 	tauP = _tauP;
-	rad = 0.0021 / 100.0;
+	rad = 0.0021 / 100.0 * 10.0;
 }
 
 template<class PL_NUM>
@@ -374,9 +372,11 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	h = 0.0021;						//thickness of the plate
 	a = 0.1524;						//width of the plate
 //other
-	tauP = _tauP;//0.01;
-	p0 = _p0;//10000000;
-	rad = h / 100.0;
+	//tauP = _tauP;//0.01;
+	//p0 = _p0;//10000000;
+	//rad = h / 100.0;
+	//stressType = _stressType;
+	setMechLoad( _stressType, _p0, _tauP );
 
 	_tauSin != 0.0l ? tauSin = _tauSin : tauSin = 1;
 	_tauExp != 0.0l ? tauExp = _tauExp : tauExp = 1;
@@ -393,7 +393,6 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 	omega = (long double)M_PI / tauSin;
 	omega_1 = (long double)M_PI / tauSin_1;
 	
-	stressType = _stressType;
 	currentType = current_exp_sin;
 
 	By0 = _By0;
@@ -634,6 +633,7 @@ void Solver<PL_NUM>::calcLinSystem( int _x, Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMa
 	{
 		if( cur_t < tauP && fabs( (long double)_x * dx - a / 2.0 ) < rad )
 		{
+			cout << "---- node " << _x << " is under impact\n";
 			Pimp = p0 * sqrt( 1.0l - fabs( (long double)_x * dx - a / 2.0l ) * fabs( (long double)_x * dx - a / 2.0 ) / rad / rad	) 
 				* sin( (long double)M_PI * cur_t / tauP );
 		}
@@ -720,7 +720,8 @@ PL_NUM Solver<PL_NUM>::do_step()
 	do{
 		//cout << " proc num " << omp_get_thread_num() << endl;
 
-		int active = 1;
+		int active = 1;		//how many nodes in a row we have, on which orthonormalization was not performed. 
+							//We need this to know whem we can switch to ABM method
 
 		for( int x = 0; x < Km; ++x )
 		{
@@ -922,6 +923,7 @@ PL_NUM Solver<PL_NUM>::do_step()
 	if( iter >= MAX_NEWTON_ITER )
 	{
 		maxNewtonIterReached = 1;
+		cout << " max iter reached at t= " << curTimeStep << endl;
 	}
 
 	for( int x = 0; x < Km; ++x )
@@ -981,7 +983,7 @@ int Solver<PL_NUM>::checkConv()
 		{
 			if( fabs( mesh[x].Nk[i] ) > ALMOST_ZERO )
 			{
-				if( fabs( ( mesh[x].Nk1[i] - mesh[x].Nk[i] ) / mesh[x].Nk[i] ) > 0.0000001l )
+				if( fabs( ( mesh[x].Nk1[i] - mesh[x].Nk[i] ) / mesh[x].Nk[i] ) > NEWTON_EPS && fabs( mesh[x].Nk1[i] - mesh[x].Nk[i] ) > ALMOST_ZERO )
 				{
 					return 1;
 				}

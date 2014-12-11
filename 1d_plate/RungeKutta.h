@@ -151,7 +151,11 @@ void inline RungeKutta<N_PRES>::calcTrap( const Matrix<N_PRES, EQ_NUM, EQ_NUM, R
 }
 
 template<class PL_NUM>
-void RungeKutta<PL_NUM>::adjCalc( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &A, const Matrix<PL_NUM, EQ_NUM, 1> &f, PL_NUM dx, int hom, Matrix<PL_NUM, EQ_NUM, 1>* x )
+void RungeKutta<PL_NUM>::adjCalc( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An, 
+								const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An1, 
+								const Matrix<PL_NUM, EQ_NUM, 1> &fn,
+								const Matrix<PL_NUM, EQ_NUM, 1> &fn1,
+								PL_NUM dx, int hom, Matrix<PL_NUM, EQ_NUM, 1>* x )
 {
 	//for( int i = 0; i < eq_num; ++i ) {
 	//	f1( i ) = 0.0;
@@ -160,17 +164,17 @@ void RungeKutta<PL_NUM>::adjCalc( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor>
 	//	f4( i ) = 0.0;
 	//}
 
-	f1 = dx * ( A * (*x) );
+	f1 = dx * ( An * (*x) );
 	//for( int i = 0; i < eq_num; ++i ) {				//f1 = dx * Fhi( x )
 	//	for( int j = 0; j < eq_num; ++j ) {
 	//		f1[i] += dx * A[eq_num * i + j] * (x)[j];
 	//	}
 	//}
 	if( hom != 0 ) {
-		f1 += dx * f;
+		f1 += dx * fn;
 	}
 
-	Af1 = dx * ( A * f1 );
+	Af1 = dx * ( An * f1 );
 	//f2 += dx * ( A * ( (*x) + rgk_d21 * f1 ) );
 	f2 = rgk_d21 * Af1 + f1;
 
@@ -180,7 +184,7 @@ void RungeKutta<PL_NUM>::adjCalc( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor>
 	//	}
 	//}
 
-	Af2 = dx * ( A * f2 );
+	Af2 = dx * ( An * f2 );
 	//f3 += dx * ( A * ( (*x) + rgk_d31 * f1 + rgk_d32 * f2 ) );
 	f3 = rgk_d31 * Af1 + rgk_d32 * Af2 + f1;
 
@@ -190,26 +194,12 @@ void RungeKutta<PL_NUM>::adjCalc( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor>
 	//	}
 	//}
 
-	Af3 = dx * ( A * f3 );
-	//f4 += dx * ( A * ( (*x) + rgk_d41 * f1 + rgk_d42 * f2 + rgk_d43 * f3 ) );
-	f4 = rgk_d41 * Af1 + rgk_d42 * Af2 + rgk_d43 * Af3 + f1;
-
-	//for( int i = 0; i < eq_num; ++i ) {				//f2 = dx * Fhi( x + d41 * f1 + d42 * f2 + d43 * f3 )
-	//	for( int j = 0; j < eq_num; ++j ) {
-	//		f4[i] += dx * A[eq_num * i + j] * ( (x)[j] + rgk_d41 * f1[j] + rgk_d42 * f2[j] + rgk_d43 * f3[j] );
-	//	}
-	//}
-	//if( hom != 0 ) {
-	//	f1 += dx * f;
-	//	f2 += dx * f;
-	//	f3 += dx * f;
-	//	f4 += dx * f;
-	//}
+	f4 = dx * ( An1 * ( (*x) + rgk_d41 * f1 + rgk_d42 * f2 + rgk_d43 * f3 ) );
+	if( hom != 0 ) {
+		f4 += dx * fn1;
+	}
 
 	(*x) += rgk_C1 * f1 + rgk_C2 * f2 + rgk_C3 * f3 + rgk_C4 * f4;
-	//for( int i = 0; i < eq_num; ++i ) {
-	//	(x)[i] = (x)[i] + rgk_C1 * f1[i] + rgk_C2 * f2[i] + rgk_C3 * f3[i] + rgk_C4 * f4[i];
-	//}
 }
 
 template<class PL_NUM>

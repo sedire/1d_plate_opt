@@ -24,63 +24,68 @@ int main()
 	time_t adjTime = 0;
 	time_t hpdTime = 0;
 
-	N_PRES J0start =  0.01;
-	N_PRES tauStart = 0.0048;
-	N_PRES tauStartExp = 0.0048;
+	//N_PRES J0start =  0.01;
+	//N_PRES tauStart = 0.0048;
+	//N_PRES tauStartExp = 0.0048;
 
-	N_PRES J0start_1 =  0.01;
-	N_PRES tauStart_1 = 0.0048;
-	N_PRES tauStartExp_1 = 0.0048;
+	//N_PRES J0start_1 =  0.01;
+	//N_PRES tauStart_1 = 0.0048;
+	//N_PRES tauStartExp_1 = 0.0048;
 
-	N_PRES J0start_2 =  0.01;
-	N_PRES tauStart_2 = 0.0048;
-	N_PRES tauStartExp_2 = 0.0048;
+	//N_PRES J0start_2 =  0.01;
+	//N_PRES tauStart_2 = 0.0048;
+	//N_PRES tauStartExp_2 = 0.0048;
 
-	N_PRES J0start_3 =  0.01;
-	N_PRES tauStart_3 = 0.0048;
-	N_PRES tauStartExp_3 = 0.0048;
+	//N_PRES J0start_3 =  0.01;
+	//N_PRES tauStart_3 = 0.0048;
+	//N_PRES tauStartExp_3 = 0.0048;
 
-	//N_PRES J0start =  0.0215701;
-	//N_PRES tauStart = 0.0111491;
-	//N_PRES tauStartExp = 0.0198698;
+	N_PRES J0start =  0.0;//0.0169156;
+	N_PRES tauStart = 0.0100988;
+	N_PRES tauStartExp = 0.133208;
 
-	//N_PRES J0start_1 =  1.0;
-	//N_PRES tauStart_1 = 0.0051509;
-	//N_PRES tauStartExp_1 = 0.00259362;
+	N_PRES J0start_1 = 1;
+	N_PRES tauStart_1 = 0.00514614;
+	N_PRES tauStartExp_1 = 0.00267444;
 
-	//N_PRES J0start_2 =  0.0100736;
-	//N_PRES tauStart_2 = 0.00745042;
-	//N_PRES tauStartExp_2 = 0.00001;
+	N_PRES J0start_2 =  0.0;//0.0477903;
+	N_PRES tauStart_2 = 0.00581884;
+	N_PRES tauStartExp_2 = 0.00188555;
 
-	//N_PRES J0start_3 =  1.0;
-	//N_PRES tauStart_3 = 0.00370382;
-	//N_PRES tauStartExp_3 = 0.00295845;
+	N_PRES J0start_3 =  1;
+	N_PRES tauStart_3 = 0.00220696;
+	N_PRES tauStartExp_3 = 0.00427003;
 
-	N_PRES ByStart = 1.0;
+	N_PRES ByStart = 0.0;//1.0;
 
 //////////////////////////////////
-//	Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >* solver = new Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >();
-//	solver->setTask( J0start, tauStart, tauStartExp, J0start_2, tauStart_2, tauStartExp_2, ByStart, stress_whole, 100.0, GlobalTauP2 );
-//	time_t tBegin = time( 0 );
-//
-//	while( solver->cur_t <= CHAR_TIME )
-//	{
-//		cout << solver->cur_t << endl;
-//		solver->do_step();
-//		//solver->dump_check_sol( -1 );
-//		solver->dump_whole_sol( 4 );
-//
-//		solver->increaseTime();
-//	}
-//	time_t tEnd = time( 0 );
-//	cout << " \n computations are done in " << tEnd - tBegin << endl;
-//	cout << ".........\n";
-//	cout << "... done!\n";
-//
-//
-//	cout << " adjTime " << adjTime << endl;
-//	cout << " hpdTIme " << hpdTime << endl;
-//
+	Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >* solver = new Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >();
+	solver->setTask( J0start, tauStart, tauStartExp, J0start_2, tauStart_2, tauStartExp_2, ByStart, stress_centered, GlobalP02, GlobalTauP2 );
+	time_t tBegin = time( 0 );
+
+	while( solver->cur_t <= CHAR_TIME )
+	{
+		cout << solver->cur_t << endl;
+		solver->do_step();
+		solver->dump_check_sol( -1 );
+		solver->dump_whole_sol( 5 );
+
+		solver->increaseTime();
+	}
+	if( solver->getMaxNewtonIterReached() == 1 )
+	{
+		cout << "max newton iter reached\n";
+	}
+
+	time_t tEnd = time( 0 );
+	cout << " \n computations are done in " << tEnd - tBegin << endl;
+	cout << ".........\n";
+	cout << "... done!\n";
+
+
+	cout << " adjTime " << adjTime << endl;
+	cout << " hpdTIme " << hpdTime << endl;
+
 /////////////////////////////////////////
 
 	Matrix<N_PRES, GRAD_SIZE_FULL, 1> params;
@@ -112,7 +117,7 @@ int main()
 	}
 	cout << " ----------\n";*/
 
-	optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
+	//optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
 
 	cout << "\n -- Deleting the solution arrays now...\n";
 

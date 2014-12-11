@@ -35,7 +35,7 @@ void optimizeASA_Taus( const Matrix<N_PRES, GRAD_SIZE_FULL, 1>& params )
 	for( int i = 0; i < GRAD_SIZE_FULL; i += 3 )
 	{
 		lo[i] = -1.0;
-		lo[i + 1] = 0.002;
+		lo[i + 1] = 0.00001;
 		lo[i + 2] = 0.00001;
 
 		hi[i] = 1.0;

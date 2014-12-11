@@ -111,21 +111,29 @@ private:
 	vector<N_PRES> newmarkB;
 
 	Matrix<N_PRES, EQ_NUM, EQ_NUM> matrA;
+	Matrix<PL_NUM, EQ_NUM, EQ_NUM> matrA1;
 	Matrix<N_PRES, EQ_NUM, 1> vectF;
+	Matrix<PL_NUM, EQ_NUM, 1> vectF1;
 
 	N_PRES* primSoln;	//pointer to where the primal solution is stored
 	N_PRES* primSolnDt;	//pointer to the time derivative approximation of the primal solution -- computed here
 	N_PRES* adjSoln;	//here we will store the adjoint solution
 
-//basis vectors for superposition part
+//basis vectors for superposition part:
 	Matrix<N_PRES, EQ_NUM, 1> N1;
 	Matrix<N_PRES, EQ_NUM, 1> N2;
 	Matrix<N_PRES, EQ_NUM, 1> N3;
 	Matrix<N_PRES, EQ_NUM, 1> N4;
 	Matrix<N_PRES, EQ_NUM, 1> N5;
+//additional containers for making a decision whether to orthonormalize of not:
+	Matrix<PL_NUM, EQ_NUM, 1> N1orthog;
+	Matrix<PL_NUM, EQ_NUM, 1> N2orthog;
+	Matrix<PL_NUM, EQ_NUM, 1> N3orthog;
+	Matrix<PL_NUM, EQ_NUM, 1> N4orthog;
+	Matrix<PL_NUM, EQ_NUM, 1> N5orthog;
 
 	void calcNewmarkAB( int y );
-	void calcSystemMatrices( int y );
+	void calcSystemMatrices( int y, Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor>* A, Matrix<PL_NUM, EQ_NUM, 1>* f );
 };
 
 #endif

@@ -127,7 +127,7 @@ double calcValGradTausAdj( double* g, double* x, long n )
 	return ret;
 }
 
-double calcValGradTausAdjSolid( double* g, double* x, long n )
+double calcValGradTausAdjSolid( double* g, double* x, long n )	//"Solid" means that there is only one integral in the objective, both stages are considered inside that integral
 {
 	time_t begin = time( 0 );
 
@@ -190,7 +190,7 @@ double calcValGradTausAdjSolid( double* g, double* x, long n )
 			sum += solver[scen].do_step();
 			solver[scen].increaseTime();
 		}
-		funcVal1[scen] = sum * dt * dy;// / SWITCH_TIME;
+		funcVal1[scen] = sum * dt * dy;
 
 		sum = 0.0;
 		while( solver[scen].cur_t <= CHAR_TIME )
@@ -198,7 +198,7 @@ double calcValGradTausAdjSolid( double* g, double* x, long n )
 			sum += solver[scen].do_step();
 			solver[scen].increaseTime();
 		}
-		funcVal2[scen] = sum * dt * dy;// / ( CHAR_TIME - SWITCH_TIME );
+		funcVal2[scen] = sum * dt * dy;
 
 		if( solver[scen].getMaxNewtonIterReached() == 1 )
 		{
