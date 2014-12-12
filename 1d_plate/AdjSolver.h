@@ -35,6 +35,8 @@ public:
 	int getCurTimeStep();
 	void dumpSol( int fNum );
 
+	N_PRES getValFromPrimalSolnData( int t, int y );
+
 	N_PRES calcJDeriv();
 	N_PRES calcJ0Deriv();
 	N_PRES calcJ1Deriv();
@@ -111,9 +113,9 @@ private:
 	vector<N_PRES> newmarkB;
 
 	Matrix<N_PRES, EQ_NUM, EQ_NUM> matrA;
-	Matrix<PL_NUM, EQ_NUM, EQ_NUM> matrA1;
+	Matrix<N_PRES, EQ_NUM, EQ_NUM> matrA1;
 	Matrix<N_PRES, EQ_NUM, 1> vectF;
-	Matrix<PL_NUM, EQ_NUM, 1> vectF1;
+	Matrix<N_PRES, EQ_NUM, 1> vectF1;
 
 	N_PRES* primSoln;	//pointer to where the primal solution is stored
 	N_PRES* primSolnDt;	//pointer to the time derivative approximation of the primal solution -- computed here
@@ -126,14 +128,14 @@ private:
 	Matrix<N_PRES, EQ_NUM, 1> N4;
 	Matrix<N_PRES, EQ_NUM, 1> N5;
 //additional containers for making a decision whether to orthonormalize of not:
-	Matrix<PL_NUM, EQ_NUM, 1> N1orthog;
-	Matrix<PL_NUM, EQ_NUM, 1> N2orthog;
-	Matrix<PL_NUM, EQ_NUM, 1> N3orthog;
-	Matrix<PL_NUM, EQ_NUM, 1> N4orthog;
-	Matrix<PL_NUM, EQ_NUM, 1> N5orthog;
+	Matrix<N_PRES, EQ_NUM, 1> N1orthog;
+	Matrix<N_PRES, EQ_NUM, 1> N2orthog;
+	Matrix<N_PRES, EQ_NUM, 1> N3orthog;
+	Matrix<N_PRES, EQ_NUM, 1> N4orthog;
+	Matrix<N_PRES, EQ_NUM, 1> N5orthog;
 
 	void calcNewmarkAB( int y );
-	void calcSystemMatrices( int y, Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor>* A, Matrix<PL_NUM, EQ_NUM, 1>* f );
+	void calcSystemMatrices( int y, Matrix<N_PRES, EQ_NUM, EQ_NUM>* A, Matrix<N_PRES, EQ_NUM, 1>* f );
 };
 
 #endif

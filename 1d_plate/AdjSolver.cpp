@@ -99,6 +99,12 @@ int AdjSolver::getCurTimeStep()
 	return curTimeStep;
 }
 
+N_PRES AdjSolver::getValFromPrimalSolnData( int t, int y )
+{
+	int indty = t * Km * eq_num + y * eq_num;
+	return primSoln[indty + 1];
+}
+
 void AdjSolver::loadParamsFromStruct( const SolverPar& loadFrom )
 {
 	ofstream of1( "adj_test_sol.txt" );
@@ -278,7 +284,7 @@ void AdjSolver::calcNewmarkAB( int y )
 	}
 }
 
-void AdjSolver::calcSystemMatrices( int y, Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor>* A, Matrix<PL_NUM, EQ_NUM, 1>* f )
+void AdjSolver::calcSystemMatrices( int y, Matrix<N_PRES, EQ_NUM, EQ_NUM>* A, Matrix<N_PRES, EQ_NUM, 1>* f )
 {
 	N_PRES Jx = 0.0;
 	if( currentType == current_const )
@@ -466,6 +472,8 @@ N_PRES AdjSolver::doStep()
 		rungeKutta->adjCalc( matrA, matrA1, vectF, vectF1, dx, 0, &N4 );
 		rungeKutta->adjCalc( matrA, matrA1, vectF, vectF1, dx, 1, &N5 );
 
+		//cout << " === " << N1.lpNorm<Infinity>() << " " << N5.lpNorm<Infinity>() << endl;
+
 		orthoBuilder->flushO( y + 1 );
 
 		orthoBuilder->orthonorm( 1, y, &N1 );
@@ -473,6 +481,8 @@ N_PRES AdjSolver::doStep()
 		orthoBuilder->orthonorm( 3, y, &N3 );
 		orthoBuilder->orthonorm( 4, y, &N4 );
 		orthoBuilder->orthonorm( 5, y, &N5 );
+
+		//cout << " ++++ " << N1.lpNorm<Infinity>() << " " << N5.lpNorm<Infinity>() << endl;
 	}
 
 	orthoBuilder->buildSolutionAdj( &mesh );

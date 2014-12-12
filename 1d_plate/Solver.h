@@ -633,7 +633,7 @@ void Solver<PL_NUM>::calcLinSystem( int _x, Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMa
 	{
 		if( cur_t < tauP && fabs( (long double)_x * dx - a / 2.0 ) < rad )
 		{
-			cout << "---- node " << _x << " is under impact\n";
+			//cout << "---- node " << _x << " is under impact\n";
 			Pimp = p0 * sqrt( 1.0l - fabs( (long double)_x * dx - a / 2.0l ) * fabs( (long double)_x * dx - a / 2.0 ) / rad / rad	) 
 				* sin( (long double)M_PI * cur_t / tauP );
 		}
@@ -943,13 +943,13 @@ PL_NUM Solver<PL_NUM>::do_step()
 
 	copyToResArr();
 
-	//PL_NUM sum = 0.0l;
-	//for( int y = 0; y < Km; ++y )
-	//{
-	//	sum += mesh[y].Nk1[1] * mesh[y].Nk1[1];
-	//}
-	//return sum;
-	return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
+	PL_NUM sum = 0.0l;
+	for( int y = 0; y < Km; ++y )
+	{
+		sum += mesh[y].Nk1[1] * mesh[y].Nk1[1];
+	}
+	return sum;
+	//return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
 }
 
 template<class PL_NUM>

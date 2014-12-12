@@ -42,7 +42,11 @@ public:
 						PL_NUM dx, 
 						int hom, 
 						Matrix<PL_NUM, EQ_NUM, 1>* x );
-	inline void adjCalc( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &A, const Matrix<PL_NUM, EQ_NUM, 1> &f, PL_NUM dx, int hom, Matrix<PL_NUM, EQ_NUM, 1>* x );
+	inline void adjCalc( const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An, 
+								const Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> &An1, 
+								const Matrix<PL_NUM, EQ_NUM, 1> &fn,
+								const Matrix<PL_NUM, EQ_NUM, 1> &fn1,
+								PL_NUM dx, int hom, Matrix<PL_NUM, EQ_NUM, 1>* x );
 	int eq_num;
 private:
 	//int eq_num;

@@ -835,7 +835,7 @@ void inline OrthoBuilderGSh<N_PRES>::buildSolutionAdj( vector<VarVectAdj>* _mesh
 
 	for( int x = Km - 2; x >= 0; --x )			//calculate the coeeficients at all the other points and restore the solution there
 	{
-		if( orthoDone[x] == true )
+		if( /*orthoDone[x] == true*/ true )
 		{
 			Cx[3] = ( Cx1[3] 
 						- solInfoMap[x + 1].o[4 * eq_num + 3] ) 

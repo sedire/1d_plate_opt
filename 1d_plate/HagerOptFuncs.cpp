@@ -349,27 +349,27 @@ double calcValGradTaus( double* g, double* x, long n )
 		funcVal1[scen] = 0.0l;
 		while( solver_second[scen].cur_t <= SWITCH_TIME )
 		{
-			//sum += solver_second[scen].do_step();
-			sum = solver_second[scen].do_step();
-			funcVal1[scen] += sum * sum;
+			sum += solver_second[scen].do_step();
+			//sum = solver_second[scen].do_step();
+			//funcVal1[scen] += sum * sum;
 
 			solver_second[scen].increaseTime();
 		}
-		//funcVal1[scen] = sum * dt * dy;// / SWITCH_TIME;
-		funcVal1[scen] /= SWITCH_TIME;
+		funcVal1[scen] = sum * dt * dy / SWITCH_TIME;
+		//funcVal1[scen] /= SWITCH_TIME;
 
 		funcVal2[scen] = 0.0l;
 		sum = 0.0;
 		while( solver_second[scen].cur_t <= charTime )
 		{
-			//sum += solver_second[scen].do_step();
-			sum = solver_second[scen].do_step();
-			funcVal2[scen] += sum * sum; 
+			sum += solver_second[scen].do_step();
+			//sum = solver_second[scen].do_step();
+			//funcVal2[scen] += sum * sum; 
 
 			solver_second[scen].increaseTime();
 		}
-		//funcVal2[scen] = sum * dt * dy;// / ( charTime - SWITCH_TIME );
-		funcVal2[scen] /= ( charTime - SWITCH_TIME );
+		funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
+		//funcVal2[scen] /= ( charTime - SWITCH_TIME );
 
 		if( solver_second[scen].getMaxNewtonIterReached() == 1 )
 		{
@@ -521,30 +521,30 @@ double calcValTaus( double* x, long n )
 
 		while( solver[scen].cur_t <= SWITCH_TIME )
 		{
-			//sum += solver[scen].do_step();
-			sum = solver[scen].do_step();
-			funcVal1[scen] += sum * sum; 
+			sum += solver[scen].do_step();
+			//sum = solver[scen].do_step();
+			//funcVal1[scen] += sum * sum; 
 
 			solver[scen].increaseTime(); 
 
 			//solver_second.dump_check_sol( -1 );
 		}
-		//funcVal1[scen] = sum * dt * dy / SWITCH_TIME;
-		funcVal1[scen] /= SWITCH_TIME;
+		funcVal1[scen] = sum * dt * dy / SWITCH_TIME;
+		//funcVal1[scen] /= SWITCH_TIME;
 
 		sum = 0.0;
 		while( solver[scen].cur_t <= charTime )
 		{
-			//sum += solver[scen].do_step();
-			sum = solver[scen].do_step();
-			funcVal2[scen] += sum * sum;
+			sum += solver[scen].do_step();
+			//sum = solver[scen].do_step();
+			//funcVal2[scen] += sum * sum;
 
 			solver[scen].increaseTime();
 
 			//solver_second.dump_check_sol( -1 );
 		}
-		//funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
-		funcVal2[scen] /= ( charTime - SWITCH_TIME );
+		funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
+		//funcVal2[scen] /= ( charTime - SWITCH_TIME );
 
 		if( solver[scen].getMaxNewtonIterReached() == 1 )
 		{
