@@ -30,7 +30,7 @@ int main()
 	N_PRES tauStart = 0.0048;
 	N_PRES tauStartExp = 0.0048;
 
-	N_PRES J0start_1 =  0.01;
+	N_PRES J0start_1 = 0.01;
 	N_PRES tauStart_1 = 0.0048;
 	N_PRES tauStartExp_1 = 0.0048;
 

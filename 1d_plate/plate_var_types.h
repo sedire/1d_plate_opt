@@ -3,7 +3,7 @@
 
 #define _USE_MATH_DEFINES
 
-#define THREAD_NUM 2
+#define THREAD_NUM 4
 
 #define N_PRES long double
 //#define PL_NUM complex<long double>
@@ -17,6 +17,7 @@
 #define DELTA_T 0.0001
 #define NODES_Y 10001	//CHANGE THIS BACK to 10001
 #define ABM_STAGE_NUM 4
+#define W_SCALE 1.0l
 
 #define ORTHONORM_CHECK_EPS 1e-7
 

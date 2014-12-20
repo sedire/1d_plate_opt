@@ -16,9 +16,11 @@ using std::endl;
 
 double calc1stOrdOptInfoCG_DES( double* g, double* x, long n );
 double calcValGradTaus( double* g, double* x, long n );
+double calcValGradTausDet( double* g, double* x, long n );
 double calcValGradTausAdj( double* g, double* x, long n );			//for the objective function splitted into 2 integrals with T-based weights
 double calcValGradTausAdjSolid( double* g, double* x, long n );		//for the objective function that is not splitted into 2 integrals with T-based weights
 double calcValTaus( double* x, long n );
+double calcValTausDet( double* x, long n );
 
 //double calcValCG_DES( double* x, long n );
 
