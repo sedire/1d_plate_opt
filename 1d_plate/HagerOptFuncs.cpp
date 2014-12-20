@@ -634,6 +634,137 @@ double calcValTaus( double* x, long n )
 	}
 	cout << " ====\n";
 
+	ofstream of( "ineq_check.txt", ofstream::app );
+	of << "calcValTaus\n";
+	double lb = 0.001;
+	if( x[1] < lb || x[4] < lb || x[7] < lb || x[10] < lb )
+	{
+		of << "ineq tauSin >= " << lb << " violated\n\n";
+		for( int i = 0; i < GRAD_SIZE_FULL; ++i )
+		{
+			of << x[i] << endl;
+		}
+		of << "----------------------\n\n";
+	}
+	of.close();
+
+	N_PRES J0begin;
+	N_PRES tauBeginSin;
+	N_PRES tauBeginExp;
+
+	N_PRES J0begin2[SCEN_NUMBER];
+	N_PRES tauBeginSin2[SCEN_NUMBER];
+	N_PRES tauBeginExp2[SCEN_NUMBER];
+
+	N_PRES B0begin;
+
+	J0begin = x[0];
+	tauBeginSin = x[1];
+	tauBeginExp = x[2];
+
+	for( int i = 0; i < SCEN_NUMBER; ++i )
+	{
+		J0begin2[i] = x[( i + 1 ) * 3];
+		tauBeginSin2[i] = x[( i + 1 ) * 3 + 1];
+		tauBeginExp2[i] = x[( i + 1 ) * 3 + 2];
+	}
+	B0begin = 1.0l;
+
+	Solver<N_PRES> solver[SCEN_NUMBER];
+
+	cout << "\tcalculating func val\n";
+
+	double charTime = CHAR_TIME;
+
+	N_PRES funcVal1[SCEN_NUMBER];
+	N_PRES funcVal2[SCEN_NUMBER];
+	N_PRES mechLoad[SCEN_NUMBER] = { GlobalP01, GlobalP02, GlobalP03 };
+	N_PRES mechTaus[SCEN_NUMBER] = { GlobalTauP1, GlobalTauP2, GlobalTauP3 };
+
+#pragma omp parallel for
+	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
+	{
+		funcVal1[scen] = 0.0l;
+		funcVal2[scen] = 0.0l;
+		solver[scen].setTask( J0begin, tauBeginSin, tauBeginExp, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen],
+								B0begin, stress_centered, mechLoad[scen], mechTaus[scen] );
+		N_PRES sum = 0.0;
+
+		while( solver[scen].cur_t <= SWITCH_TIME )
+		{
+			//sum += solver[scen].do_step();
+			sum = solver[scen].do_step();
+			funcVal1[scen] += sum * sum; 
+
+			solver[scen].increaseTime(); 
+
+			//solver_second.dump_check_sol( -1 );
+		}
+		//funcVal1[scen] = sum * dt * dy / SWITCH_TIME;
+		funcVal1[scen] /= SWITCH_TIME;
+
+		sum = 0.0;
+		while( solver[scen].cur_t <= charTime )
+		{
+			//sum += solver[scen].do_step();
+			sum = solver[scen].do_step();
+			funcVal2[scen] += sum * sum;
+
+			solver[scen].increaseTime();
+
+			//solver_second.dump_check_sol( -1 );
+		}
+		//funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
+		funcVal2[scen] /= ( charTime - SWITCH_TIME );
+
+		if( solver[scen].getMaxNewtonIterReached() == 1 )
+		{
+			cout << " WARNING: scenario " << scen << " solver used too many newton iterations\n";
+		}
+	}
+
+	cout << "\tfunc val done\n";
+	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
+	{
+		cout << "\t1st; scen " << scen << " " << funcVal1[scen] << endl;
+		cout << "\t2nd; scen " << scen << " " << funcVal2[scen] << endl;
+	}
+	cout << " -------------\n";
+
+	N_PRES Weight = J_WEIGHT;
+	ret = ( funcVal1[0] + funcVal1[1] + funcVal1[2]
+		+ funcVal2[0] + funcVal2[1] + funcVal2[2] ) / 3.0l
+			/*+ Weight * ( ( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[3] * exp( -SWITCH_TIME / x[5] ) * sin( M_PI * SWITCH_TIME / x[4] ) ) *
+						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[3] * exp( -SWITCH_TIME / x[5] ) * sin( M_PI * SWITCH_TIME / x[4] ) ) + 
+						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[6] * exp( -SWITCH_TIME / x[8] ) * sin( M_PI * SWITCH_TIME / x[7] ) ) *
+						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[6] * exp( -SWITCH_TIME / x[8] ) * sin( M_PI * SWITCH_TIME / x[7] ) ) +
+						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[9] * exp( -SWITCH_TIME / x[11] ) * sin( M_PI * SWITCH_TIME / x[10] ) ) * 
+						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[9] * exp( -SWITCH_TIME / x[11] ) * sin( M_PI * SWITCH_TIME / x[10] ) ) )*/;
+
+	time_t endtime = time( 0 );
+	cout << "\tdone in " << endtime - begin << endl;
+
+	cout << funcVal1[0] + funcVal2[0] << endl;
+	cout << funcVal1[1] + funcVal2[1] << endl;
+	cout << funcVal1[2] + funcVal2[2] << endl;
+
+	return ret;
+}
+
+double calcValTausDet( double* x, long n )
+{
+	double ret = 0.0l;
+	time_t begin = time( 0 );
+	N_PRES dt = DELTA_T;
+	N_PRES dy = 0.1524 / ( NODES_Y - 1 );
+
+	cout << "try to calc at\n";
+	for( int i = 0; i < GRAD_SIZE_FULL; ++i )
+	{
+		cout << x[i] << endl;
+	}
+	cout << " ====\n";
+
 	N_PRES J0begin;
 	N_PRES tauBeginSin;
 	N_PRES tauBeginExp;
@@ -727,7 +858,7 @@ double calcValTaus( double* x, long n )
 double calc1stOrdOptInfoASA_Taus( asa_objective* asa )
 {
 	cout << "\tcalc 1st order CG_DES Both\n";
-	double ret = calcValGradTaus( asa->g, asa->x, asa->n );
+	double ret = calcValGradTausDet( asa->g, asa->x, asa->n );
 	return ret;
 }
 
@@ -735,11 +866,11 @@ double calcValASA_Taus( asa_objective* asa )
 {
 	cout << "\tcalc 1st order CG_DES Val\n";
 	//return calcValGradTaus( 0, asa->x, asa->n );
-	return calcValTaus( asa->x, asa->n );
+	return calcValTausDet( asa->x, asa->n );
 }
 
 void calcGradASA_Taus( asa_objective* asa )
 {
 	cout << "\tcalc 1st order CG_DES Grad\n";
-	calcValGradTaus( asa->g, asa->x, asa->n );
+	calcValGradTausDet( asa->g, asa->x, asa->n );
 }

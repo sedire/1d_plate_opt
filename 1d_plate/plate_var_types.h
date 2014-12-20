@@ -39,9 +39,13 @@ enum {current_const, current_sin, current_exp_sin};
 //const N_PRES GlobalP02( 10000000 );
 //const N_PRES GlobalP03( 20000000 );
 
-const N_PRES GlobalP01( 37500 );
-const N_PRES GlobalP02( 50000 );
-const N_PRES GlobalP03( 100000 );
+const N_PRES GlobalP01( 750000 );
+const N_PRES GlobalP02( 1000000 );
+const N_PRES GlobalP03( 2000000 );
+
+//const N_PRES GlobalP01( 37500 );
+//const N_PRES GlobalP02( 50000 );
+//const N_PRES GlobalP03( 100000 );
 
 const N_PRES GlobalTauP1( 0.008 );
 const N_PRES GlobalTauP2( 0.01 );

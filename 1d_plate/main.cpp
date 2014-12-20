@@ -176,7 +176,6 @@ int main()
 
 	cout << " fin diff deriv " << ( funcVal1 - funcVal2 ) / ( 2.0 * dTau ) << endl;*/
 
-
 	optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
 
 	cout << "\n -- Deleting the solution arrays now...\n";

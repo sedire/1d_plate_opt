@@ -337,7 +337,7 @@ void Solver<PL_NUM>::setMechLoad( int _stressType, PL_NUM _p0, PL_NUM _tauP )
 	stressType = _stressType;
 	p0 = _p0;
 	tauP = _tauP;
-	rad = 0.0021 / 100.0 * 200.0;
+	rad = 0.0021 / 100.0 * 10.0;
 }
 
 template<class PL_NUM>
