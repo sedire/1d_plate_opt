@@ -57,10 +57,6 @@ public:
 									const Matrix<PL_NUM, EQ_NUM, 1>& N3,
 									const Matrix<PL_NUM, EQ_NUM, 1>& N4, 
 									const Matrix<PL_NUM, EQ_NUM, 1>& N5 ) {};
-	inline virtual void normNextSolVects( int n, Matrix<PL_NUM, EQ_NUM, 1>* N1, 
-									Matrix<PL_NUM, EQ_NUM, 1>* N2, 
-									Matrix<PL_NUM, EQ_NUM, 1>* N3,
-									Matrix<PL_NUM, EQ_NUM, 1>* N4 ) {};
 	virtual void buildSolution( vector<VarVect<PL_NUM> >* _mesh ) {};
 	virtual void buildSolutionAdj( vector<VarVectAdj>* _mesh ) {};
 	virtual void flushO( int x );
@@ -258,7 +254,7 @@ int OrthoBuilderGSh<PL_NUM>::checkOrtho( int n, const Matrix<PL_NUM, EQ_NUM, 1>&
 		N5orthog.lpNorm<Infinity>() < eps * N5orig.lpNorm<Infinity>() )
 	{
 		ret = 1;
-		orthoDone[n] = true;
+		//orthoDone[n] = true;
 	}
 
 	return ret;
@@ -279,18 +275,6 @@ inline void OrthoBuilderGSh<PL_NUM>::setNextSolVects( int n, const Matrix<PL_NUM
 		solInfoMap[n + 1].z4[i] = N4( i );
 		solInfoMap[n + 1].z5[i] = N5( i );
 	}
-}
-
-template<class PL_NUM>
-inline void OrthoBuilderGSh<PL_NUM>::normNextSolVects( int n, Matrix<PL_NUM, EQ_NUM, 1>* N1, 
-									Matrix<PL_NUM, EQ_NUM, 1>* N2, 
-									Matrix<PL_NUM, EQ_NUM, 1>* N3,
-									Matrix<PL_NUM, EQ_NUM, 1>* N4 )
-{
-	(*N1) /= solInfoMap[n + 1].o[0 * eq_num + 0];
-	(*N2) /= solInfoMap[n + 1].o[1 * eq_num + 1];
-	(*N3) /= solInfoMap[n + 1].o[2 * eq_num + 2];
-	(*N4) /= solInfoMap[n + 1].o[3 * eq_num + 3];
 }
 
 template<class PL_NUM>
@@ -709,7 +693,6 @@ void OrthoBuilderGSh<PL_NUM>::buildSolution( vector<VarVect<PL_NUM> >* _mesh )
 						+ Cx1[2] * solInfoMap[Km - 1].z3[j]
 						+ Cx1[3] * solInfoMap[Km - 1].z4[j]
 						+ solInfoMap[Km - 1].z5[j];
-
 	}
 
 	for( int x = Km - 2; x >= 0; --x )			//calculate the coeeficients at all the other points and restore the solution there
@@ -835,7 +818,7 @@ void inline OrthoBuilderGSh<N_PRES>::buildSolutionAdj( vector<VarVectAdj>* _mesh
 
 	for( int x = Km - 2; x >= 0; --x )			//calculate the coeeficients at all the other points and restore the solution there
 	{
-		if( /*orthoDone[x] == true*/ true )
+		if( orthoDone[x] == true )
 		{
 			Cx[3] = ( Cx1[3] 
 						- solInfoMap[x + 1].o[4 * eq_num + 3] ) 

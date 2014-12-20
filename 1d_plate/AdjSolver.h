@@ -133,7 +133,19 @@ private:
 	Matrix<N_PRES, EQ_NUM, 1> N3orthog;
 	Matrix<N_PRES, EQ_NUM, 1> N4orthog;
 	Matrix<N_PRES, EQ_NUM, 1> N5orthog;
+//container for ABM method:
+	Matrix<N_PRES, EQ_NUM, 1> tmpPhi1;
+	Matrix<N_PRES, EQ_NUM, 1> tmpPhi2;
+	Matrix<N_PRES, EQ_NUM, 1> tmpPhi3;
+	Matrix<N_PRES, EQ_NUM, 1> tmpPhi4;
+	Matrix<N_PRES, EQ_NUM, 1> tmpPhi5;
 
+	N_PRES Phi1[ABM_STAGE_NUM][EQ_NUM];
+	N_PRES Phi2[ABM_STAGE_NUM][EQ_NUM];
+	N_PRES Phi3[ABM_STAGE_NUM][EQ_NUM];
+	N_PRES Phi4[ABM_STAGE_NUM][EQ_NUM];
+	N_PRES Phi5[ABM_STAGE_NUM][EQ_NUM];
+//-------------------------
 	void calcNewmarkAB( int y );
 	void calcSystemMatrices( int y, Matrix<N_PRES, EQ_NUM, EQ_NUM>* A, Matrix<N_PRES, EQ_NUM, 1>* f );
 };

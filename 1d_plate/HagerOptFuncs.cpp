@@ -377,85 +377,32 @@ double calcValGradTaus( double* g, double* x, long n )
 		}
 	}
 
-	//cout << "\tfunc val done\n";
-	//for( int scen = 0; scen < SCEN_NUMBER; ++scen )
-	//{
-	//	for( int j = 0; j <= GRAD_SIZE_FIRST; ++j )
-	//	{
-	//		cout << "\t1st; scen " << scen << " " << funcVal1[scen].elems[j] << endl;
-	//	}
-	//	for( int j = 0; j <= GRAD_SIZE_SECOND; ++j )
-	//	{
-	//		cout << "\t2nd; scen " << scen << " " << funcVal2[scen].elems[j] << endl;
-	//	}
-	//}
-	//cout << " -------------\n";
-
 	N_PRES Weight = J_WEIGHT;
 	if( g != 0 )
 	{
 		g[0] = ( funcVal1[0].elems[1] + funcVal1[1].elems[1] + funcVal1[2].elems[1]
-				+ funcVal2[0].elems[1] + funcVal2[1].elems[1] + funcVal2[2].elems[1] ) / 3.0
-				/*+ Weight * 2.0l * exp( - 2.0l * SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] )
-				* ( 3.0l * x[0] * sin( M_PI * SWITCH_TIME / x[1] ) + exp( SWITCH_TIME / x[2] ) * (
-				- exp( -SWITCH_TIME / x[11] ) * x[9] * sin( M_PI * SWITCH_TIME / x[10] )
-				- exp( -SWITCH_TIME / x[5] ) * x[3] * sin( M_PI * SWITCH_TIME / x[4] )
-				- exp( -SWITCH_TIME / x[8] ) * x[6] * sin( M_PI * SWITCH_TIME / x[7] ) ) )*/;
+				+ funcVal2[0].elems[1] + funcVal2[1].elems[1] + funcVal2[2].elems[1] ) / 3.0;
 
 		g[1] = ( funcVal1[0].elems[2] + funcVal1[1].elems[2] + funcVal1[2].elems[2]
-				+ funcVal2[0].elems[2] + funcVal2[1].elems[2] + funcVal2[2].elems[2] ) / 3.0
-				/*+ Weight / x[1] / x[1] * 2.0l * exp( -SWITCH_TIME * ( 2.0 / x[2] + 1.0l / x[5] + 1.0l / x[8] + 1.0l / x[11] ) ) * x[0] * M_PI * SWITCH_TIME
-				* cos( M_PI * SWITCH_TIME / x[1] ) * ( -3.0l * exp( SWITCH_TIME * ( 1.0l / x[5] + 1.0l / x[8] + 1.0l / x[11] ) ) * x[0] * sin( M_PI * SWITCH_TIME / x[1] )
-				+ exp( SWITCH_TIME * ( 1.0l / x[2] + 1.0l / x[5] + 1.0l / x[8] ) ) * x[9] * sin( M_PI * SWITCH_TIME / x[10] ) 
-				+ exp( SWITCH_TIME * ( 1.0l / x[11] + 1.0l / x[2] ) ) * ( exp( SWITCH_TIME / x[8] ) * x[3] * sin( M_PI * SWITCH_TIME / x[4] )
-				+ exp( SWITCH_TIME / x[5] ) * x[6] * sin( M_PI * SWITCH_TIME / x[7] ) ) )*/;
+				+ funcVal2[0].elems[2] + funcVal2[1].elems[2] + funcVal2[2].elems[2] ) / 3.0;
 
 		g[2] = ( funcVal1[0].elems[3] + funcVal1[1].elems[3] + funcVal1[2].elems[3]
-				+ funcVal2[0].elems[3] + funcVal2[1].elems[3] + funcVal2[2].elems[3] ) / 3.0
-				/*- 2.0l / x[2] / x[2] * exp( -SWITCH_TIME * ( 1.0 / x[11] + 2.0 / x[2] + 1.0 / x[5] + 1.0 / x[8] ) ) * SWITCH_TIME * Weight * x[0] * sin( M_PI * SWITCH_TIME / x[1] )
-				* ( -3.0l * exp( SWITCH_TIME * ( 1.0 / x[11] + 1.0 / x[5] + 1.0 / x[8] ) ) * x[0] * sin( M_PI * SWITCH_TIME / x[1] )
-				+ exp( SWITCH_TIME * ( 1.0 / x[2] + 1.0 / x[5] + 1.0 / x[8] ) ) * x[9]  * sin( M_PI * SWITCH_TIME / x[10] )
-				+ exp( SWITCH_TIME * ( 1.0 / x[11] + 1.0 / x[2] ) ) * ( exp( SWITCH_TIME / x[8] ) * x[3] * sin( M_PI * SWITCH_TIME / x[4] )
-				+ exp( SWITCH_TIME / x[5] ) * x[6] * sin( M_PI * SWITCH_TIME / x[7] ) ) )*/;
+				+ funcVal2[0].elems[3] + funcVal2[1].elems[3] + funcVal2[2].elems[3] ) / 3.0;
 
-		g[3] = funcVal2[0].elems[4] / 3.0
-				/*+ 2.0l * exp( -2.0 * SWITCH_TIME / x[5] ) * Weight * sin( M_PI * SWITCH_TIME / x[4] )
-				* ( -exp( SWITCH_TIME * ( -1.0 / x[2] + 1.0 / x[5] ) ) * x[0] * sin( M_PI * SWITCH_TIME / x[1] ) + x[3] * sin( M_PI * SWITCH_TIME / x[4] ) )*/;
-		g[4] = funcVal2[0].elems[5] / 3.0
-				/*+ 2.0l * exp( -SWITCH_TIME / x[5] ) * M_PI * SWITCH_TIME * Weight * x[3] * cos( M_PI * SWITCH_TIME / x[4] )
-				* ( exp( -SWITCH_TIME / x[2] ) * x[0] * sin( M_PI * SWITCH_TIME / x[1] ) - exp( -SWITCH_TIME / x[5] ) * x[3] * sin( M_PI * SWITCH_TIME / x[4] ) ) / x[4] / x[4]*/;
-		g[5] = funcVal2[0].elems[6] / 3.0
-				/*-2.0l * exp( -SWITCH_TIME / x[5] ) * SWITCH_TIME * Weight * x[3] * sin( M_PI * SWITCH_TIME / x[4] )
-				* ( exp( -SWITCH_TIME / x[2] ) * x[0] * sin( M_PI * SWITCH_TIME / x[1] ) - exp( -SWITCH_TIME / x[5] ) * x[3] * sin( M_PI * SWITCH_TIME / x[4] ) ) / x[5] / x[5]*/;
+		g[3] = funcVal2[0].elems[4] / 3.0;
+		g[4] = funcVal2[0].elems[5] / 3.0;
+		g[5] = funcVal2[0].elems[6] / 3.0;
 
-		g[6] = funcVal2[1].elems[4] / 3.0
-				/*+ 2.0l * exp( -2.0 * SWITCH_TIME / x[8] ) * Weight * sin( M_PI * SWITCH_TIME / x[7] )
-				* ( -exp( SWITCH_TIME * ( -1.0 / x[2] + 1.0 / x[8] ) ) * x[0] * sin( M_PI * SWITCH_TIME / x[1] ) + x[6] * sin( M_PI * SWITCH_TIME / x[7] ) )*/;
-		g[7] = funcVal2[1].elems[5] / 3.0
-				/*+ 2.0l * exp( -SWITCH_TIME / x[8] ) * M_PI * SWITCH_TIME * Weight * x[6] * cos( M_PI * SWITCH_TIME / x[7] )
-				* ( exp( -SWITCH_TIME / x[2] ) * x[0] * sin( M_PI * SWITCH_TIME / x[1] ) - exp( -SWITCH_TIME / x[8] ) * x[6] * sin( M_PI * SWITCH_TIME / x[7] ) ) / x[7] / x[7]*/;
-		g[8] = funcVal2[1].elems[6] / 3.0
-				/*-2.0l * exp( -SWITCH_TIME / x[8] ) * SWITCH_TIME * Weight * x[6] * sin( M_PI * SWITCH_TIME / x[7] ) 
-				* ( exp( -SWITCH_TIME / x[2] ) * x[0] * sin( M_PI * SWITCH_TIME / x[1] ) - exp( -SWITCH_TIME / x[8] ) * x[6] * sin( M_PI * SWITCH_TIME / x[7] ) ) / x[8] / x[8]*/;
+		g[6] = funcVal2[1].elems[4] / 3.0;
+		g[7] = funcVal2[1].elems[5] / 3.0;
+		g[8] = funcVal2[1].elems[6] / 3.0;
 
-		g[9] = funcVal2[2].elems[4] / 3.0
-				/*+ 2.0l * exp( -2.0 * SWITCH_TIME / x[11] ) * Weight * sin( M_PI * SWITCH_TIME / x[10] )
-				* ( -exp( SWITCH_TIME * ( 1.0 / x[11] - 1.0 / x[2] ) ) * x[0] * sin( M_PI * SWITCH_TIME / x[1] ) + x[9] * sin( M_PI * SWITCH_TIME / x[10] ) )*/;
-		g[10] = funcVal2[2].elems[5] / 3.0
-				/*+ 2.0l * exp( -SWITCH_TIME / x[11] ) * M_PI * SWITCH_TIME * Weight * x[9] * cos( M_PI * SWITCH_TIME / x[10] )
-				* ( exp( -SWITCH_TIME / x[2] ) * x[0] * sin( M_PI * SWITCH_TIME / x[1] ) - exp( -SWITCH_TIME / x[11] ) * x[9] * sin( M_PI * SWITCH_TIME / x[10] ) ) / x[10] / x[10]*/;
-		g[11] = funcVal2[2].elems[6] / 3.0
-				/*-2.0l * exp( -SWITCH_TIME / x[11] ) * SWITCH_TIME * Weight * x[9] * sin( M_PI * SWITCH_TIME / x[10] ) 
-				* ( exp( -SWITCH_TIME / x[2] ) * x[0] * sin( M_PI * SWITCH_TIME / x[1] ) - exp( -SWITCH_TIME / x[11] ) * x[9] * sin( M_PI * SWITCH_TIME / x[10] ) ) / x[11] / x[11]*/;
+		g[9] = funcVal2[2].elems[4] / 3.0;
+		g[10] = funcVal2[2].elems[5] / 3.0;
+		g[11] = funcVal2[2].elems[6] / 3.0;
 	}
 	ret = ( funcVal1[0].real() + funcVal1[1].real() + funcVal1[2].real()
-			+ funcVal2[0].real() + funcVal2[1].real() + funcVal2[2].real() ) / 3.0l
-			/*+ Weight * ( ( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[3] * exp( -SWITCH_TIME / x[5] ) * sin( M_PI * SWITCH_TIME / x[4] ) ) *
-						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[3] * exp( -SWITCH_TIME / x[5] ) * sin( M_PI * SWITCH_TIME / x[4] ) ) + 
-						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[6] * exp( -SWITCH_TIME / x[8] ) * sin( M_PI * SWITCH_TIME / x[7] ) ) *
-						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[6] * exp( -SWITCH_TIME / x[8] ) * sin( M_PI * SWITCH_TIME / x[7] ) ) +
-						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[9] * exp( -SWITCH_TIME / x[11] ) * sin( M_PI * SWITCH_TIME / x[10] ) ) * 
-						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[9] * exp( -SWITCH_TIME / x[11] ) * sin( M_PI * SWITCH_TIME / x[10] ) ) )*/;
+			+ funcVal2[0].real() + funcVal2[1].real() + funcVal2[2].real() ) / 3.0l;
 
 	time_t endtime = time( 0 );
 	cout << "\tdone in " << endtime - begin << endl;
@@ -562,13 +509,7 @@ double calcValTaus( double* x, long n )
 
 	N_PRES Weight = J_WEIGHT;
 	ret = ( funcVal1[0] + funcVal1[1] + funcVal1[2]
-		+ funcVal2[0] + funcVal2[1] + funcVal2[2] ) / 3.0l
-			/*+ Weight * ( ( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[3] * exp( -SWITCH_TIME / x[5] ) * sin( M_PI * SWITCH_TIME / x[4] ) ) *
-						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[3] * exp( -SWITCH_TIME / x[5] ) * sin( M_PI * SWITCH_TIME / x[4] ) ) + 
-						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[6] * exp( -SWITCH_TIME / x[8] ) * sin( M_PI * SWITCH_TIME / x[7] ) ) *
-						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[6] * exp( -SWITCH_TIME / x[8] ) * sin( M_PI * SWITCH_TIME / x[7] ) ) +
-						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[9] * exp( -SWITCH_TIME / x[11] ) * sin( M_PI * SWITCH_TIME / x[10] ) ) * 
-						( x[0] * exp( -SWITCH_TIME / x[2] ) * sin( M_PI * SWITCH_TIME / x[1] ) - x[9] * exp( -SWITCH_TIME / x[11] ) * sin( M_PI * SWITCH_TIME / x[10] ) ) )*/;
+		+ funcVal2[0] + funcVal2[1] + funcVal2[2] ) / 3.0l;
 
 	time_t endtime = time( 0 );
 	cout << "\tdone in " << endtime - begin << endl;
@@ -610,7 +551,6 @@ double calc1stOrdOptInfoASA_Taus( asa_objective* asa )
 double calcValASA_Taus( asa_objective* asa )
 {
 	cout << "\tcalc 1st order CG_DES Val\n";
-	//return calcValGradTaus( 0, asa->x, asa->n );
 	return calcValTaus( asa->x, asa->n );
 }
 

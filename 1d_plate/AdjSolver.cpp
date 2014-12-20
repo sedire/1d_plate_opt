@@ -192,6 +192,24 @@ void AdjSolver::loadParamsFromStruct( const SolverPar& loadFrom )
 		N3orthog( i ) = 0.0l;
 		N4orthog( i ) = 0.0l;
 		N5orthog( i ) = 0.0l;
+
+		tmpPhi1( i ) = 0.0l;
+		tmpPhi2( i ) = 0.0l;
+		tmpPhi3( i ) = 0.0l;
+		tmpPhi4( i ) = 0.0l;
+		tmpPhi5( i ) = 0.0l;
+	}
+
+	for( int i = 0; i < ABM_STAGE_NUM; ++i )
+	{
+		for( int j = 0; j < EQ_NUM; ++j )
+		{
+			Phi1[i][j] = 0.0;
+			Phi2[i][j] = 0.0;
+			Phi3[i][j] = 0.0;
+			Phi4[i][j] = 0.0;
+			Phi5[i][j] = 0.0;
+		}
 	}
 
 	newmarkA.resize( eq_num, 0.0 );
@@ -250,6 +268,116 @@ void AdjSolver::setPrimalDtData( N_PRES* _primSolnDt )
 	{
 		primSolnDt = _primSolnDt;
 	}
+	//if( _primSolnDt != 0 )
+	//{
+	//	int tt = 0;
+	//	primSolnDt = _primSolnDt;
+	//	//0
+	//	tt = 0;
+	//	for( int y = 0; y < NODES_Y; ++y )
+	//	{
+	//		for( int i = 0; i < EQ_NUM; ++i )
+	//		{
+	//			primSolnDt[tt * Km * eq_num + y * eq_num + i] 
+	//				= 0.0;
+	//		}
+	//	}
+	//	//1, 2nd order
+	//	tt = 1;
+	//	for( int y = 0; y < NODES_Y; ++y )
+	//	{
+	//		for( int i = 0; i < EQ_NUM; ++i )
+	//		{
+	//			primSolnDt[tt * Km * eq_num + y * eq_num + i] 
+	//				= ( primSoln[( tt + 1 ) * Km * eq_num + y * eq_num + i] - primSoln[( tt - 1 ) * Km * eq_num + y * eq_num + i] ) / 2.0 / dt;
+	//		}
+	//	}
+	//	//2, 4th order
+	//	tt = 2;
+	//	for( int y = 0; y < NODES_Y; ++y )
+	//	{
+	//		for( int i = 0; i < EQ_NUM; ++i )
+	//		{
+	//			primSolnDt[tt * Km * eq_num + y * eq_num + i] 
+	//				= ( ( -1.0 / 12.0 ) * primSoln[( tt + 2 ) * Km * eq_num + y * eq_num + i] 
+	//					+ ( 2.0 / 3.0 ) * primSoln[( tt + 1 ) * Km * eq_num + y * eq_num + i]
+	//					+ ( -2.0 / 3.0 ) * primSoln[( tt - 1 ) * Km * eq_num + y * eq_num + i] 
+	//					+ ( 1.0 / 12.0 ) * primSoln[( tt - 2 ) * Km * eq_num + y * eq_num + i] ) / dt;
+	//		}
+	//	}
+	//	//3, 6th order
+	//	tt = 3;
+	//	for( int y = 0; y < NODES_Y; ++y )
+	//	{
+	//		for( int i = 0; i < EQ_NUM; ++i )
+	//		{
+	//			primSolnDt[tt * Km * eq_num + y * eq_num + i] 
+	//				= ( ( 1.0 / 60.0 ) * primSoln[( tt + 3 ) * Km * eq_num + y * eq_num + i] 
+	//					+ ( -3.0 / 20.0 ) * primSoln[( tt + 2 ) * Km * eq_num + y * eq_num + i] 
+	//					+ ( 3.0 / 4.0 ) * primSoln[( tt + 1 ) * Km * eq_num + y * eq_num + i]
+	//					+ ( -3.0 / 4.0 ) * primSoln[( tt - 1 ) * Km * eq_num + y * eq_num + i] 
+	//					+ ( 3.0 / 30.0 ) * primSoln[( tt - 2 ) * Km * eq_num + y * eq_num + i]
+	//					+ ( -1.0 / 60.0 ) * primSoln[( tt - 3 ) * Km * eq_num + y * eq_num + i] ) / dt;
+	//		}
+	//	}
+	//	//in the middle, 8th order
+	//	for( tt = 4; tt < totTimeSteps - 4; ++tt )
+	//	{
+	//		for( int y = 0; y < NODES_Y; ++y )
+	//		{
+	//			for( int i = 0; i < EQ_NUM; ++i )
+	//			{
+	//				primSolnDt[tt * Km * eq_num + y * eq_num + i] 
+	//					= ( ( -1.0 / 280.0 ) * primSoln[( tt + 4 ) * Km * eq_num + y * eq_num + i] 
+	//						+ ( 4.0 / 105.0 ) * primSoln[( tt + 3 ) * Km * eq_num + y * eq_num + i] 
+	//						+ ( -1.0 / 5.0 ) * primSoln[( tt + 2 ) * Km * eq_num + y * eq_num + i] 
+	//						+ ( 4.0 / 5.0 ) * primSoln[( tt + 1 ) * Km * eq_num + y * eq_num + i]
+	//						+ ( -4.0 / 5.0 ) * primSoln[( tt - 1 ) * Km * eq_num + y * eq_num + i] 
+	//						+ ( 1.0 / 5.0 ) * primSoln[( tt - 2 ) * Km * eq_num + y * eq_num + i]
+	//						+ ( -4.0 / 105.0 ) * primSoln[( tt - 3 ) * Km * eq_num + y * eq_num + i]
+	//						+ + ( 1.0 / 280.0 ) * primSoln[( tt - 4 ) * Km * eq_num + y * eq_num + i] ) / dt;
+	//			}
+	//		}
+	//	}
+	//	//T - 4, 6th order
+	//	tt = totTimeSteps - 4;
+	//	for( int y = 0; y < NODES_Y; ++y )
+	//	{
+	//		for( int i = 0; i < EQ_NUM; ++i )
+	//		{
+	//			primSolnDt[tt * Km * eq_num + y * eq_num + i] 
+	//				= ( ( 1.0 / 60.0 ) * primSoln[( tt + 3 ) * Km * eq_num + y * eq_num + i] 
+	//					+ ( -3.0 / 20.0 ) * primSoln[( tt + 2 ) * Km * eq_num + y * eq_num + i] 
+	//					+ ( 3.0 / 4.0 ) * primSoln[( tt + 1 ) * Km * eq_num + y * eq_num + i]
+	//					+ ( -3.0 / 4.0 ) * primSoln[( tt - 1 ) * Km * eq_num + y * eq_num + i] 
+	//					+ ( 3.0 / 30.0 ) * primSoln[( tt - 2 ) * Km * eq_num + y * eq_num + i]
+	//					+ ( -1.0 / 60.0 ) * primSoln[( tt - 3 ) * Km * eq_num + y * eq_num + i] ) / dt;
+	//		}
+	//	}
+	//	//T - 3, 4th order
+	//	tt = totTimeSteps - 3;
+	//	for( int y = 0; y < NODES_Y; ++y )
+	//	{
+	//		for( int i = 0; i < EQ_NUM; ++i )
+	//		{
+	//			primSolnDt[tt * Km * eq_num + y * eq_num + i] 
+	//				= ( ( -1.0 / 12.0 ) * primSoln[( tt + 2 ) * Km * eq_num + y * eq_num + i] 
+	//					+ ( 2.0 / 3.0 ) * primSoln[( tt + 1 ) * Km * eq_num + y * eq_num + i]
+	//					+ ( -2.0 / 3.0 ) * primSoln[( tt - 1 ) * Km * eq_num + y * eq_num + i] 
+	//					+ ( 1.0 / 12.0 ) * primSoln[( tt - 2 ) * Km * eq_num + y * eq_num + i] ) / dt;
+	//		}
+	//	}
+	//	//T - 2, 2nd order
+	//	tt = totTimeSteps - 2;
+	//	for( int y = 0; y < NODES_Y; ++y )
+	//	{
+	//		for( int i = 0; i < EQ_NUM; ++i )
+	//		{
+	//			primSolnDt[tt * Km * eq_num + y * eq_num + i] 
+	//				= ( primSoln[( tt + 1 ) * Km * eq_num + y * eq_num + i] - primSoln[( tt - 1 ) * Km * eq_num + y * eq_num + i] ) / 2.0 / dt;
+	//		}
+	//	}
+	//}
 	else
 	{
 		cout << "WARNING! pointer to the Dt of the solution of the primal problem is NULL!\n";
@@ -451,6 +579,7 @@ N_PRES AdjSolver::doStep()
 
 	orthoBuilder->flushO( 0 );
 	orthoBuilder->setInitVects( N1, N2, N3, N4, N5 );
+	orthoBuilder->resetOrthoDoneInfo();
 
 	int active = 1;		//how many nodes in a row we have, on which orthonormalization was not performed. 
 						//We need this to know whem we can switch to ABM method
@@ -463,26 +592,123 @@ N_PRES AdjSolver::doStep()
 		matrA = matrA1;
 		vectF = vectF1;
 
+		tmpPhi1 = matrA * N1;
+		tmpPhi2 = matrA * N2;
+		tmpPhi3 = matrA * N3;
+		tmpPhi4 = matrA * N4;
+		tmpPhi5 = matrA * N5 + vectF;
+
+		int PhiInd = 0;
+		if( active <= ABM_STAGE_NUM )	// we need to fill ABM_STAGE_NUM first Phi's to use ABM method
+		{
+			PhiInd = active - 1;
+		}
+		else	//means that we already have ABM_STAGE_NUM Phi's and can use ABM method now. Old Phi's must be shifted so we do not have to recompute them.
+		{
+			for( int i = 0; i < ABM_STAGE_NUM - 1; ++i )
+			{
+				for( int j = 0; j < EQ_NUM; ++j )
+				{
+					Phi1[i][j] = Phi1[i + 1][j];
+					Phi2[i][j] = Phi2[i + 1][j];
+					Phi3[i][j] = Phi3[i + 1][j];
+					Phi4[i][j] = Phi4[i + 1][j];
+					Phi5[i][j] = Phi5[i + 1][j];
+				}
+			}
+			PhiInd = ABM_STAGE_NUM - 1;
+		}
+		//no matter what, this is current Phi value
+		for( int i = 0; i < EQ_NUM; ++i )
+		{
+			Phi1[PhiInd][i] = tmpPhi1( i );
+			Phi2[PhiInd][i] = tmpPhi2( i );
+			Phi3[PhiInd][i] = tmpPhi3( i );
+			Phi4[PhiInd][i] = tmpPhi4( i );
+			Phi5[PhiInd][i] = tmpPhi5( i );
+		}
+
 		calcNewmarkAB( y + 1 );
 		calcSystemMatrices( y + 1, &matrA1, &vectF1 );
 
-		rungeKutta->adjCalc( matrA, matrA1, vectF, vectF1, dx, 0, &N1 );
-		rungeKutta->adjCalc( matrA, matrA1, vectF, vectF1, dx, 0, &N2 );
-		rungeKutta->adjCalc( matrA, matrA1, vectF, vectF1, dx, 0, &N3 );
-		rungeKutta->adjCalc( matrA, matrA1, vectF, vectF1, dx, 0, &N4 );
-		rungeKutta->adjCalc( matrA, matrA1, vectF, vectF1, dx, 1, &N5 );
+		if( active >= 4 )	//if we have at least ABM_STAGE_NUM active Phi's, we can use ABM method
+		{
+			//use ABM method
+			//predictor:
+			for( int i = 0; i < EQ_NUM; ++i )
+			{
+				tmpPhi1( i ) = N1( i ) + dx / 24.0l
+								* ( 55.0l * Phi1[3][i] - 59.0l * Phi1[2][i] + 37.0l * Phi1[1][i] - 9.0l * Phi1[0][i] );
+				tmpPhi2( i ) = N2( i ) + dx / 24.0l
+								* ( 55.0l * Phi2[3][i] - 59.0l * Phi2[2][i] + 37.0l * Phi2[1][i] - 9.0l * Phi2[0][i] );
+				tmpPhi3( i ) = N3( i ) + dx / 24.0l
+								* ( 55.0l * Phi3[3][i] - 59.0l * Phi3[2][i] + 37.0l * Phi3[1][i] - 9.0l * Phi3[0][i] );
+				tmpPhi4( i ) = N4( i ) + dx / 24.0l
+								* ( 55.0l * Phi4[3][i] - 59.0l * Phi4[2][i] + 37.0l * Phi4[1][i] - 9.0l * Phi4[0][i] );
+				tmpPhi5( i ) = N5( i ) + dx / 24.0l
+								* ( 55.0l * Phi5[3][i] - 59.0l * Phi5[2][i] + 37.0l * Phi5[1][i] - 9.0l * Phi5[0][i] );
+			}
+			//corrector:
+			tmpPhi1 = matrA1 * tmpPhi1;
+			tmpPhi2 = matrA1 * tmpPhi2;
+			tmpPhi3 = matrA1 * tmpPhi3;
+			tmpPhi4 = matrA1 * tmpPhi4;
+			tmpPhi5 = matrA1 * tmpPhi5 + vectF1;
+			for( int i = 0; i < EQ_NUM; ++i )
+			{
+				N1( i ) = N1( i ) + dx / 24.0l
+								* ( 9.0l * tmpPhi1( i ) + 19.0l * Phi1[3][i] - 5.0l * Phi1[2][i] + Phi1[1][i] );
+				N2( i ) = N2( i ) + dx / 24.0l
+								* ( 9.0l * tmpPhi2( i ) + 19.0l * Phi2[3][i] - 5.0l * Phi2[2][i] + Phi2[1][i] );
+				N3( i ) = N3( i ) + dx / 24.0l
+								* ( 9.0l * tmpPhi3( i ) + 19.0l * Phi3[3][i] - 5.0l * Phi3[2][i] + Phi3[1][i] );
+				N4( i ) = N4( i ) + dx / 24.0l
+								* ( 9.0l * tmpPhi4( i ) + 19.0l * Phi4[3][i] - 5.0l * Phi4[2][i] + Phi4[1][i] );
+				N5( i ) = N5( i ) + dx / 24.0l
+								* ( 9.0l * tmpPhi5( i ) + 19.0l * Phi5[3][i] - 5.0l * Phi5[2][i] + Phi5[1][i] );
+			}
+		}
+		else
+		{
+			rungeKutta->adjCalc( matrA, matrA1, vectF, vectF1, dx, 0, &N1 );
+			rungeKutta->adjCalc( matrA, matrA1, vectF, vectF1, dx, 0, &N2 );
+			rungeKutta->adjCalc( matrA, matrA1, vectF, vectF1, dx, 0, &N3 );
+			rungeKutta->adjCalc( matrA, matrA1, vectF, vectF1, dx, 0, &N4 );
+			rungeKutta->adjCalc( matrA, matrA1, vectF, vectF1, dx, 1, &N5 );
+		}
 
-		//cout << " === " << N1.lpNorm<Infinity>() << " " << N5.lpNorm<Infinity>() << endl;
+		N1orthog = N1;
+		N2orthog = N2;
+		N3orthog = N3;
+		N4orthog = N4;
+		N5orthog = N5;
 
 		orthoBuilder->flushO( y + 1 );
 
-		orthoBuilder->orthonorm( 1, y, &N1 );
-		orthoBuilder->orthonorm( 2, y, &N2 );
-		orthoBuilder->orthonorm( 3, y, &N3 );
-		orthoBuilder->orthonorm( 4, y, &N4 );
-		orthoBuilder->orthonorm( 5, y, &N5 );
+		orthoBuilder->orthonorm( 1, y, &N1orthog );
+		orthoBuilder->orthonorm( 2, y, &N2orthog );
+		orthoBuilder->orthonorm( 3, y, &N3orthog );
+		orthoBuilder->orthonorm( 4, y, &N4orthog );
+		orthoBuilder->orthonorm( 5, y, &N5orthog );
 
-		//cout << " ++++ " << N1.lpNorm<Infinity>() << " " << N5.lpNorm<Infinity>() << endl;
+		if( orthoBuilder->checkOrtho( y, N2orthog, N3orthog, N4orthog, N5orthog, N2, N3, N4, N5 ) == 1 )	//if the orthonormalization is needed
+		{
+			active = 1;		//if orthonormalization has been performed, we have to restart the ABM method
+
+			N1 = N1orthog;
+			N2 = N2orthog;
+			N3 = N3orthog;
+			N4 = N4orthog;
+			N5 = N5orthog;
+				
+			orthoBuilder->setOrthoDoneInfo( y );
+			//cout << " --- at x = " << x << " ortho is needed\n";
+		}
+		else
+		{
+			++active;	//if no orthonormalization has been done, we have one more solution that can be used in ABM method
+			orthoBuilder->setNextSolVects( y, N1, N2, N3, N4, N5 );
+		}
 	}
 
 	orthoBuilder->buildSolutionAdj( &mesh );
@@ -601,7 +827,7 @@ N_PRES AdjSolver::calcJ0DerivS()
 			}
 			else if( t * dt == SWITCH_TIME )
 			{
-				N_PRES coef = SWITCH_TIME / ( CHAR_TIME - SWITCH_TIME );
+				N_PRES coef = 1.0;//SWITCH_TIME / ( CHAR_TIME - SWITCH_TIME );
 				for( int y = 0; y < Km; ++y )
 				{
 					sum += exp( -t * dt / tauExp ) * sin( M_PI * t * dt / tauSin ) 
@@ -728,7 +954,7 @@ N_PRES AdjSolver::calcTauSin0DerivS()
 			}
 			else if( t * dt == SWITCH_TIME )
 			{
-				N_PRES coef = SWITCH_TIME / ( CHAR_TIME - SWITCH_TIME );
+				N_PRES coef = 1.0;//SWITCH_TIME / ( CHAR_TIME - SWITCH_TIME );
 				N_PRES innerSum = 0.0;
 				for( int y = 0; y < Km; ++y )
 				{
@@ -856,7 +1082,7 @@ N_PRES AdjSolver::calcTauExp0DerivS()
 			}
 			else if( t * dt == SWITCH_TIME )
 			{
-				N_PRES coef = SWITCH_TIME / ( CHAR_TIME - SWITCH_TIME );
+				N_PRES coef = 1.0;//SWITCH_TIME / ( CHAR_TIME - SWITCH_TIME );
 				for( int y = 0; y < Km; ++y )
 				{
 					sum += J0 * exp( -t * dt / tauExp ) * sin( M_PI * t * dt / tauSin ) * t * dt / ( tauExp * tauExp )
