@@ -47,12 +47,9 @@ public:
 	PL_NUM increaseTime();
 
 	PL_NUM do_step();
-	void dump_sol();
-	void dump_check_sol( int fNum );
+	void dumpCheckSol( int fNum, int dumpTheor );
+	void dumpWholeSol( int var );
 	void dumpSolAll( int fNum );
-	void dump_left_border_vals();
-	void dumpMatrA();
-	void dump_whole_sol( int var );
 
 	N_PRES cur_t;
 	N_PRES dt;			//time step
@@ -1001,46 +998,24 @@ int Solver<PL_NUM>::checkConv()
 }
 
 template<class PL_NUM>
-void Solver<PL_NUM>::dump_sol()
+void Solver<PL_NUM>::dumpCheckSol( int fNum, int dumpTheor )
 {
-	ofstream dumpSol;
-	stringstream ss;
-	ss << "sol_" << cur_t << ".txt";
-	
-	dumpSol.open ( ss.str() );
-	
-	for( int x = 0; x < Km; ++x )
-	{
-		for( int i = 0; i < eq_num; ++i )
-		{
-			dumpSol << mesh[x].Nk1[i] << " ";
-		}
-		dumpSol << endl;
-	}
-
-
-	dumpSol.close();
-	return;
-}
-
-template<class PL_NUM>
-void Solver<PL_NUM>::dump_check_sol( int fNum )
-{
-	N_PRES t = cur_t;
-
-	int minusOne = -1;
-	PL_NUM sum = 0.0;
-	for( int i = 0; i <= 100000; ++i )
-	{
-		PL_NUM omg = (long double)( (long double)M_PI * (long double)M_PI * ( 2.0 * i + 1.0 ) * ( 2.0 * i + 1.0 ) ) * h / 2.0l / a / a * sqrt( B22 / 3.0l / rho );
-
-		minusOne = -minusOne;
-
-		sum = sum + (long double)minusOne / ( 2.0 * i + 1.0 ) / ( 2.0 * i + 1.0 ) / ( 2.0 * i + 1.0 ) / ( 2.0 * i + 1.0 ) / ( 2.0 * i + 1.0 ) * cos( omg * t );
-	}
 	PL_NUM wTheor;
-	wTheor = - p0 * a * a * a * a / h / h / h / B22 * ( 5.0l / 32.0l - 48.0l / M_PI / M_PI / M_PI / M_PI / M_PI * sum );
+	if( dumpTheor == 1 )
+	{
+		N_PRES t = cur_t;
+		int minusOne = -1;
+		PL_NUM sum = 0.0;
+		for( int i = 0; i <= 10000; ++i )
+		{
+			PL_NUM omg = (long double)( (long double)M_PI * (long double)M_PI * ( 2.0 * i + 1.0 ) * ( 2.0 * i + 1.0 ) ) * h / 2.0l / a / a * sqrt( B22 / 3.0l / rho );
 
+			minusOne = -minusOne;
+
+			sum = sum + (long double)minusOne / ( 2.0 * i + 1.0 ) / ( 2.0 * i + 1.0 ) / ( 2.0 * i + 1.0 ) / ( 2.0 * i + 1.0 ) / ( 2.0 * i + 1.0 ) * cos( omg * t );
+		}
+		wTheor = - p0 * a * a * a * a / h / h / h / B22 * ( 5.0l / 32.0l - 48.0l / M_PI / M_PI / M_PI / M_PI / M_PI * sum );
+	}
 	stringstream ss;
 	if( fNum >= 0 )
 	{
@@ -1051,13 +1026,19 @@ void Solver<PL_NUM>::dump_check_sol( int fNum )
 		ss << "test_sol.txt";
 	}
 	ofstream of1( ss.str(), ofstream::app );
-	of1 << cur_t << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[1] << " ; " << wTheor /*<< " ; " << resArr[ curTimeStep * Km * eq_num + ( Km - 1 ) / 2 * eq_num + 1]*/
-		<< " ; " << fabs( ( wTheor - mesh[ ( Km - 1 ) / 2 ].Nk1[1] ) / wTheor ) << endl;
+	of1 << cur_t << " ; " << mesh[ ( Km - 1 ) / 2 ].Nk1[1];
+
+	if( dumpTheor == 1 )
+	{
+		of1 << " ; " << wTheor << " ; " << fabs( ( wTheor - mesh[ ( Km - 1 ) / 2 ].Nk1[1] ) / wTheor );
+	}
+
+	of1 << endl;
 	of1.close();
 }
 
 template<class PL_NUM>
-void Solver<PL_NUM>::dump_whole_sol( int var )
+void Solver<PL_NUM>::dumpWholeSol( int var )
 {
 	stringstream ss;
 	ss << "sol_whole_" << curTimeStep << ".bin";
@@ -1066,14 +1047,6 @@ void Solver<PL_NUM>::dump_whole_sol( int var )
 	{
 		of1.write( reinterpret_cast<char*>( &( mesh[y].Nk1[var] ) ), sizeof(PL_NUM) );
 	}
-	of1.close();
-}
-
-template<class PL_NUM>
-void Solver<PL_NUM>::dump_left_border_vals()
-{
-	ofstream of1( "sol_left_border.txt", ofstream::app );
-	of1 << "v : " << mesh[0].Nk1[0] << "\tw : " << mesh[0].Nk1[1] << "\tW : " << mesh[0].Nk1[2] << "\tMyy : " << mesh[0].Nk1[5] << "\tNyy : " << mesh[0].Nk1[3] << "\tNyz : " << mesh[0].Nk1[4] << endl;
 	of1.close();
 }
 
@@ -1098,21 +1071,5 @@ void Solver<PL_NUM>::dumpSolAll( int fNum )
 	of1 << endl;
 	of1.close();
 }
-
-//template<class PL_NUM>
-//void Solver<PL_NUM>::dumpMatrA()
-//{
-//	ofstream of( "MatrA.txt", ofstream::app );
-//
-//	for( int i = 0; i < EQ_NUM; ++i )
-//	{
-//		for( int j = 0; j < EQ_NUM; ++j )
-//		{
-//			of << nonlin_matr_A( i, j ) << " ";
-//		}
-//		of << endl;
-//	}
-//	of << "\n============================================\n";
-//}
 
 #endif

@@ -69,8 +69,8 @@ int main()
 //	{
 //		cout << solver->cur_t << endl;
 //		solver->do_step();
-//		solver->dump_check_sol( -1 );
-//		//solver->dump_whole_sol( 1 );
+//		solver->dumpCheckSol( -1, 0 );
+//		//solver->dumpWholeSol( 1 );
 //
 //		solver->increaseTime();
 //	}
@@ -110,17 +110,17 @@ int main()
 
 	double valAdj = calcValGradTausAdj( gAdj, x, 0 );
 	cout << " adj comput done\n";
-	double val = calcValGradTaus( g, x, 0 );
+	double val = 0.0;//calcValGradTaus( g, x, 0 );
 
-	//ifstream iff( "HPDgrad.txt" );
-	//if( iff.is_open() )
-	//{
-	//	for( int i = 0; i < GRAD_SIZE_FULL; ++i )
-	//	{
-	//		iff >> g[i];
-	//	}
-	//	iff.close();
-	//}
+	ifstream iff( "HPDgrad.txt" );
+	if( iff.is_open() )
+	{
+		for( int i = 0; i < GRAD_SIZE_FULL; ++i )
+		{
+			iff >> g[i];
+		}
+		iff.close();
+	}
 
 	cout << " ----------\n";
 	cout << " == " << val << " " << valAdj << endl;

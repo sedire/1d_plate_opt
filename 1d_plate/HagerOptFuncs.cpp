@@ -775,26 +775,6 @@ double calcValTausDet( double* x, long n )
 
 	return ret;
 }
-//
-////double calc1stOrdOptInfoASA( asa_objective* asa )
-////{
-////	double ret = calc1stOrdOptInfoCG_DES( asa->g, asa->x, asa->n );
-////	return ret;
-////}
-////
-////double calcValASA( asa_objective* asa )
-////{
-////	cout << "\tcalc 1st order CG_DES Val\n";
-////	return calc1stOrdOptInfoCG_DES( 0, asa->x, asa->n );
-////}
-////
-////void calcGradASA( asa_objective* asa )
-////{
-////	cout << "\tcalc 1st order CG_DES Grad\n";
-////	calc1stOrdOptInfoCG_DES( asa->g, asa->x, asa->n );
-////}
-//
-/////////////////
 
 double calc1stOrdOptInfoASA_Taus( asa_objective* asa )
 {
