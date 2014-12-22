@@ -63,7 +63,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>D:\research\EigenLib;$(IncludePath)</IncludePath>
+    <IncludePath>D:\research\libraries\eigen-eigen-2249f9c22fe8;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>D:\research\libraries\eigen-eigen-2249f9c22fe8;$(IncludePath)</IncludePath>
@@ -124,6 +124,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Optimizer.cpp" />
     <ClCompile Include="OrthoBuilder.cpp" />
+    <ClCompile Include="ParamSack.cpp" />
     <ClCompile Include="Plate.cpp" />
     <ClCompile Include="RungeKutta.cpp" />
     <ClCompile Include="Solver.cpp" />
@@ -139,6 +140,7 @@
     <ClInclude Include="hyperDual2.h" />
     <ClInclude Include="Optimizer.h" />
     <ClInclude Include="OrthoBuilder.h" />
+    <ClInclude Include="ParamSack.h" />
     <ClInclude Include="Plate.h" />
     <ClInclude Include="plate_var_types.h" />
     <ClInclude Include="RungeKutta.h" />

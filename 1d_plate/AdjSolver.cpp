@@ -45,7 +45,6 @@ AdjSolver::AdjSolver() :
 
 	eps_0( 0 ),
 	eps_x( 0 ),
-	eps_x_0( 0 ),
 
 	rungeKutta( 0 ),
 	orthoBuilder( 0 ),
@@ -149,7 +148,6 @@ void AdjSolver::loadParamsFromStruct( const SolverPar& loadFrom )
 
 	eps_0 = loadFrom.eps_0;
 	eps_x = loadFrom.eps_x;
-	eps_x_0 = loadFrom.eps_x_0;
 
 	if( rungeKutta != 0 )
 	{
@@ -446,32 +444,32 @@ void AdjSolver::calcSystemMatrices( int y, Matrix<N_PRES, EQ_NUM, EQ_NUM>* A, Ma
 	(*A)( 1, 7 ) = By1 * sigma_x_mu / ( 4.0 * beta * dt );
 
 	(*A)( 2, 1 ) = -1.0;
-	(*A)( 2, 3 ) = By1 * eps_x_0 * h * ( primSoln[indty + 6] - 2.0 * beta * dt * primSolnDt[indty + 6] ) / ( 4.0 * beta * dt );
-	(*A)( 2, 4 ) = 0.5 * eps_x_0 * h * ( -2.0 * primSoln[indty + 6] * primSolnDt[indty + 7] + primSoln[indty + 7] * ( primSoln[indty + 6] / ( beta * dt ) 
+	(*A)( 2, 3 ) = By1 * ( eps_x - eps_0 ) * h * ( primSoln[indty + 6] - 2.0 * beta * dt * primSolnDt[indty + 6] ) / ( 4.0 * beta * dt );
+	(*A)( 2, 4 ) = 0.5 * ( eps_x - eps_0 ) * h * ( -2.0 * primSoln[indty + 6] * primSolnDt[indty + 7] + primSoln[indty + 7] * ( primSoln[indty + 6] / ( beta * dt ) 
 		-2.0 * primSolnDt[indty + 6] ) );
 	(*A)( 2, 5 ) = h * h * h * ( 2.0 * rho + dt * sigma_x * primSoln[indty + 7] * ( primSoln[indty + 7] - 4.0 * beta * dt * primSolnDt[indty + 7] ) ) 
 		/ ( 24.0 * beta * dt * dt );
 
 	(*A)( 3, 0 ) = -1.0 / ( B22 * h );
-	(*A)( 3, 3 ) = eps_x_0 * h * ( 2.0 * beta * dt * primSoln[indty + 6] * primSolnDt[indty + 7] - primSoln[indty + 7] 
+	(*A)( 3, 3 ) = ( eps_x - eps_0 ) * h * ( 2.0 * beta * dt * primSoln[indty + 6] * primSolnDt[indty + 7] - primSoln[indty + 7] 
 		* ( primSoln[indty + 6] - 2.0 * beta * dt * primSolnDt[indty + 6] ) ) / ( 2.0 * B22 * beta * dt );
 
 	(*A)( 4, 5 ) = -1.0;
 
 	(*A)( 5, 2 ) = 12.0 / ( B22 * h * h * h );
-	(*A)( 5, 5 ) = eps_x_0 * ( 2.0 * beta * dt * primSoln[indty + 6] * primSolnDt[indty + 7] - primSoln[indty + 7]
+	(*A)( 5, 5 ) = ( eps_x - eps_0 ) * ( 2.0 * beta * dt * primSoln[indty + 6] * primSolnDt[indty + 7] - primSoln[indty + 7]
 		* ( primSoln[indty + 6] - 2.0 * beta * dt * primSolnDt[indty + 6] ) ) / ( 2.0 * B22 * beta * dt );
 
-	(*A)( 6, 3 ) = 0.5 * By1 * primSolnDt[indty + 2] * eps_x_0 * h 
-		- h * ( primSolnDt[indty + 3] * eps_x_0 + B22 * sigma_x ) * primSoln[indty + 7] / B22;
-	(*A)( 6, 4 ) = 0.5 * By1 * h * sigma_x + primSolnDt[indty + 2] * eps_x_0 * h * primSoln[indty + 7];
-	(*A)( 6, 5 ) = -primSolnDt[indty + 5] * eps_x_0 * primSoln[indty + 7] / B22;
+	(*A)( 6, 3 ) = 0.5 * By1 * primSolnDt[indty + 2] * ( eps_x - eps_0 ) * h 
+		- h * ( primSolnDt[indty + 3] * ( eps_x - eps_0 ) + B22 * sigma_x ) * primSoln[indty + 7] / B22;
+	(*A)( 6, 4 ) = 0.5 * By1 * h * sigma_x + primSolnDt[indty + 2] * ( eps_x - eps_0 ) * h * primSoln[indty + 7];
+	(*A)( 6, 5 ) = -primSolnDt[indty + 5] * ( eps_x - eps_0 ) * primSoln[indty + 7] / B22;
 	(*A)( 6, 7 ) = -sigma_x_mu;
 
 	(*A)( 7, 3 ) = 0.5 * h * ( -2.0 * Jx + By1 * primSolnDt[indty + 1] * sigma_x - 4.0 * primSolnDt[indty + 0] * sigma_x * primSoln[indty + 7]
-		- 2.0 * ( primSolnDt[indty + 3] * eps_x_0 + B22 * sigma_x ) * primSoln[indty + 6] / B22 );
-	(*A)( 7, 4 ) = 0.5 * By1 * primSolnDt[indty + 0] * h * sigma_x + primSolnDt[indty + 2] * eps_x_0 * h * primSoln[indty + 6];
-	(*A)( 7, 5 ) = primSolnDt[indty + 2] * h * h * h * sigma_x * primSoln[indty + 7] / 6.0 - primSolnDt[indty + 5] * eps_x_0 * primSoln[indty + 6] / B22;
+		- 2.0 * ( primSolnDt[indty + 3] * ( eps_x - eps_0 ) + B22 * sigma_x ) * primSoln[indty + 6] / B22 );
+	(*A)( 7, 4 ) = 0.5 * By1 * primSolnDt[indty + 0] * h * sigma_x + primSolnDt[indty + 2] * ( eps_x - eps_0 ) * h * primSoln[indty + 6];
+	(*A)( 7, 5 ) = primSolnDt[indty + 2] * h * h * h * sigma_x * primSoln[indty + 7] / 6.0 - primSolnDt[indty + 5] * ( eps_x - eps_0 ) * primSoln[indty + 6] / B22;
 	(*A)( 7, 6 ) = -1.0 / ( 2.0 * beta * dt );
 	(*A)( 7, 7 ) = -primSolnDt[indty + 0] * sigma_x_mu;
 
@@ -481,9 +479,9 @@ void AdjSolver::calcSystemMatrices( int y, Matrix<N_PRES, EQ_NUM, EQ_NUM>* A, Ma
 	(*f)( 1 ) = 0.25 * ( -4.0 * h * newmarkB[4] * rho + By1 * ( By1 * h * newmarkA[4] * sigma_x - 2.0 * sigma_x_mu * newmarkA[7] ) 
 		- 2.0 * By1 * h * newmarkA[3] * sigma_x * primSoln[indty + 7] - 8.0 * primSoln[indty + 1] );
 	(*f)( 2 ) = 1.0 / 12.0 * ( h * h * h * ( newmarkB[5] * rho - newmarkA[5] * sigma_x * primSoln[indty + 7] * primSoln[indty + 7] )
-		- 6.0 * eps_x_0 * h * ( By1 * newmarkA[3] + 2.0 * newmarkA[4] * primSoln[indty + 7] ) * primSoln[indty + 6] );
-	(*f)( 3 ) = eps_x_0 * h * newmarkA[3] * primSoln[indty + 7] * primSoln[indty + 6] / B22;
-	(*f)( 5 ) = eps_x_0 * newmarkA[5] * primSoln[indty + 7] * primSoln[indty + 6] / B22;
+		- 6.0 * ( eps_x - eps_0 ) * h * ( By1 * newmarkA[3] + 2.0 * newmarkA[4] * primSoln[indty + 7] ) * primSoln[indty + 6] );
+	(*f)( 3 ) = ( eps_x - eps_0 ) * h * newmarkA[3] * primSoln[indty + 7] * primSoln[indty + 6] / B22;
+	(*f)( 5 ) = ( eps_x - eps_0 ) * newmarkA[5] * primSoln[indty + 7] * primSoln[indty + 6] / B22;
 	(*f)( 7 ) = newmarkA[6];
 }
 
@@ -525,31 +523,31 @@ void AdjSolver::calcSystemMatrices( int y, Matrix<N_PRES, EQ_NUM, EQ_NUM>* A, Ma
 //	matrA( 1, 7 ) = By1 * sigma_x_mu / ( 4.0 * beta * dt );
 //
 //	matrA( 2, 1 ) = -1.0;
-//	matrA( 2, 3 ) = ( By1 * eps_x_0 * h * ( primSoln[indty + 6] - 2.0 * beta * dt * primSolnDt[indty + 6] ) / ( 4.0 * beta * dt ) ) / coef;
-//	matrA( 2, 4 ) = -eps_x_0 * h * ( 2.0 * beta * dt * primSoln[indty + 6] * primSolnDt[indty + 7] 
+//	matrA( 2, 3 ) = ( By1 * ( eps_x - eps_0 ) * h * ( primSoln[indty + 6] - 2.0 * beta * dt * primSolnDt[indty + 6] ) / ( 4.0 * beta * dt ) ) / coef;
+//	matrA( 2, 4 ) = -( eps_x - eps_0 ) * h * ( 2.0 * beta * dt * primSoln[indty + 6] * primSolnDt[indty + 7] 
 //		- primSoln[indty + 7] * ( primSoln[indty + 6] - 2.0 * beta * dt * primSolnDt[indty + 6] ) ) / ( 2.0 * beta * dt );
 //	matrA( 2, 5 ) = h * h * h * ( 2.0 * rho + dt * sigma_x * primSoln[indty + 7] * ( primSoln[indty + 7] - 4.0 * beta * dt * primSolnDt[indty + 7] ) ) 
 //		/ ( 24.0 * beta * dt * dt );
 //
 //	matrA( 3, 0 ) = -1.0 / ( B22 * h ) * coef;
-//	matrA( 3, 3 ) = -eps_x_0 * h * ( -2.0 * beta * dt * primSoln[indty + 6] * primSolnDt[indty + 7] + primSoln[indty + 7] 
+//	matrA( 3, 3 ) = -( eps_x - eps_0 ) * h * ( -2.0 * beta * dt * primSoln[indty + 6] * primSolnDt[indty + 7] + primSoln[indty + 7] 
 //		* ( primSoln[indty + 6] - 2.0 * beta * dt * primSolnDt[indty + 6] ) ) / ( 2.0 * B22 * beta * dt );
 //
 //	matrA( 4, 5 ) = -1.0;
 //
 //	matrA( 5, 2 ) = 12.0 / ( B22 * h * h * h );
-//	matrA( 5, 5 ) = -eps_x_0 * ( -2.0 * beta * dt * primSoln[indty + 6] * primSolnDt[indty + 7] + primSoln[indty + 7]
+//	matrA( 5, 5 ) = -( eps_x - eps_0 ) * ( -2.0 * beta * dt * primSoln[indty + 6] * primSolnDt[indty + 7] + primSoln[indty + 7]
 //		* ( primSoln[indty + 6] - 2.0 * beta * dt * primSolnDt[indty + 6] ) ) / ( 2.0 * B22 * beta * dt );
 //
-//	matrA( 6, 3 ) = ( 0.5 * h * ( By1 * primSolnDt[indty + 2] * eps_x_0 - 2.0 * ( primSolnDt[indty + 3] * eps_x_0 + B22 * sigma_x ) * primSoln[indty + 7] / B22 ) ) / coef;
-//	matrA( 6, 4 ) = 0.5 * By1 * h * sigma_x + primSolnDt[indty + 2] * eps_x_0 * h * primSoln[indty + 7];
-//	matrA( 6, 5 ) = -primSolnDt[indty + 5] * eps_x_0 * primSoln[indty + 7] / B22;
+//	matrA( 6, 3 ) = ( 0.5 * h * ( By1 * primSolnDt[indty + 2] * ( eps_x - eps_0 ) - 2.0 * ( primSolnDt[indty + 3] * ( eps_x - eps_0 ) + B22 * sigma_x ) * primSoln[indty + 7] / B22 ) ) / coef;
+//	matrA( 6, 4 ) = 0.5 * By1 * h * sigma_x + primSolnDt[indty + 2] * ( eps_x - eps_0 ) * h * primSoln[indty + 7];
+//	matrA( 6, 5 ) = -primSolnDt[indty + 5] * ( eps_x - eps_0 ) * primSoln[indty + 7] / B22;
 //	matrA( 6, 7 ) = -sigma_x_mu;
 //
-//	matrA( 7, 3 ) = ( 0.5 * h * ( -2.0 * Jx + By1 * primSolnDt[indty + 1] * sigma_x - 2.0 * primSolnDt[indty + 3] * eps_x_0 * primSoln[indty + 6] / B22
+//	matrA( 7, 3 ) = ( 0.5 * h * ( -2.0 * Jx + By1 * primSolnDt[indty + 1] * sigma_x - 2.0 * primSolnDt[indty + 3] * ( eps_x - eps_0 ) * primSoln[indty + 6] / B22
 //		- 2.0 * sigma_x * ( 2.0 * primSolnDt[indty + 0] * primSoln[indty + 7] + primSoln[indty + 6] ) ) ) / coef;
-//	matrA( 7, 4 ) = 0.5 * By1 * primSolnDt[indty + 0] * h * sigma_x + primSolnDt[indty + 2] * eps_x_0 * h * primSoln[indty + 6];
-//	matrA( 7, 5 ) = primSolnDt[indty + 2] * h * h * h * sigma_x * primSoln[indty + 7] / 6.0 - primSolnDt[indty + 5] * eps_x_0 * primSoln[indty + 6] / B22;
+//	matrA( 7, 4 ) = 0.5 * By1 * primSolnDt[indty + 0] * h * sigma_x + primSolnDt[indty + 2] * ( eps_x - eps_0 ) * h * primSoln[indty + 6];
+//	matrA( 7, 5 ) = primSolnDt[indty + 2] * h * h * h * sigma_x * primSoln[indty + 7] / 6.0 - primSolnDt[indty + 5] * ( eps_x - eps_0 ) * primSoln[indty + 6] / B22;
 //	matrA( 7, 6 ) = -1.0 / ( 2.0 * beta * dt );
 //	matrA( 7, 7 ) = -primSolnDt[indty + 0] * sigma_x_mu;
 //
@@ -559,9 +557,9 @@ void AdjSolver::calcSystemMatrices( int y, Matrix<N_PRES, EQ_NUM, EQ_NUM>* A, Ma
 //	vectF( 1 ) = 0.25 * ( -4.0 * h * newmarkB[4] * rho + By1 * ( By1 * h * newmarkA[4] * sigma_x - 2.0 * sigma_x_mu * newmarkA[7] ) 
 //		- 2.0 * By1 * h * newmarkA[3] * sigma_x * primSoln[indty + 7] / coef - 8.0 * primSoln[indty + 1] );
 //	vectF( 2 ) = 1.0 / ( 12.0 * coef ) * ( coef * h * h * h * ( newmarkB[5] * rho - newmarkA[5] * sigma_x * primSoln[indty + 7] * primSoln[indty + 7] )
-//		- 6.0 * eps_x_0 * h * ( By1 * newmarkA[3] + 2.0 * coef * newmarkA[4] * primSoln[indty + 7] ) * primSoln[indty + 6] );
-//	vectF( 3 ) = eps_x_0 * h * newmarkA[3] * primSoln[indty + 7] * primSoln[indty + 6] / B22;
-//	vectF( 5 ) = eps_x_0 * newmarkA[5] * primSoln[indty + 7] * primSoln[indty + 6] / B22;
+//		- 6.0 * ( eps_x - eps_0 ) * h * ( By1 * newmarkA[3] + 2.0 * coef * newmarkA[4] * primSoln[indty + 7] ) * primSoln[indty + 6] );
+//	vectF( 3 ) = ( eps_x - eps_0 ) * h * newmarkA[3] * primSoln[indty + 7] * primSoln[indty + 6] / B22;
+//	vectF( 5 ) = ( eps_x - eps_0 ) * newmarkA[5] * primSoln[indty + 7] * primSoln[indty + 6] / B22;
 //	vectF( 7 ) = newmarkA[6];
 //}
 

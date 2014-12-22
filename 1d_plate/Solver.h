@@ -102,10 +102,8 @@ private:
 
 	PL_NUM eps_0;
 	PL_NUM eps_x;
-	PL_NUM eps_x_0;
 
 	PL_NUM tauP;
-	//PL_NUM tauJ;
 	PL_NUM tauSin;
 	PL_NUM tauSin_1;
 	PL_NUM tauExp;
@@ -115,7 +113,7 @@ private:
 	PL_NUM rad;
 
 	int Km;				//number of steps by space
-	//int Kt;				//number of steps by time
+
 
 	N_PRES dx;
 
@@ -274,7 +272,6 @@ SolverPar inline Solver<N_PRES>::saveParamsToStruct()
 
 	saveTo.eps_0 = eps_0;
 	saveTo.eps_x = eps_x;
-	saveTo.eps_x_0 = eps_x_0;
 
 	return saveTo;
 }
@@ -479,7 +476,7 @@ void Solver<PL_NUM>::calcConsts()
 
 	By1 = 2.0l * By0;                                      // in considered boundary-value problem
 	By2 = 0.0l;
-	eps_x_0 = eps_x - eps_0;
+	//eps_x_0 = eps_x - eps_0;
 }
 
 template<class PL_NUM>
@@ -545,34 +542,34 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 
 	nonlin_matr_A[ 3][0 ] = rho / al * h / beta / dt / dt + sigma_x * h / 2.0l / beta / dt / al * mesh[_x].Nk[7] * mesh[_x].Nk[7];
 	nonlin_matr_A[ 3][1 ] = -sigma_x * h / 4.0l / beta / dt / al * By1 * mesh[_x].Nk[7];
-	nonlin_matr_A[ 3][2 ] = -eps_x_0 / 4.0l / beta / dt / al * h * By1 * mesh[_x].Nk[6];
-	nonlin_matr_A[ 3][3 ] = eps_x_0 / 2.0l / beta / dt / B22 / al * h * mesh[_x].Nk[6] * mesh[_x].Nk[7];
-	nonlin_matr_A[ 3][6 ] = 1.0l / al * ( sigma_x * h * mesh[_x].Nk[7] + eps_x_0 * h / B22 * mesh[_x].Nk[7] * ( 1.0 / 2.0l / beta / dt 
+	nonlin_matr_A[ 3][2 ] = -( eps_x - eps_0 ) / 4.0l / beta / dt / al * h * By1 * mesh[_x].Nk[6];
+	nonlin_matr_A[ 3][3 ] = ( eps_x - eps_0 ) / 2.0l / beta / dt / B22 / al * h * mesh[_x].Nk[6] * mesh[_x].Nk[7];
+	nonlin_matr_A[ 3][6 ] = 1.0l / al * ( sigma_x * h * mesh[_x].Nk[7] + ( eps_x - eps_0 ) * h / B22 * mesh[_x].Nk[7] * ( 1.0 / 2.0l / beta / dt 
 									* mesh[_x].Nk[3]
-									+ newmark_B[3] ) - eps_x_0 / 2.0l * h * By1 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[2] + newmark_B[2] ) );
+									+ newmark_B[3] ) - ( eps_x - eps_0 ) / 2.0l * h * By1 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[2] + newmark_B[2] ) );
 	nonlin_matr_A[ 3][7 ] = 1.0l / al * ( sigma_x * h * mesh[_x].Nk[6] + 2.0l * sigma_x * h * mesh[_x].Nk[7] 
 									* ( 1.0 / 2.0l / beta / dt * mesh[_x].Nk[0] + newmark_B[0] )
 									- sigma_x * h / 2.0l * By1 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[1] + newmark_B[1] ) 
-									+ eps_x_0 * h / B22 * mesh[_x].Nk[6]
+									+ ( eps_x - eps_0 ) * h / B22 * mesh[_x].Nk[6]
 									* ( 1.0 / 2.0l / beta / dt * mesh[_x].Nk[3] 
 									+ newmark_B[3] ) + h * Jx );
 
 	nonlin_matr_A[ 4][0 ] = -sigma_x * h / 4.0l / beta / dt / al * By1 * mesh[_x].Nk[7];
 	nonlin_matr_A[ 4][1 ] = rho / al * h / beta / dt / dt + sigma_x * h / 8.0l / beta / al / dt * ( By1 * By1 );
-	nonlin_matr_A[ 4][2 ] = 1.0 / 2.0l / beta / al * ( -eps_x_0 * h * mesh[_x].Nk[6] * mesh[_x].Nk[7] ) / dt;
-	nonlin_matr_A[ 4][6 ] = -1.0l / al * ( sigma_x * h / 2.0l * By1 + eps_x_0 * h 
+	nonlin_matr_A[ 4][2 ] = 1.0 / 2.0l / beta / al * ( -( eps_x - eps_0 ) * h * mesh[_x].Nk[6] * mesh[_x].Nk[7] ) / dt;
+	nonlin_matr_A[ 4][6 ] = -1.0l / al * ( sigma_x * h / 2.0l * By1 + ( eps_x - eps_0 ) * h 
 									* mesh[_x].Nk[7] * ( 1.0 / 2.0l / beta * mesh[_x].Nk[2] / dt + newmark_B[2] ) );
 	nonlin_matr_A[ 4][7 ] = -1.0l / al * ( sigma_x * h / 2.0l * By1 * ( 1.0 / 2.0l / beta * mesh[_x].Nk[0] / dt 
-									+ newmark_B[0] ) - ( - eps_x_0 * h * mesh[_x].Nk[6] ) * ( 1.0 / 2.0l / beta * mesh[_x].Nk[2] / dt + newmark_B[2] ) );
+									+ newmark_B[0] ) - ( - ( eps_x - eps_0 ) * h * mesh[_x].Nk[6] ) * ( 1.0 / 2.0l / beta * mesh[_x].Nk[2] / dt + newmark_B[2] ) );
 
 	//nonlin_matr_A[ 5][1 ] = -sigma_x * h * h / 24.0l / beta / dt / al * By2 * mesh[_x].Nk[7];	//because By2 is always 0 for the problems that we consider
 	nonlin_matr_A[ 5][2 ] = -1.0 / 2.0l / beta / dt / al * ( sigma_x * h * h * h / 12.0l * mesh[_x].Nk[7] 
 									* mesh[_x].Nk[7] ) - h * h * h / 12.0l / beta / dt / dt * rho / al;
 	nonlin_matr_A[ 5][4 ] = 1.0l / al;
-	nonlin_matr_A[ 5][5 ] = eps_x_0 / 2.0l / beta / B22 / dt / al * mesh[_x].Nk[6] * mesh[_x].Nk[7];
-	nonlin_matr_A[ 5][6 ] = -eps_x_0 / al * ( -mesh[_x].Nk[7] / B22 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[5] + newmark_B[5] ) );
+	nonlin_matr_A[ 5][5 ] = ( eps_x - eps_0 ) / 2.0l / beta / B22 / dt / al * mesh[_x].Nk[6] * mesh[_x].Nk[7];
+	nonlin_matr_A[ 5][6 ] = -( eps_x - eps_0 ) / al * ( -mesh[_x].Nk[7] / B22 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[5] + newmark_B[5] ) );
 	nonlin_matr_A[ 5][7 ] = -1.0l / al * ( sigma_x * h * h * h / 6.0l * mesh[_x].Nk[7] * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[2] 
-									+ newmark_B[2] ) - eps_x_0 / B22 * mesh[_x].Nk[6] * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[5] + newmark_B[5] ) );
+									+ newmark_B[2] ) - ( eps_x - eps_0 ) / B22 * mesh[_x].Nk[6] * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[5] + newmark_B[5] ) );
 
 	nonlin_matr_A[ 6][7 ] = 1.0l / 2.0l / ( beta * al * dt );
 
@@ -586,17 +583,17 @@ void Solver<PL_NUM>::calc_nonlin_system( int _x )
 						* mesh[_x].Nk[7] * mesh[_x].Nk[0] - sigma_x * h * mesh[_x].Nk[7] 
 						* mesh[_x].Nk[7] * newmark_B[0] 
 						+ sigma_x * h / 4.0l / beta / dt * By1 * mesh[_x].Nk[7] * mesh[_x].Nk[1] 
-						- eps_x_0 * h / beta / dt / B22 * mesh[_x].Nk[6] * mesh[_x].Nk[7] * mesh[_x].Nk[3] - eps_x_0 * h / B22 
+						- ( eps_x - eps_0 ) * h / beta / dt / B22 * mesh[_x].Nk[6] * mesh[_x].Nk[7] * mesh[_x].Nk[3] - ( eps_x - eps_0 ) * h / B22 
 						* mesh[_x].Nk[6] * mesh[_x].Nk[7] * newmark_B[3] 
-						+ eps_x_0 * h / 4.0l / beta / dt * By1 * mesh[_x].Nk[6] * mesh[_x].Nk[2] );
+						+ ( eps_x - eps_0 ) * h / 4.0l / beta / dt * By1 * mesh[_x].Nk[6] * mesh[_x].Nk[2] );
 	nonlin_vect_f( 4 ) = rho / al * h * newmark_A[1] + Pimp / al + 1.0l / al * ( sigma_x * h / 4.0l / beta * By1 / dt	//55454 h
 						* mesh[_x].Nk[7] * mesh[_x].Nk[0] + sigma_x * h / 4.0l * ( By1 * By1 ) * newmark_B[1] 
-						+ eps_x_0 * h / beta / dt 
-						* mesh[_x].Nk[6] * mesh[_x].Nk[7] * mesh[_x].Nk[2] + eps_x_0 * h * mesh[_x].Nk[6] 
+						+ ( eps_x - eps_0 ) * h / beta / dt 
+						* mesh[_x].Nk[6] * mesh[_x].Nk[7] * mesh[_x].Nk[2] + ( eps_x - eps_0 ) * h * mesh[_x].Nk[6] 
 						* mesh[_x].Nk[7] * newmark_B[2] - h / 2.0l * Jx * By1 );			//By1
 	nonlin_vect_f( 5 ) = 1.0l / al * ( sigma_x * h * h * h / 12.0l / beta / dt * mesh[_x].Nk[7] * mesh[_x].Nk[7] * mesh[_x].Nk[2] 
-						+ sigma_x * h * h * h / 12.0l * mesh[_x].Nk[7] * mesh[_x].Nk[7] * newmark_B[2] - eps_x_0 / beta / dt / B22 * mesh[_x].Nk[6] 
-						* mesh[_x].Nk[7] * mesh[_x].Nk[5] - eps_x_0 / B22 * mesh[_x].Nk[6] * mesh[_x].Nk[7] 
+						+ sigma_x * h * h * h / 12.0l * mesh[_x].Nk[7] * mesh[_x].Nk[7] * newmark_B[2] - ( eps_x - eps_0 ) / beta / dt / B22 * mesh[_x].Nk[6] 
+						* mesh[_x].Nk[7] * mesh[_x].Nk[5] - ( eps_x - eps_0 ) / B22 * mesh[_x].Nk[6] * mesh[_x].Nk[7] 
 						* newmark_B[5] ) - h * h * h / 12.0l * newmark_A[2] * rho  / al;
 	nonlin_vect_f( 6 ) = newmark_B[7] / al;
 	nonlin_vect_f( 7 ) = 1.0l / al * ( -sigma_x_mu / 2.0l / beta / dt * mesh[_x].Nk[7] * mesh[_x].Nk[0] - 0.5l * sigma_x_mu * By1 * newmark_B[1] );
@@ -646,33 +643,33 @@ void Solver<PL_NUM>::calcLinSystem( int _x, Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMa
 
 	(*A)( 3, 0 ) = rho / al * h / beta / dt / dt + sigma_x * h / 2.0l / beta / dt / al * mesh[_x].Nk[7] * mesh[_x].Nk[7];
 	(*A)( 3, 1 ) = -sigma_x * h / 4.0l / beta / dt / al * By1 * mesh[_x].Nk[7];
-	(*A)( 3, 2 ) = -eps_x_0 / 4.0l / beta / dt / al * h * By1 * mesh[_x].Nk[6];
-	(*A)( 3, 3 ) = eps_x_0 / 2.0l / beta / dt / B22 / al * h * mesh[_x].Nk[6] * mesh[_x].Nk[7];
-	(*A)( 3, 6 ) = 1.0l / al * ( sigma_x * h * mesh[_x].Nk[7] + eps_x_0 * h / B22 * mesh[_x].Nk[7] * ( 1.0 / 2.0l / beta / dt 
+	(*A)( 3, 2 ) = -( eps_x - eps_0 ) / 4.0l / beta / dt / al * h * By1 * mesh[_x].Nk[6];
+	(*A)( 3, 3 ) = ( eps_x - eps_0 ) / 2.0l / beta / dt / B22 / al * h * mesh[_x].Nk[6] * mesh[_x].Nk[7];
+	(*A)( 3, 6 ) = 1.0l / al * ( sigma_x * h * mesh[_x].Nk[7] + ( eps_x - eps_0 ) * h / B22 * mesh[_x].Nk[7] * ( 1.0 / 2.0l / beta / dt 
 									* mesh[_x].Nk[3]
-									+ newmark_B[3] ) - eps_x_0 / 2.0l * h * By1 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[2] + newmark_B[2] ) );
+									+ newmark_B[3] ) - ( eps_x - eps_0 ) / 2.0l * h * By1 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[2] + newmark_B[2] ) );
 	(*A)( 3, 7 ) = 1.0l / al * ( sigma_x * h * mesh[_x].Nk[6] + 2.0l * sigma_x * h * mesh[_x].Nk[7] 
 									* ( 1.0 / 2.0l / beta / dt * mesh[_x].Nk[0] + newmark_B[0] )
 									- sigma_x * h / 2.0l * By1 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[1] + newmark_B[1] ) 
-									+ eps_x_0 * h / B22 * mesh[_x].Nk[6]
+									+ ( eps_x - eps_0 ) * h / B22 * mesh[_x].Nk[6]
 									* ( 1.0 / 2.0l / beta / dt * mesh[_x].Nk[3] 
 									+ newmark_B[3] ) + h * Jx );
 
 	(*A)( 4, 0 ) = -sigma_x * h / 4.0l / beta / dt / al * By1 * mesh[_x].Nk[7];
 	(*A)( 4, 1 ) = rho / al * h / beta / dt / dt + sigma_x * h / 8.0l / beta / al / dt * ( By1 * By1 );
-	(*A)( 4, 2 ) = 1.0 / 2.0l / beta / al * ( -eps_x_0 * h * mesh[_x].Nk[6] * mesh[_x].Nk[7] ) / dt;
-	(*A)( 4, 6 ) = -1.0l / al * ( sigma_x * h / 2.0l * By1 + eps_x_0 * h 
+	(*A)( 4, 2 ) = 1.0 / 2.0l / beta / al * ( -( eps_x - eps_0 ) * h * mesh[_x].Nk[6] * mesh[_x].Nk[7] ) / dt;
+	(*A)( 4, 6 ) = -1.0l / al * ( sigma_x * h / 2.0l * By1 + ( eps_x - eps_0 ) * h 
 									* mesh[_x].Nk[7] * ( 1.0 / 2.0l / beta * mesh[_x].Nk[2] / dt + newmark_B[2] ) );
 	(*A)( 4, 7 ) = -1.0l / al * ( sigma_x * h / 2.0l * By1 * ( 1.0 / 2.0l / beta * mesh[_x].Nk[0] / dt 
-									+ newmark_B[0] ) - ( - eps_x_0 * h * mesh[_x].Nk[6] ) * ( 1.0 / 2.0l / beta * mesh[_x].Nk[2] / dt + newmark_B[2] ) );
+									+ newmark_B[0] ) - ( - ( eps_x - eps_0 ) * h * mesh[_x].Nk[6] ) * ( 1.0 / 2.0l / beta * mesh[_x].Nk[2] / dt + newmark_B[2] ) );
 
 	(*A)( 5, 2 ) = -1.0 / 2.0l / beta / dt / al * ( sigma_x * h * h * h / 12.0l * mesh[_x].Nk[7] 
 									* mesh[_x].Nk[7] ) - h * h * h / 12.0l / beta / dt / dt * rho / al;
 	(*A)( 5, 4 ) = 1.0l / al;
-	(*A)( 5, 5 ) = eps_x_0 / 2.0l / beta / B22 / dt / al * mesh[_x].Nk[6] * mesh[_x].Nk[7];
-	(*A)( 5, 6 ) = -eps_x_0 / al * ( -mesh[_x].Nk[7] / B22 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[5] + newmark_B[5] ) );
+	(*A)( 5, 5 ) = ( eps_x - eps_0 ) / 2.0l / beta / B22 / dt / al * mesh[_x].Nk[6] * mesh[_x].Nk[7];
+	(*A)( 5, 6 ) = -( eps_x - eps_0 ) / al * ( -mesh[_x].Nk[7] / B22 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[5] + newmark_B[5] ) );
 	(*A)( 5, 7 ) = -1.0l / al * ( sigma_x * h * h * h / 6.0l * mesh[_x].Nk[7] * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[2] 
-									+ newmark_B[2] ) - eps_x_0 / B22 * mesh[_x].Nk[6] * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[5] + newmark_B[5] ) );
+									+ newmark_B[2] ) - ( eps_x - eps_0 ) / B22 * mesh[_x].Nk[6] * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[5] + newmark_B[5] ) );
 
 	(*A)( 6, 7 ) = 1.0l / 2.0l / ( beta * al * dt );
 
@@ -686,17 +683,17 @@ void Solver<PL_NUM>::calcLinSystem( int _x, Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMa
 						* mesh[_x].Nk[7] * mesh[_x].Nk[0] - sigma_x * h * mesh[_x].Nk[7] 
 						* mesh[_x].Nk[7] * newmark_B[0] 
 						+ sigma_x * h / 4.0l / beta / dt * By1 * mesh[_x].Nk[7] * mesh[_x].Nk[1] 
-						- eps_x_0 * h / beta / dt / B22 * mesh[_x].Nk[6] * mesh[_x].Nk[7] * mesh[_x].Nk[3] - eps_x_0 * h / B22 
+						- ( eps_x - eps_0 ) * h / beta / dt / B22 * mesh[_x].Nk[6] * mesh[_x].Nk[7] * mesh[_x].Nk[3] - ( eps_x - eps_0 ) * h / B22 
 						* mesh[_x].Nk[6] * mesh[_x].Nk[7] * newmark_B[3] 
-						+ eps_x_0 * h / 4.0l / beta / dt * By1 * mesh[_x].Nk[6] * mesh[_x].Nk[2] );
+						+ ( eps_x - eps_0 ) * h / 4.0l / beta / dt * By1 * mesh[_x].Nk[6] * mesh[_x].Nk[2] );
 	(*f)( 4 ) = rho / al * h * newmark_A[1] + Pimp / al + 1.0l / al * ( sigma_x * h / 4.0l / beta * By1 / dt	//55454 h
 						* mesh[_x].Nk[7] * mesh[_x].Nk[0] + sigma_x * h / 4.0l * ( By1 * By1 ) * newmark_B[1] 
-						+ eps_x_0 * h / beta / dt 
-						* mesh[_x].Nk[6] * mesh[_x].Nk[7] * mesh[_x].Nk[2] + eps_x_0 * h * mesh[_x].Nk[6] 
+						+ ( eps_x - eps_0 ) * h / beta / dt 
+						* mesh[_x].Nk[6] * mesh[_x].Nk[7] * mesh[_x].Nk[2] + ( eps_x - eps_0 ) * h * mesh[_x].Nk[6] 
 						* mesh[_x].Nk[7] * newmark_B[2] - h / 2.0l * Jx * By1 );			//By1
 	(*f)( 5 ) = 1.0l / al * ( sigma_x * h * h * h / 12.0l / beta / dt * mesh[_x].Nk[7] * mesh[_x].Nk[7] * mesh[_x].Nk[2] 
-						+ sigma_x * h * h * h / 12.0l * mesh[_x].Nk[7] * mesh[_x].Nk[7] * newmark_B[2] - eps_x_0 / beta / dt / B22 * mesh[_x].Nk[6] 
-						* mesh[_x].Nk[7] * mesh[_x].Nk[5] - eps_x_0 / B22 * mesh[_x].Nk[6] * mesh[_x].Nk[7] 
+						+ sigma_x * h * h * h / 12.0l * mesh[_x].Nk[7] * mesh[_x].Nk[7] * newmark_B[2] - ( eps_x - eps_0 ) / beta / dt / B22 * mesh[_x].Nk[6] 
+						* mesh[_x].Nk[7] * mesh[_x].Nk[5] - ( eps_x - eps_0 ) / B22 * mesh[_x].Nk[6] * mesh[_x].Nk[7] 
 						* newmark_B[5] ) - h * h * h / 12.0l * newmark_A[2] * rho  / al;
 	(*f)( 6 ) = newmark_B[7] / al;
 	(*f)( 7 ) = 1.0l / al * ( -sigma_x_mu / 2.0l / beta / dt * mesh[_x].Nk[7] * mesh[_x].Nk[0] - 0.5l * sigma_x_mu * By1 * newmark_B[1] );
@@ -978,16 +975,16 @@ int Solver<PL_NUM>::checkConv()
 	{
 		for( int i = 0; i < eq_num; ++i )
 		{
-			if( fabs( mesh[x].Nk[i] ) > ALMOST_ZERO )
+			if( fabs( mesh[x].Nk[i] ) > NEWTON_ALMOST_ZERO )
 			{
-				if( fabs( ( mesh[x].Nk1[i] - mesh[x].Nk[i] ) / mesh[x].Nk[i] ) > NEWTON_EPS && fabs( mesh[x].Nk1[i] - mesh[x].Nk[i] ) > ALMOST_ZERO )
+				if( fabs( ( mesh[x].Nk1[i] - mesh[x].Nk[i] ) / mesh[x].Nk[i] ) > NEWTON_EPS && fabs( mesh[x].Nk1[i] - mesh[x].Nk[i] ) > NEWTON_ALMOST_ZERO )
 				{
 					return 1;
 				}
 			}
 			else
 			{
-				if( fabs( mesh[x].Nk1[i] ) > ALMOST_ZERO )
+				if( fabs( mesh[x].Nk1[i] ) > NEWTON_ALMOST_ZERO )
 				{
 					return 1;
 				}

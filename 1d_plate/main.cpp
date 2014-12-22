@@ -8,6 +8,7 @@
 #include <omp.h>
 #include "SolverPar.h"
 #include "AdjSolver.h"
+#include "ParamSack.h"
 
 using std::cout;
 using std::endl;
@@ -25,6 +26,9 @@ int main()
 
 	time_t adjTime = 0;
 	time_t hpdTime = 0;
+
+	ParamSack params;
+	params.loadFromFile( "params.txt" );
 
 	/*N_PRES J0start =  0.01;
 	N_PRES tauStart = 0.0048;

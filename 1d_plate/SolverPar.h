@@ -45,7 +45,7 @@ struct SolverPar
 
 	N_PRES eps_0;
 	N_PRES eps_x;
-	N_PRES eps_x_0;
+	//N_PRES eps_x_0;
 };
 
 #endif

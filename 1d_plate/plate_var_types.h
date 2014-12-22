@@ -3,12 +3,12 @@
 
 #define _USE_MATH_DEFINES
 
-#define THREAD_NUM 2
+#define THREAD_NUM 4
 
 #define N_PRES long double
 //#define PL_NUM complex<long double>
 #define EQ_NUM 8
-#define ALMOST_ZERO 1e-11l
+#define NEWTON_ALMOST_ZERO 1e-11l
 #define NEWTON_EPS 1e-6l
 #define J0_SCALE 100000000.0l
 #define BY0_SCALE 1.0l
