@@ -32,8 +32,8 @@
 
 #define SCEN_NUMBER 3
 
-enum {stress_whole, stress_centered};
-enum {current_const, current_sin, current_exp_sin};
+enum {stressWhole, stressCentered};
+enum {currentConst, currentSin, currentExpSin};
 
 const N_PRES GlobalP01( 750000 );
 const N_PRES GlobalP02( 1000000 );

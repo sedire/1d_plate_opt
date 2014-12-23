@@ -413,15 +413,15 @@ void AdjSolver::calcNewmarkAB( int y )
 void AdjSolver::calcSystemMatrices( int y, Matrix<N_PRES, EQ_NUM, EQ_NUM>* A, Matrix<N_PRES, EQ_NUM, 1>* f )
 {
 	N_PRES Jx = 0.0;
-	if( currentType == current_const )
+	if( currentType == currentConst )
 	{
 		Jx = J0;
 	}
-	else if( currentType == current_sin )
+	else if( currentType == currentSin )
 	{
 		Jx = J0 * sin( (long double)M_PI / tauSin * curTime );
 	}
-	else if( currentType == current_exp_sin )
+	else if( currentType == currentExpSin )
 	{
 		if( curTime <= switchTime )
 		{

@@ -10,6 +10,7 @@
 
 #include "asa_user.h"
 #include "AdjSolver.h"
+#include "ParamSack.h"
 
 using std::cout;
 using std::endl;

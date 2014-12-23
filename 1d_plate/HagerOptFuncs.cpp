@@ -1,5 +1,7 @@
 #include "HagerOptFuncs.h"
 
+extern ParamSack GlobalParams;
+
 double calcValGradTausAdj( double* g, double* x, long n )
 {
 	time_t begin = time( 0 );
@@ -53,7 +55,7 @@ double calcValGradTausAdj( double* g, double* x, long n )
 		cout << omp_get_thread_num() << endl;
 		
 		solver[scen].setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen], 
-								B0begin2, stress_centered, mechLoad[scen], mechTaus[scen] );
+								B0begin2, stressCentered, GlobalParams.getStressParams( scen, 0 ), mechLoad[scen], mechTaus[scen] );
 		solver[scen].setResArray( GlobalResArrays + scen * resArrSize );
 		solver[scen].setResDtArray( GlobalResDtArrays + scen * resArrSize );
 
@@ -180,7 +182,7 @@ double calcValGradTausAdjSolid( double* g, double* x, long n )	//"Solid" means t
 		cout << omp_get_thread_num() << endl;
 		
 		solver[scen].setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen],
-								B0begin2, stress_centered, mechLoad[scen], mechTaus[scen] );
+								B0begin2, stressCentered, GlobalParams.getStressParams( scen, 0 ), mechLoad[scen], mechTaus[scen] );
 		solver[scen].setResArray( GlobalResArrays + scen * resArrSize );
 		solver[scen].setResDtArray( GlobalResDtArrays + scen * resArrSize );
 
@@ -341,7 +343,7 @@ double calcValGradTaus( double* g, double* x, long n )
 	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
 	{
 		solver_second[scen].setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen],
-										B0begin2, stress_centered, mechLoad[scen], mechTaus[scen] );
+										B0begin2, stressCentered, GlobalParams.getStressParams( scen, 0 ), mechLoad[scen], mechTaus[scen] );
 
 		HPD<N_PRES, GRAD_SIZE_SECOND> sum = 0.0;
 		funcVal1[scen] = 0.0l;
@@ -498,11 +500,12 @@ double calcValGradTausDet( double* g, double* x, long n )
 
 	HPD<N_PRES, GRAD_SIZE_SECOND> funcVal1;
 	HPD<N_PRES, GRAD_SIZE_SECOND> funcVal2;
+	N_PRES mechRad = GlobalParams.getStressParams( 1, 0 );
 	N_PRES mechLoad = GlobalP02;
 	N_PRES mechTaus = GlobalTauP2;
 
 	solver_second.setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2, tauBeginSin2, tauBeginExp2,
-									B0begin2, stress_centered, mechLoad, mechTaus );
+									B0begin2, stressCentered, mechRad, mechLoad, mechTaus );
 
 	HPD<N_PRES, GRAD_SIZE_SECOND> sum = 0.0;
 	funcVal1 = 0.0l;
@@ -634,7 +637,7 @@ double calcValTaus( double* x, long n )
 		funcVal1[scen] = 0.0l;
 		funcVal2[scen] = 0.0l;
 		solver[scen].setTask( J0begin, tauBeginSin, tauBeginExp, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen],
-								B0begin, stress_centered, mechLoad[scen], mechTaus[scen] );
+								B0begin, stressCentered, GlobalParams.getStressParams( scen, 0 ), mechLoad[scen], mechTaus[scen] );
 		N_PRES sum = 0.0;
 
 		while( solver[scen].cur_t <= SWITCH_TIME )
@@ -734,13 +737,14 @@ double calcValTausDet( double* x, long n )
 
 	N_PRES funcVal1;
 	N_PRES funcVal2;
+	N_PRES mechRad = GlobalParams.getStressParams( 1, 0 );
 	N_PRES mechLoad = GlobalP02;
 	N_PRES mechTaus = GlobalTauP2;
 
 	funcVal1 = 0.0l;
 	funcVal2 = 0.0l;
 	solver.setTask( J0begin, tauBeginSin, tauBeginExp, J0begin2, tauBeginSin2, tauBeginExp2,
-							B0begin, stress_centered, mechLoad, mechTaus );
+							B0begin, stressCentered, mechRad, mechLoad, mechTaus );
 	N_PRES sum = 0.0;
 
 	while( solver.cur_t <= SWITCH_TIME )

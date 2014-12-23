@@ -14,21 +14,21 @@ using std::cout;
 using std::endl;
 using std::ifstream;
 
-N_PRES* GlobalResArrays = new N_PRES[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
-N_PRES* GlobalResDtArrays = new N_PRES[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
-N_PRES* GlobalResAdjArrays = new N_PRES[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
+N_PRES* GlobalResArrays = new N_PRES[1];//[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
+N_PRES* GlobalResDtArrays = new N_PRES[1];//[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
+N_PRES* GlobalResAdjArrays = new N_PRES[1];//[SCEN_NUMBER * ( int )( CHAR_TIME / DELTA_T  + 1 ) * NODES_Y * EQ_NUM];
+
+ParamSack GlobalParams;
 
 int main()
 {
 	cout << "hello\n";
-
+	GlobalParams.loadFromFile( "params.txt" );
 	omp_set_num_threads( THREAD_NUM );
 
 	time_t adjTime = 0;
 	time_t hpdTime = 0;
 
-	ParamSack params;
-	params.loadFromFile( "params.txt" );
 
 	/*N_PRES J0start =  0.01;
 	N_PRES tauStart = 0.0048;
@@ -104,35 +104,35 @@ int main()
 	//							1.0, 0.00514927, 0.00271984,
 	//							0.00991937, 0.00682416, 0.00001,
 	//							1.0, 0.00371071, 0.00313839 };
-	double x[GRAD_SIZE_FULL] = { 0.01, 0.0048, 0.0048, 
-								0.01, 0.0048, 0.0048, 
-								0.01, 0.0048, 0.0048, 
-								0.01, 0.0048, 0.0048 };
+	//double x[GRAD_SIZE_FULL] = { 0.01, 0.0048, 0.0048, 
+	//							0.01, 0.0048, 0.0048, 
+	//							0.01, 0.0048, 0.0048, 
+	//							0.01, 0.0048, 0.0048 };
 
-	double gAdj[GRAD_SIZE_FULL];
-	double g[GRAD_SIZE_FULL];
+	//double gAdj[GRAD_SIZE_FULL];
+	//double g[GRAD_SIZE_FULL];
 
-	double valAdj = calcValGradTausAdj( gAdj, x, 0 );
-	cout << " adj comput done\n";
-	double val = 0.0;//calcValGradTaus( g, x, 0 );
+	//double valAdj = calcValGradTausAdj( gAdj, x, 0 );
+	//cout << " adj comput done\n";
+	//double val = 0.0;//calcValGradTaus( g, x, 0 );
 
-	ifstream iff( "HPDgrad.txt" );
-	if( iff.is_open() )
-	{
-		for( int i = 0; i < GRAD_SIZE_FULL; ++i )
-		{
-			iff >> g[i];
-		}
-		iff.close();
-	}
+	//ifstream iff( "HPDgrad.txt" );
+	//if( iff.is_open() )
+	//{
+	//	for( int i = 0; i < GRAD_SIZE_FULL; ++i )
+	//	{
+	//		iff >> g[i];
+	//	}
+	//	iff.close();
+	//}
 
-	cout << " ----------\n";
-	cout << " == " << val << " " << valAdj << endl;
-	for( int i = 0; i < GRAD_SIZE_FULL; ++i )
-	{
-		cout << " :: " << g[i] << " " << gAdj[i] << " " << fabs( ( g[i] - gAdj[i] ) / g[i] ) * 100.0 << " % " << endl;
-	}
-	cout << " ----------\n";
+	//cout << " ----------\n";
+	//cout << " == " << val << " " << valAdj << endl;
+	//for( int i = 0; i < GRAD_SIZE_FULL; ++i )
+	//{
+	//	cout << " :: " << g[i] << " " << gAdj[i] << " " << fabs( ( g[i] - gAdj[i] ) / g[i] ) * 100.0 << " % " << endl;
+	//}
+	//cout << " ----------\n";
 
 	//optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
 
