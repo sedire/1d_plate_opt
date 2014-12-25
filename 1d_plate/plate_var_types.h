@@ -11,7 +11,6 @@
 #define NEWTON_ALMOST_ZERO 1e-11l
 #define NEWTON_EPS 1e-6l
 #define J0_SCALE 100000000.0l
-#define BY0_SCALE 1.0l
 #define CHAR_TIME 0.05l
 #define SWITCH_TIME 0.01l
 #define DELTA_T 0.0001
@@ -33,7 +32,7 @@
 #define SCEN_NUMBER 3
 
 enum {stressWhole, stressCentered};
-enum {currentConst, currentSin, currentExpSin};
+enum {currentConst, currentSin, currentExpSin, currentPieceLin};
 
 const N_PRES GlobalP01( 750000 );
 const N_PRES GlobalP02( 1000000 );

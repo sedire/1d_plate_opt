@@ -30,39 +30,39 @@ int main()
 	time_t hpdTime = 0;
 
 
-	N_PRES J0start =  0.01;
-	N_PRES tauStart = 0.0048;
-	N_PRES tauStartExp = 0.0048;
+	//N_PRES J0start =  0.01;
+	//N_PRES tauStart = 0.0048;
+	//N_PRES tauStartExp = 0.0048;
 
-	N_PRES J0start_1 = 0.01;
-	N_PRES tauStart_1 = 0.0048;
-	N_PRES tauStartExp_1 = 0.0048;
+	//N_PRES J0start_1 = 0.01;
+	//N_PRES tauStart_1 = 0.0048;
+	//N_PRES tauStartExp_1 = 0.0048;
 
-	N_PRES J0start_2 =  0.01;
-	N_PRES tauStart_2 = 0.0048;
-	N_PRES tauStartExp_2 = 0.0048;
+	//N_PRES J0start_2 =  0.01;
+	//N_PRES tauStart_2 = 0.0048;
+	//N_PRES tauStartExp_2 = 0.0048;
 
-	N_PRES J0start_3 =  0.01;
-	N_PRES tauStart_3 = 0.0048;
-	N_PRES tauStartExp_3 = 0.0048;
+	//N_PRES J0start_3 =  0.01;
+	//N_PRES tauStart_3 = 0.0048;
+	//N_PRES tauStartExp_3 = 0.0048;
 
-//	N_PRES J0start =  0.0168894;
-//	N_PRES tauStart = 0.0100969;
-//	N_PRES tauStartExp = 0.134501;
-//
-//	N_PRES J0start_1 = 1;
-//	N_PRES tauStart_1 = 0.00515453;
-//	N_PRES tauStartExp_1 = 0.00267568;
-//
-//	N_PRES J0start_2 =  0.015036;
-//	N_PRES tauStart_2 = 0.00586419;
-//	N_PRES tauStartExp_2 = 0.00222149;
-//
-//	N_PRES J0start_3 =  1;
-//	N_PRES tauStart_3 = 0.00371065;
-//	N_PRES tauStartExp_3 = 0.0030765;
-//
-//	N_PRES ByStart = 1.0;
+	N_PRES J0start =  0.0168894;
+	N_PRES tauStart = 0.0100969;
+	N_PRES tauStartExp = 0.134501;
+
+	N_PRES J0start_1 = 1;
+	N_PRES tauStart_1 = 0.00515453;
+	N_PRES tauStartExp_1 = 0.00267568;
+
+	N_PRES J0start_2 =  0.015036;
+	N_PRES tauStart_2 = 0.00586419;
+	N_PRES tauStartExp_2 = 0.00222149;
+
+	N_PRES J0start_3 =  1;
+	N_PRES tauStart_3 = 0.00371065;
+	N_PRES tauStartExp_3 = 0.0030765;
+
+	N_PRES ByStart = 1.0;
 //
 //////////////////////////////////////
 //	Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >* solver = new Solver</*HPD<*/N_PRES/*, GRAD_SIZE>*/ >();

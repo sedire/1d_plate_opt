@@ -16,6 +16,7 @@
 #include <complex>
 #include "SolverPar.h"
 #include "ParamSack.h"
+#include "math.h"
 
 using std::cout;
 using std::vector;
@@ -39,8 +40,7 @@ public:
 	N_PRES* resArr;		//array to keep all the results obtained
 	N_PRES* resArrDt;
 
-	void setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
-				PL_NUM _J0_1, PL_NUM _tauSin_1, PL_NUM _tauExp_1,
+	void setTask( int _currentType, const vector<PL_NUM>& _currentParams,
 				PL_NUM _By0, int _stressType, PL_NUM _rad, PL_NUM _p0, PL_NUM _tauP );
 	void setMechLoad( int _stressType, PL_NUM _rad, PL_NUM _p0, PL_NUM _tauP );
 	void setSwitchTime( N_PRES _switchTime );
@@ -74,8 +74,9 @@ public:
 	time_t buildSolnTime1;
 private:
 	void calcConsts();
-
 	int maxNewtonIterReached;
+
+	int eq_num;				//number of equations in main system
 
 	PL_NUM E1;				//Young's modulus
 	PL_NUM E2;				//Young's modulus
@@ -88,14 +89,6 @@ private:
 	N_PRES h;				//thickness of the plate
 	N_PRES a;				//width of the plate
 
-	int eq_num;				//number of equations in main system
-
-	PL_NUM J0;
-	PL_NUM J0_1;
-	PL_NUM  p0;				//constant mechanical load
-	int stressType;
-	int currentType;
-
 	PL_NUM B11;
 	PL_NUM B22;
 	PL_NUM B12;
@@ -106,18 +99,23 @@ private:
 	PL_NUM eps_0;
 	PL_NUM eps_x;
 
+	int stressType;
+	PL_NUM  p0;				//constant mechanical load
 	PL_NUM tauP;
-	PL_NUM tauSin;
-	PL_NUM tauSin_1;
-	PL_NUM tauExp;
-	PL_NUM tauExp_1;
-	PL_NUM omega;
-	PL_NUM omega_1;
 	PL_NUM rad;
 
+	int currentType;
+	vector<PL_NUM> currentParams;	//TODO: put all the params of the current here
+	//PL_NUM J0;
+	//PL_NUM J0_1;
+	//PL_NUM tauSin;
+	//PL_NUM tauSin_1;
+	//PL_NUM tauExp;
+	//PL_NUM tauExp_1;
+	//PL_NUM omega;
+	//PL_NUM omega_1;
+
 	int Km;				//number of steps by space
-
-
 	N_PRES dx;
 
 	//N_PRES al;			//some weird var for normalization. It is said that this will improve the numerical scheme. must be equal to density
@@ -130,7 +128,6 @@ private:
 
 	//PL_NUM nonlin_vect_f[EQ_NUM];		//vector f on right part of nonlinear system at certain t and x
 
-	//Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> nonlin_matr_A;
 	Matrix<PL_NUM, EQ_NUM, 1> nonlin_vect_f;
 	
 	Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor> matrA;
@@ -169,7 +166,7 @@ private:
 	OrthoBuilder<PL_NUM>* orthoBuilder;
 
 	void calc_Newmark_AB( int _x );		//don't really know why we need this stuff with mode need to FIX -- UPD "mode" removed
-	void calc_nonlin_system( int _x );	//though in fact, the system is linear, "nonlinear" means that this is for the solution of the nonlinear problem
+	//void calc_nonlin_system( int _x );	//though in fact, the system is linear, "nonlinear" means that this is for the solution of the nonlinear problem
 	void calcLinSystem( int _x, Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor>* A, Matrix<PL_NUM, EQ_NUM, 1>* f );
 
 	int checkConv();
@@ -251,19 +248,19 @@ SolverPar inline Solver<N_PRES>::saveParamsToStruct()
 	saveTo.Km = Km;
 	saveTo.dx = dx;
 
-	saveTo.J0 = J0;
-	saveTo.J0_1 = J0_1;
-	saveTo.tauSin = tauSin;
-	saveTo.tauSin_1 = tauSin_1;
-	saveTo.tauExp = tauExp;
-	saveTo.tauExp_1 = tauExp_1;
+	//TODO: fix this block!!!
+	saveTo.currentType = currentType;
+	saveTo.J0 = currentParams[0];
+	saveTo.tauSin = currentParams[1];
+	saveTo.tauExp = currentParams[2];
+	saveTo.J0_1 = currentParams[3];
+	saveTo.tauSin_1 = currentParams[4];
+	saveTo.tauExp_1 = currentParams[5];
 
+	saveTo.stressType = stressType;
 	saveTo.p0 = p0;				//constant mechanical load
 	saveTo.tauP = tauP;
 	saveTo.rad = rad;
-
-	saveTo.stressType = stressType;
-	saveTo.currentType = currentType;
 
 	saveTo.beta = beta;
 
@@ -342,8 +339,9 @@ void Solver<PL_NUM>::setSwitchTime( N_PRES _switchTime )
 }
 
 template<class PL_NUM>
-void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
-							PL_NUM _J0_1, PL_NUM _tauSin_1, PL_NUM _tauExp_1,
+void Solver<PL_NUM>::setTask( int _currentType, const vector<PL_NUM>& _currentParams, 
+							/*PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
+							PL_NUM _J0_1, PL_NUM _tauSin_1, PL_NUM _tauExp_1,*/
 							PL_NUM _By0, int _stressType, PL_NUM _rad, PL_NUM _p0, PL_NUM _tauP )
 {
 	totalTime1 = 0;
@@ -367,28 +365,35 @@ void Solver<PL_NUM>::setTask( PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 
 	h = GlobalParams.getH();						//thickness of the plate
 	a = GlobalParams.getA();						//width of the plate
+
+	eq_num = EQ_NUM;
 //other
 	setMechLoad( _stressType, _rad, _p0, _tauP );
 
-	_tauSin != 0.0l ? tauSin = _tauSin : tauSin = 1;
-	_tauExp != 0.0l ? tauExp = _tauExp : tauExp = 1;
-	_tauSin_1 != 0.0l ? tauSin_1 = _tauSin_1 : tauSin_1 = 1;
-	_tauExp_1 != 0.0l ? tauExp_1 = _tauExp_1 : tauExp_1 = 1;
+	currentType = _currentType;
+	currentParams.resize( GlobalParams.getNumberOfCurrentParams(), 0.0 );
+	for( int i = 0; i < currentParams.size(); ++i )
+	{
+		currentParams[i] = _currentParams[i];
+	}
+	if( currentType == currentExpSin )
+	{
+		currentParams[0] *= J0_SCALE;
+		currentParams[3] *= J0_SCALE;
+	}
+	//_tauSin != 0.0l ? tauSin = _tauSin : tauSin = 1;
+	//_tauExp != 0.0l ? tauExp = _tauExp : tauExp = 1;
+	//_tauSin_1 != 0.0l ? tauSin_1 = _tauSin_1 : tauSin_1 = 1;
+	//_tauExp_1 != 0.0l ? tauExp_1 = _tauExp_1 : tauExp_1 = 1;
+	//J0 = _J0;
+	//J0 *= J0_SCALE;
+	//J0_1 = _J0_1;
+	//J0_1 *= J0_SCALE;
 
-	eq_num = EQ_NUM;
-
-	J0 = _J0;
-	J0 *= J0_SCALE;
-	J0_1 = _J0_1;
-	J0_1 *= J0_SCALE;
-
-	omega = (long double)M_PI / tauSin;
-	omega_1 = (long double)M_PI / tauSin_1;
-	
-	currentType = currentExpSin;
+	//omega = (long double)M_PI / tauSin;
+	//omega_1 = (long double)M_PI / tauSin_1;
 
 	By0 = _By0;
-	By0 *= BY0_SCALE;
 
 	eps_0 = GlobalParams.getEps_0();
 	eps_x = GlobalParams.getEps_x();
@@ -497,105 +502,105 @@ void Solver<PL_NUM>::calc_Newmark_AB( int _x )
 	}
 }
 
-template<class PL_NUM>
-void Solver<PL_NUM>::calc_nonlin_system( int _x )
-{
-	PL_NUM Jx = 0.0;
-	if( currentType == current_const )
-	{
-		Jx = J0;
-	}
-	else if( currentType == current_sin )
-	{
-		Jx = J0 * sin( omega * cur_t );
-	}
-	else if( currentType == current_exp_sin )
-	{
-		if( cur_t <= switchTime )
-		{
-			Jx = J0 * exp( -cur_t / tauExp ) * sin( omega * cur_t );
-		}
-		else
-		{
-			Jx = J0_1 * exp( -cur_t / tauExp_1 ) * sin( omega_1 * cur_t );
-		}
-	}
-	PL_NUM Pimp = 0.0l;
-	if( stressType == stress_centered )
-	{
-		if( cur_t < tauP && fabs( (long double)_x * dx - a / 2.0 ) < rad )
-		{
-			Pimp = p0 * sqrt( 1.0l - fabs( (long double)_x * dx - a / 2.0l ) * fabs( (long double)_x * dx - a / 2.0 ) / rad / rad	) 
-				* sin( (long double)M_PI * cur_t / tauP );
-		}
-	}
-	else if( stressType == stress_whole )
-	{
-		Pimp = p0;
-	}
-
-	nonlin_matr_A[ 0][3 ] = 1.0l / h / B22;
-	nonlin_matr_A[ 1][2 ] = 1.0l;
-	nonlin_matr_A[ 2][5 ] = -12.0l / h / h / h / B22;
-
-	nonlin_matr_A[ 3][0 ] = rho * h / beta / dt / dt + sigma_x * h / 2.0l / beta / dt * mesh[_x].Nk[7] * mesh[_x].Nk[7];
-	nonlin_matr_A[ 3][1 ] = -sigma_x * h / 4.0l / beta / dt * By1 * mesh[_x].Nk[7];
-	nonlin_matr_A[ 3][2 ] = -( eps_x - eps_0 ) / 4.0l / beta / dt * h * By1 * mesh[_x].Nk[6];
-	nonlin_matr_A[ 3][3 ] = ( eps_x - eps_0 ) / 2.0l / beta / dt / B22 * h * mesh[_x].Nk[6] * mesh[_x].Nk[7];
-	nonlin_matr_A[ 3][6 ] = ( sigma_x * h * mesh[_x].Nk[7] + ( eps_x - eps_0 ) * h / B22 * mesh[_x].Nk[7] * ( 1.0 / 2.0l / beta / dt 
-									* mesh[_x].Nk[3]
-									+ newmark_B[3] ) - ( eps_x - eps_0 ) / 2.0l * h * By1 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[2] + newmark_B[2] ) );
-	nonlin_matr_A[ 3][7 ] = ( sigma_x * h * mesh[_x].Nk[6] + 2.0l * sigma_x * h * mesh[_x].Nk[7] 
-									* ( 1.0 / 2.0l / beta / dt * mesh[_x].Nk[0] + newmark_B[0] )
-									- sigma_x * h / 2.0l * By1 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[1] + newmark_B[1] ) 
-									+ ( eps_x - eps_0 ) * h / B22 * mesh[_x].Nk[6]
-									* ( 1.0 / 2.0l / beta / dt * mesh[_x].Nk[3] 
-									+ newmark_B[3] ) + h * Jx );
-
-	nonlin_matr_A[ 4][0 ] = -sigma_x * h / 4.0l / beta / dt * By1 * mesh[_x].Nk[7];
-	nonlin_matr_A[ 4][1 ] = rho * h / beta / dt / dt + sigma_x * h / 8.0l / beta / dt * ( By1 * By1 );
-	nonlin_matr_A[ 4][2 ] = 1.0 / 2.0l / beta * ( -( eps_x - eps_0 ) * h * mesh[_x].Nk[6] * mesh[_x].Nk[7] ) / dt;
-	nonlin_matr_A[ 4][6 ] = -1.0l * ( sigma_x * h / 2.0l * By1 + ( eps_x - eps_0 ) * h 
-									* mesh[_x].Nk[7] * ( 1.0 / 2.0l / beta * mesh[_x].Nk[2] / dt + newmark_B[2] ) );
-	nonlin_matr_A[ 4][7 ] = -1.0l * ( sigma_x * h / 2.0l * By1 * ( 1.0 / 2.0l / beta * mesh[_x].Nk[0] / dt 
-									+ newmark_B[0] ) - ( - ( eps_x - eps_0 ) * h * mesh[_x].Nk[6] ) * ( 1.0 / 2.0l / beta * mesh[_x].Nk[2] / dt + newmark_B[2] ) );
-
-	//nonlin_matr_A[ 5][1 ] = -sigma_x * h * h / 24.0l / beta / dt * By2 * mesh[_x].Nk[7];	//because By2 is always 0 for the problems that we consider
-	nonlin_matr_A[ 5][2 ] = -1.0 / 2.0l / beta / dt * ( sigma_x * h * h * h / 12.0l * mesh[_x].Nk[7] 
-									* mesh[_x].Nk[7] ) - h * h * h / 12.0l / beta / dt / dt * rho;
-	nonlin_matr_A[ 5][4 ] = 1.0l;
-	nonlin_matr_A[ 5][5 ] = ( eps_x - eps_0 ) / 2.0l / beta / B22 / dt * mesh[_x].Nk[6] * mesh[_x].Nk[7];
-	nonlin_matr_A[ 5][6 ] = -( eps_x - eps_0 ) * ( -mesh[_x].Nk[7] / B22 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[5] + newmark_B[5] ) );
-	nonlin_matr_A[ 5][7 ] = -1.0l * ( sigma_x * h * h * h / 6.0l * mesh[_x].Nk[7] * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[2] 
-									+ newmark_B[2] ) - ( eps_x - eps_0 ) / B22 * mesh[_x].Nk[6] * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[5] + newmark_B[5] ) );
-
-	nonlin_matr_A[ 6][7 ] = 1.0l / 2.0l / ( beta * dt );
-
-	nonlin_matr_A[ 7][0 ] = sigma_x_mu / 2.0l / beta / dt * mesh[_x].Nk[7];
-	nonlin_matr_A[ 7][1 ] = -sigma_x_mu / 4.0l / beta / dt * By1;
-	nonlin_matr_A[ 7][6 ] = sigma_x_mu;
-	nonlin_matr_A[ 7][7 ] = sigma_x_mu * ( 1.0 / 2.0l / beta / dt * mesh[_x].Nk[0] + newmark_B[0]);
-
-	nonlin_vect_f( 3 ) = rho * h * newmark_A[0] + ( -sigma_x * h * mesh[_x].Nk[6] 
-						* mesh[_x].Nk[7] - sigma_x * h / beta / dt * mesh[_x].Nk[7] 
-						* mesh[_x].Nk[7] * mesh[_x].Nk[0] - sigma_x * h * mesh[_x].Nk[7] 
-						* mesh[_x].Nk[7] * newmark_B[0] 
-						+ sigma_x * h / 4.0l / beta / dt * By1 * mesh[_x].Nk[7] * mesh[_x].Nk[1] 
-						- ( eps_x - eps_0 ) * h / beta / dt / B22 * mesh[_x].Nk[6] * mesh[_x].Nk[7] * mesh[_x].Nk[3] - ( eps_x - eps_0 ) * h / B22 
-						* mesh[_x].Nk[6] * mesh[_x].Nk[7] * newmark_B[3] 
-						+ ( eps_x - eps_0 ) * h / 4.0l / beta / dt * By1 * mesh[_x].Nk[6] * mesh[_x].Nk[2] );
-	nonlin_vect_f( 4 ) = rho * h * newmark_A[1] + Pimp + ( sigma_x * h / 4.0l / beta * By1 / dt	//55454 h
-						* mesh[_x].Nk[7] * mesh[_x].Nk[0] + sigma_x * h / 4.0l * ( By1 * By1 ) * newmark_B[1] 
-						+ ( eps_x - eps_0 ) * h / beta / dt 
-						* mesh[_x].Nk[6] * mesh[_x].Nk[7] * mesh[_x].Nk[2] + ( eps_x - eps_0 ) * h * mesh[_x].Nk[6] 
-						* mesh[_x].Nk[7] * newmark_B[2] - h / 2.0l * Jx * By1 );			//By1
-	nonlin_vect_f( 5 ) = ( sigma_x * h * h * h / 12.0l / beta / dt * mesh[_x].Nk[7] * mesh[_x].Nk[7] * mesh[_x].Nk[2] 
-						+ sigma_x * h * h * h / 12.0l * mesh[_x].Nk[7] * mesh[_x].Nk[7] * newmark_B[2] - ( eps_x - eps_0 ) / beta / dt / B22 * mesh[_x].Nk[6] 
-						* mesh[_x].Nk[7] * mesh[_x].Nk[5] - ( eps_x - eps_0 ) / B22 * mesh[_x].Nk[6] * mesh[_x].Nk[7] 
-						* newmark_B[5] ) - h * h * h / 12.0l * newmark_A[2] * rho;
-	nonlin_vect_f( 6 ) = newmark_B[7];
-	nonlin_vect_f( 7 ) = ( -sigma_x_mu / 2.0l / beta / dt * mesh[_x].Nk[7] * mesh[_x].Nk[0] - 0.5l * sigma_x_mu * By1 * newmark_B[1] );
-}
+//template<class PL_NUM>
+//void Solver<PL_NUM>::calc_nonlin_system( int _x )
+//{
+//	PL_NUM Jx = 0.0;
+//	if( currentType == current_const )
+//	{
+//		Jx = J0;
+//	}
+//	else if( currentType == current_sin )
+//	{
+//		Jx = J0 * sin( (long double)M_PI / tauSin * cur_t );
+//	}
+//	else if( currentType == current_exp_sin )
+//	{
+//		if( cur_t <= switchTime )
+//		{
+//			Jx = J0 * exp( -cur_t / tauExp ) * sin( (long double)M_PI / tauSin * cur_t );
+//		}
+//		else
+//		{
+//			Jx = J0_1 * exp( -cur_t / tauExp_1 ) * sin( (long double)M_PI / tauSin_1 * cur_t );
+//		}
+//	}
+//	PL_NUM Pimp = 0.0l;
+//	if( stressType == stress_centered )
+//	{
+//		if( cur_t < tauP && fabs( (long double)_x * dx - a / 2.0 ) < rad )
+//		{
+//			Pimp = p0 * sqrt( 1.0l - fabs( (long double)_x * dx - a / 2.0l ) * fabs( (long double)_x * dx - a / 2.0 ) / rad / rad	) 
+//				* sin( (long double)M_PI * cur_t / tauP );
+//		}
+//	}
+//	else if( stressType == stress_whole )
+//	{
+//		Pimp = p0;
+//	}
+//
+//	nonlin_matr_A[ 0][3 ] = 1.0l / h / B22;
+//	nonlin_matr_A[ 1][2 ] = 1.0l;
+//	nonlin_matr_A[ 2][5 ] = -12.0l / h / h / h / B22;
+//
+//	nonlin_matr_A[ 3][0 ] = rho * h / beta / dt / dt + sigma_x * h / 2.0l / beta / dt * mesh[_x].Nk[7] * mesh[_x].Nk[7];
+//	nonlin_matr_A[ 3][1 ] = -sigma_x * h / 4.0l / beta / dt * By1 * mesh[_x].Nk[7];
+//	nonlin_matr_A[ 3][2 ] = -( eps_x - eps_0 ) / 4.0l / beta / dt * h * By1 * mesh[_x].Nk[6];
+//	nonlin_matr_A[ 3][3 ] = ( eps_x - eps_0 ) / 2.0l / beta / dt / B22 * h * mesh[_x].Nk[6] * mesh[_x].Nk[7];
+//	nonlin_matr_A[ 3][6 ] = ( sigma_x * h * mesh[_x].Nk[7] + ( eps_x - eps_0 ) * h / B22 * mesh[_x].Nk[7] * ( 1.0 / 2.0l / beta / dt 
+//									* mesh[_x].Nk[3]
+//									+ newmark_B[3] ) - ( eps_x - eps_0 ) / 2.0l * h * By1 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[2] + newmark_B[2] ) );
+//	nonlin_matr_A[ 3][7 ] = ( sigma_x * h * mesh[_x].Nk[6] + 2.0l * sigma_x * h * mesh[_x].Nk[7] 
+//									* ( 1.0 / 2.0l / beta / dt * mesh[_x].Nk[0] + newmark_B[0] )
+//									- sigma_x * h / 2.0l * By1 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[1] + newmark_B[1] ) 
+//									+ ( eps_x - eps_0 ) * h / B22 * mesh[_x].Nk[6]
+//									* ( 1.0 / 2.0l / beta / dt * mesh[_x].Nk[3] 
+//									+ newmark_B[3] ) + h * Jx );
+//
+//	nonlin_matr_A[ 4][0 ] = -sigma_x * h / 4.0l / beta / dt * By1 * mesh[_x].Nk[7];
+//	nonlin_matr_A[ 4][1 ] = rho * h / beta / dt / dt + sigma_x * h / 8.0l / beta / dt * ( By1 * By1 );
+//	nonlin_matr_A[ 4][2 ] = 1.0 / 2.0l / beta * ( -( eps_x - eps_0 ) * h * mesh[_x].Nk[6] * mesh[_x].Nk[7] ) / dt;
+//	nonlin_matr_A[ 4][6 ] = -1.0l * ( sigma_x * h / 2.0l * By1 + ( eps_x - eps_0 ) * h 
+//									* mesh[_x].Nk[7] * ( 1.0 / 2.0l / beta * mesh[_x].Nk[2] / dt + newmark_B[2] ) );
+//	nonlin_matr_A[ 4][7 ] = -1.0l * ( sigma_x * h / 2.0l * By1 * ( 1.0 / 2.0l / beta * mesh[_x].Nk[0] / dt 
+//									+ newmark_B[0] ) - ( - ( eps_x - eps_0 ) * h * mesh[_x].Nk[6] ) * ( 1.0 / 2.0l / beta * mesh[_x].Nk[2] / dt + newmark_B[2] ) );
+//
+//	//nonlin_matr_A[ 5][1 ] = -sigma_x * h * h / 24.0l / beta / dt * By2 * mesh[_x].Nk[7];	//because By2 is always 0 for the problems that we consider
+//	nonlin_matr_A[ 5][2 ] = -1.0 / 2.0l / beta / dt * ( sigma_x * h * h * h / 12.0l * mesh[_x].Nk[7] 
+//									* mesh[_x].Nk[7] ) - h * h * h / 12.0l / beta / dt / dt * rho;
+//	nonlin_matr_A[ 5][4 ] = 1.0l;
+//	nonlin_matr_A[ 5][5 ] = ( eps_x - eps_0 ) / 2.0l / beta / B22 / dt * mesh[_x].Nk[6] * mesh[_x].Nk[7];
+//	nonlin_matr_A[ 5][6 ] = -( eps_x - eps_0 ) * ( -mesh[_x].Nk[7] / B22 * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[5] + newmark_B[5] ) );
+//	nonlin_matr_A[ 5][7 ] = -1.0l * ( sigma_x * h * h * h / 6.0l * mesh[_x].Nk[7] * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[2] 
+//									+ newmark_B[2] ) - ( eps_x - eps_0 ) / B22 * mesh[_x].Nk[6] * ( 1.0l / 2.0l / beta / dt * mesh[_x].Nk[5] + newmark_B[5] ) );
+//
+//	nonlin_matr_A[ 6][7 ] = 1.0l / 2.0l / ( beta * dt );
+//
+//	nonlin_matr_A[ 7][0 ] = sigma_x_mu / 2.0l / beta / dt * mesh[_x].Nk[7];
+//	nonlin_matr_A[ 7][1 ] = -sigma_x_mu / 4.0l / beta / dt * By1;
+//	nonlin_matr_A[ 7][6 ] = sigma_x_mu;
+//	nonlin_matr_A[ 7][7 ] = sigma_x_mu * ( 1.0 / 2.0l / beta / dt * mesh[_x].Nk[0] + newmark_B[0]);
+//
+//	nonlin_vect_f( 3 ) = rho * h * newmark_A[0] + ( -sigma_x * h * mesh[_x].Nk[6] 
+//						* mesh[_x].Nk[7] - sigma_x * h / beta / dt * mesh[_x].Nk[7] 
+//						* mesh[_x].Nk[7] * mesh[_x].Nk[0] - sigma_x * h * mesh[_x].Nk[7] 
+//						* mesh[_x].Nk[7] * newmark_B[0] 
+//						+ sigma_x * h / 4.0l / beta / dt * By1 * mesh[_x].Nk[7] * mesh[_x].Nk[1] 
+//						- ( eps_x - eps_0 ) * h / beta / dt / B22 * mesh[_x].Nk[6] * mesh[_x].Nk[7] * mesh[_x].Nk[3] - ( eps_x - eps_0 ) * h / B22 
+//						* mesh[_x].Nk[6] * mesh[_x].Nk[7] * newmark_B[3] 
+//						+ ( eps_x - eps_0 ) * h / 4.0l / beta / dt * By1 * mesh[_x].Nk[6] * mesh[_x].Nk[2] );
+//	nonlin_vect_f( 4 ) = rho * h * newmark_A[1] + Pimp + ( sigma_x * h / 4.0l / beta * By1 / dt	//55454 h
+//						* mesh[_x].Nk[7] * mesh[_x].Nk[0] + sigma_x * h / 4.0l * ( By1 * By1 ) * newmark_B[1] 
+//						+ ( eps_x - eps_0 ) * h / beta / dt 
+//						* mesh[_x].Nk[6] * mesh[_x].Nk[7] * mesh[_x].Nk[2] + ( eps_x - eps_0 ) * h * mesh[_x].Nk[6] 
+//						* mesh[_x].Nk[7] * newmark_B[2] - h / 2.0l * Jx * By1 );			//By1
+//	nonlin_vect_f( 5 ) = ( sigma_x * h * h * h / 12.0l / beta / dt * mesh[_x].Nk[7] * mesh[_x].Nk[7] * mesh[_x].Nk[2] 
+//						+ sigma_x * h * h * h / 12.0l * mesh[_x].Nk[7] * mesh[_x].Nk[7] * newmark_B[2] - ( eps_x - eps_0 ) / beta / dt / B22 * mesh[_x].Nk[6] 
+//						* mesh[_x].Nk[7] * mesh[_x].Nk[5] - ( eps_x - eps_0 ) / B22 * mesh[_x].Nk[6] * mesh[_x].Nk[7] 
+//						* newmark_B[5] ) - h * h * h / 12.0l * newmark_A[2] * rho;
+//	nonlin_vect_f( 6 ) = newmark_B[7];
+//	nonlin_vect_f( 7 ) = ( -sigma_x_mu / 2.0l / beta / dt * mesh[_x].Nk[7] * mesh[_x].Nk[0] - 0.5l * sigma_x_mu * By1 * newmark_B[1] );
+//}
 
 template<class PL_NUM>
 void Solver<PL_NUM>::calcLinSystem( int _x, Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMajor>* A, Matrix<PL_NUM, EQ_NUM, 1>* f )
@@ -603,22 +608,33 @@ void Solver<PL_NUM>::calcLinSystem( int _x, Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMa
 	PL_NUM Jx = 0.0;
 	if( currentType == currentConst )
 	{
-		Jx = J0;
+		Jx = currentParams[0];
 	}
 	else if( currentType == currentSin )
 	{
-		Jx = J0 * sin( omega * cur_t );
+		Jx = currentParams[0] * sin( (long double)M_PI / currentParams[1] * cur_t );
 	}
 	else if( currentType == currentExpSin )
 	{
 		if( cur_t <= switchTime )
 		{
-			Jx = J0 * exp( -cur_t / tauExp ) * sin( omega * cur_t );
+			Jx = currentParams[0] * exp( -cur_t / currentParams[2] ) * sin( (long double)M_PI / currentParams[1] * cur_t );
 		}
 		else
 		{
-			Jx = J0_1 * exp( -cur_t / tauExp_1 ) * sin( omega_1 * cur_t );
+			Jx = currentParams[3] * exp( -cur_t / currentParams[5] ) * sin( (long double)M_PI / currentParams[4] * cur_t );
 		}
+	}
+	else if( currentType == currentPieceLin )
+	{
+		N_PRES dT = CHAR_TIME / currentParams.size();
+		int numOfFullIntervals = (int)floor( cur_t / dT );
+		for( int i = 0; i < numOfFullIntervals; ++i )
+		{
+			Jx += currentParams[i];
+		}
+		Jx *= dT;
+		Jx += ( cur_t - numOfFullIntervals * dT ) * currentParams[numOfFullIntervals];
 	}
 	PL_NUM Pimp = 0.0l;
 	if( stressType == stressCentered )

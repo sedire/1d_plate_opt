@@ -18,26 +18,54 @@ double calcValGradTausAdj( double* g, double* x, long n )
 	}
 	cout << " ====\n";
 
-	N_PRES J0begin1;
-	N_PRES tauBeginSin1;
-	N_PRES tauBeginExp1;
-
-	N_PRES J0begin2[SCEN_NUMBER];
-	N_PRES tauBeginSin2[SCEN_NUMBER];
-	N_PRES tauBeginExp2[SCEN_NUMBER];
-
-	N_PRES B0begin2;
-
-	J0begin1 = x[0];
-	tauBeginSin1 = x[1];
-	tauBeginExp1 = x[2];
-	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
+	vector<vector<N_PRES> > currentParams;
+	currentParams.resize( GlobalParams.getNumberOfScenarios(), vector<N_PRES>( GlobalParams.getNumberOfCurrentParams(), 0.0 ) );
+	int firstStageParamNum = -1;
+	if( GlobalParams.getCurrentType() == currentExpSin )
 	{
-		J0begin2[scen] = x[( scen + 1 ) * 3];
-		tauBeginSin2[scen] = x[( scen + 1 ) * 3 + 1];
-		tauBeginExp2[scen] = x[( scen + 1 ) * 3 + 2];
+		firstStageParamNum = 3;
 	}
-	B0begin2 = 1.0l;
+	else if( GlobalParams.getCurrentType() == currentPieceLin )
+	{
+		N_PRES dT = CHAR_TIME / GlobalParams.getNumberOfCurrentParams();
+		firstStageParamNum = (int)( SWITCH_TIME / dT );
+	}
+	else
+	{
+		cout << "ERROR: we do not support other current types yet\n";
+	}
+
+	for( int scen = 0; scen < GlobalParams.getNumberOfScenarios(); ++scen )
+	{
+		for( int i = 0; i < firstStageParamNum; ++i )
+		{
+			currentParams[scen][i] = x[i];
+		}
+		for( int i = firstStageParamNum; i < GlobalParams.getNumberOfCurrentParams(); ++i )
+		{
+			currentParams[scen][i] = x[scen * ( GlobalParams.getNumberOfCurrentParams() - firstStageParamNum ) + i];
+		}
+	}
+
+	//N_PRES J0begin1;
+	//N_PRES tauBeginSin1;
+	//N_PRES tauBeginExp1;
+
+	//N_PRES J0begin2[SCEN_NUMBER];
+	//N_PRES tauBeginSin2[SCEN_NUMBER];
+	//N_PRES tauBeginExp2[SCEN_NUMBER];
+
+	//J0begin1 = x[0];
+	//tauBeginSin1 = x[1];
+	//tauBeginExp1 = x[2];
+	//for( int scen = 0; scen < SCEN_NUMBER; ++scen )
+	//{
+	//	J0begin2[scen] = x[( scen + 1 ) * 3];
+	//	tauBeginSin2[scen] = x[( scen + 1 ) * 3 + 1];
+	//	tauBeginExp2[scen] = x[( scen + 1 ) * 3 + 2];
+	//}
+
+	N_PRES B0begin2 = 1.0l;
 
 	Solver<N_PRES> solver[SCEN_NUMBER];
 	AdjSolver adjSolver[SCEN_NUMBER];
@@ -54,7 +82,7 @@ double calcValGradTausAdj( double* g, double* x, long n )
 	{
 		cout << omp_get_thread_num() << endl;
 		
-		solver[scen].setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen], 
+		solver[scen].setTask( currentExpSin, currentParams[scen], 
 								B0begin2, stressCentered, GlobalParams.getStressParams( scen, 0 ), mechLoad[scen], mechTaus[scen] );
 		solver[scen].setResArray( GlobalResArrays + scen * resArrSize );
 		solver[scen].setResDtArray( GlobalResDtArrays + scen * resArrSize );
@@ -145,26 +173,54 @@ double calcValGradTausAdjSolid( double* g, double* x, long n )	//"Solid" means t
 	}
 	cout << " ====\n";
 
-	N_PRES J0begin1;
-	N_PRES tauBeginSin1;
-	N_PRES tauBeginExp1;
-
-	N_PRES J0begin2[SCEN_NUMBER];
-	N_PRES tauBeginSin2[SCEN_NUMBER];
-	N_PRES tauBeginExp2[SCEN_NUMBER];
-
-	N_PRES B0begin2;
-
-	J0begin1 = x[0];
-	tauBeginSin1 = x[1];
-	tauBeginExp1 = x[2];
-	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
+	vector<vector<N_PRES> > currentParams;
+	currentParams.resize( GlobalParams.getNumberOfScenarios(), vector<N_PRES>( GlobalParams.getNumberOfCurrentParams(), 0.0 ) );
+	int firstStageParamNum = -1;
+	if( GlobalParams.getCurrentType() == currentExpSin )
 	{
-		J0begin2[scen] = x[( scen + 1 ) * 3];
-		tauBeginSin2[scen] = x[( scen + 1 ) * 3 + 1];
-		tauBeginExp2[scen] = x[( scen + 1 ) * 3 + 2];
+		firstStageParamNum = 3;
 	}
-	B0begin2 = 1.0l;
+	else if( GlobalParams.getCurrentType() == currentPieceLin )
+	{
+		N_PRES dT = CHAR_TIME / GlobalParams.getNumberOfCurrentParams();
+		firstStageParamNum = (int)( SWITCH_TIME / dT );
+	}
+	else
+	{
+		cout << "ERROR: we do not support other current types yet\n";
+	}
+
+	for( int scen = 0; scen < GlobalParams.getNumberOfScenarios(); ++scen )
+	{
+		for( int i = 0; i < firstStageParamNum; ++i )
+		{
+			currentParams[scen][i] = x[i];
+		}
+		for( int i = firstStageParamNum; i < GlobalParams.getNumberOfCurrentParams(); ++i )
+		{
+			currentParams[scen][i] = x[scen * ( GlobalParams.getNumberOfCurrentParams() - firstStageParamNum ) + i];
+		}
+	}
+
+	//N_PRES J0begin1;
+	//N_PRES tauBeginSin1;
+	//N_PRES tauBeginExp1;
+
+	//N_PRES J0begin2[SCEN_NUMBER];
+	//N_PRES tauBeginSin2[SCEN_NUMBER];
+	//N_PRES tauBeginExp2[SCEN_NUMBER];
+
+	//J0begin1 = x[0];
+	//tauBeginSin1 = x[1];
+	//tauBeginExp1 = x[2];
+	//for( int scen = 0; scen < SCEN_NUMBER; ++scen )
+	//{
+	//	J0begin2[scen] = x[( scen + 1 ) * 3];
+	//	tauBeginSin2[scen] = x[( scen + 1 ) * 3 + 1];
+	//	tauBeginExp2[scen] = x[( scen + 1 ) * 3 + 2];
+	//}
+
+	N_PRES B0begin2 = 1.0l;
 
 	Solver<N_PRES> solver[SCEN_NUMBER];
 	AdjSolver adjSolver[SCEN_NUMBER];
@@ -181,7 +237,7 @@ double calcValGradTausAdjSolid( double* g, double* x, long n )	//"Solid" means t
 	{
 		cout << omp_get_thread_num() << endl;
 		
-		solver[scen].setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen],
+		solver[scen].setTask( currentExpSin, currentParams[scen], 
 								B0begin2, stressCentered, GlobalParams.getStressParams( scen, 0 ), mechLoad[scen], mechTaus[scen] );
 		solver[scen].setResArray( GlobalResArrays + scen * resArrSize );
 		solver[scen].setResDtArray( GlobalResDtArrays + scen * resArrSize );
@@ -265,17 +321,59 @@ double calcValGradTaus( double* g, double* x, long n )
 	}
 	cout << " ====\n";
 
-	HPD<N_PRES, GRAD_SIZE_SECOND> J0begin1;
+	vector<vector<HPD<N_PRES, GRAD_SIZE_SECOND> > > currentParams;
+	currentParams.resize( GlobalParams.getNumberOfScenarios(), vector<HPD<N_PRES, GRAD_SIZE_SECOND> >( GlobalParams.getNumberOfCurrentParams(), 0.0l ) );
+	int firstStageParamNum = -1;
+	if( GlobalParams.getCurrentType() == currentExpSin )
+	{
+		firstStageParamNum = 3;
+	}
+	else if( GlobalParams.getCurrentType() == currentPieceLin )
+	{
+		N_PRES dT = CHAR_TIME / GlobalParams.getNumberOfCurrentParams();
+		firstStageParamNum = (int)( SWITCH_TIME / dT );
+	}
+	else
+	{
+		cout << "ERROR: we do not support other current types yet\n";
+	}
+
+	for( int scen = 0; scen < GlobalParams.getNumberOfScenarios(); ++scen )
+	{
+		for( int i = 0; i < firstStageParamNum; ++i )
+		{
+			currentParams[scen][i] = x[i];
+		}
+		for( int i = firstStageParamNum; i < GlobalParams.getNumberOfCurrentParams(); ++i )
+		{
+			currentParams[scen][i] = x[scen * ( GlobalParams.getNumberOfCurrentParams() - firstStageParamNum ) + i];
+		}
+	}
+
+	if( GlobalParams.getCurrentType() == currentExpSin )
+	{
+		for( int scen = 0; scen < GlobalParams.getNumberOfScenarios(); ++scen )
+		{
+			for( int i = 0; i < GlobalParams.getNumberOfCurrentParams(); ++i )
+			{
+				currentParams[scen][i].elems[i + 1] = 1.0l; 
+			}
+		}
+	}
+	else
+	{
+		cout << "ERROR: this type of current is not supported yet for HPD method\n";
+	}
+
+	/*HPD<N_PRES, GRAD_SIZE_SECOND> J0begin1;
 	HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginSin1;
 	HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginExp1;
 
 	HPD<N_PRES, GRAD_SIZE_SECOND> J0begin2[SCEN_NUMBER];
 	HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginSin2[SCEN_NUMBER];
-	HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginExp2[SCEN_NUMBER];
+	HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginExp2[SCEN_NUMBER];*/
 
-	HPD<N_PRES, GRAD_SIZE_SECOND> B0begin2;
-
-	J0begin1.elems[0] = x[0];
+	/*J0begin1.elems[0] = x[0];
 	J0begin1.elems[1] = 1.0l;
 	J0begin1.elems[2] = 0.0l;
 	J0begin1.elems[3] = 0.0l;
@@ -324,9 +422,9 @@ double calcValGradTaus( double* g, double* x, long n )
 		tauBeginExp2[scen].elems[4] = 0.0l;
 		tauBeginExp2[scen].elems[5] = 0.0l;
 		tauBeginExp2[scen].elems[6] = 1.0l;
-	}
+	}*/
 
-	B0begin2 = 1.0l;
+	HPD<N_PRES, GRAD_SIZE_SECOND> B0begin2 = 1.0l;
 
 	Solver<HPD<N_PRES, GRAD_SIZE_SECOND> > solver_second[SCEN_NUMBER];
 
@@ -342,7 +440,7 @@ double calcValGradTaus( double* g, double* x, long n )
 #pragma omp parallel for
 	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
 	{
-		solver_second[scen].setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen],
+		solver_second[scen].setTask( currentExpSin, currentParams[scen],
 										B0begin2, stressCentered, GlobalParams.getStressParams( scen, 0 ), mechLoad[scen], mechTaus[scen] );
 
 		HPD<N_PRES, GRAD_SIZE_SECOND> sum = 0.0;
@@ -432,65 +530,113 @@ double calcValGradTausDet( double* g, double* x, long n )
 	}
 	cout << " ====\n";
 
-	HPD<N_PRES, GRAD_SIZE_SECOND> J0begin1;
-	HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginSin1;
-	HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginExp1;
+	if( GlobalParams.getNumberOfScenarios() != 1 )
+	{
+		cout << "ERROR: the number of scenarios is != 1 in the deterministic case\n";
+		return -1.0;
+	}
 
-	HPD<N_PRES, GRAD_SIZE_SECOND> J0begin2;
-	HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginSin2;
-	HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginExp2;
+	vector<vector<HPD<N_PRES, GRAD_SIZE_SECOND> > > currentParams;
+	currentParams.resize( GlobalParams.getNumberOfScenarios(), vector<HPD<N_PRES, GRAD_SIZE_SECOND> >( GlobalParams.getNumberOfCurrentParams(), 0.0l ) );
+	int firstStageParamNum = -1;
+	if( GlobalParams.getCurrentType() == currentExpSin )
+	{
+		firstStageParamNum = 3;
+	}
+	else if( GlobalParams.getCurrentType() == currentPieceLin )
+	{
+		N_PRES dT = CHAR_TIME / GlobalParams.getNumberOfCurrentParams();
+		firstStageParamNum = (int)( SWITCH_TIME / dT );
+	}
+	else
+	{
+		cout << "ERROR: we do not support other current types yet\n";
+	}
 
-	HPD<N_PRES, GRAD_SIZE_SECOND> B0begin2;
+	for( int scen = 0; scen < GlobalParams.getNumberOfScenarios(); ++scen )
+	{
+		for( int i = 0; i < firstStageParamNum; ++i )
+		{
+			currentParams[scen][i] = x[i];
+		}
+		for( int i = firstStageParamNum; i < GlobalParams.getNumberOfCurrentParams(); ++i )
+		{
+			currentParams[scen][i] = x[scen * ( GlobalParams.getNumberOfCurrentParams() - firstStageParamNum ) + i];
+		}
+	}
 
-	J0begin1.elems[0] = x[0];
-	J0begin1.elems[1] = 1.0l;
-	J0begin1.elems[2] = 0.0l;
-	J0begin1.elems[3] = 0.0l;
-	J0begin1.elems[4] = 0.0l;
-	J0begin1.elems[5] = 0.0l;
-	J0begin1.elems[6] = 0.0l;
+	if( GlobalParams.getCurrentType() == currentExpSin )
+	{
+		for( int scen = 0; scen < GlobalParams.getNumberOfScenarios(); ++scen )
+		{
+			for( int i = 0; i < GlobalParams.getNumberOfCurrentParams(); ++i )
+			{
+				currentParams[scen][i].elems[i + 1] = 1.0l; 
+			}
+		}
+	}
+	else
+	{
+		cout << "ERROR: this type of current is not supported yet for HPD method\n";
+	}
 
-	tauBeginSin1.elems[0] = x[1];
-	tauBeginSin1.elems[1] = 0.0l;
-	tauBeginSin1.elems[2] = 1.0l;
-	tauBeginSin1.elems[3] = 0.0l;
-	tauBeginSin1.elems[4] = 0.0l;
-	tauBeginSin1.elems[5] = 0.0l;
-	tauBeginSin1.elems[6] = 0.0l;
+	//HPD<N_PRES, GRAD_SIZE_SECOND> J0begin1;
+	//HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginSin1;
+	//HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginExp1;
 
-	tauBeginExp1.elems[0] = x[2];
-	tauBeginExp1.elems[1] = 0.0l;
-	tauBeginExp1.elems[2] = 0.0l;
-	tauBeginExp1.elems[3] = 1.0l;
-	tauBeginExp1.elems[4] = 0.0l;
-	tauBeginExp1.elems[5] = 0.0l;
-	tauBeginExp1.elems[6] = 0.0l;
+	//HPD<N_PRES, GRAD_SIZE_SECOND> J0begin2;
+	//HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginSin2;
+	//HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginExp2;
 
-	J0begin2.elems[0] = x[( 1 + 1 ) * 3];
-	J0begin2.elems[1] = 0.0l;
-	J0begin2.elems[2] = 0.0l;
-	J0begin2.elems[3] = 0.0l;
-	J0begin2.elems[4] = 1.0l;
-	J0begin2.elems[5] = 0.0l;
-	J0begin2.elems[6] = 0.0l;
+	//J0begin1.elems[0] = x[0];
+	//J0begin1.elems[1] = 1.0l;
+	//J0begin1.elems[2] = 0.0l;
+	//J0begin1.elems[3] = 0.0l;
+	//J0begin1.elems[4] = 0.0l;
+	//J0begin1.elems[5] = 0.0l;
+	//J0begin1.elems[6] = 0.0l;
 
-	tauBeginSin2.elems[0] = x[( 1 + 1 ) * 3 + 1];
-	tauBeginSin2.elems[1] = 0.0l;
-	tauBeginSin2.elems[2] = 0.0l;
-	tauBeginSin2.elems[3] = 0.0l;
-	tauBeginSin2.elems[4] = 0.0l;
-	tauBeginSin2.elems[5] = 1.0l;
-	tauBeginSin2.elems[6] = 0.0l;
+	//tauBeginSin1.elems[0] = x[1];
+	//tauBeginSin1.elems[1] = 0.0l;
+	//tauBeginSin1.elems[2] = 1.0l;
+	//tauBeginSin1.elems[3] = 0.0l;
+	//tauBeginSin1.elems[4] = 0.0l;
+	//tauBeginSin1.elems[5] = 0.0l;
+	//tauBeginSin1.elems[6] = 0.0l;
 
-	tauBeginExp2.elems[0] = x[( 1 + 1 ) * 3 + 2];
-	tauBeginExp2.elems[1] = 0.0l;
-	tauBeginExp2.elems[2] = 0.0l;
-	tauBeginExp2.elems[3] = 0.0l;
-	tauBeginExp2.elems[4] = 0.0l;
-	tauBeginExp2.elems[5] = 0.0l;
-	tauBeginExp2.elems[6] = 1.0l;
+	//tauBeginExp1.elems[0] = x[2];
+	//tauBeginExp1.elems[1] = 0.0l;
+	//tauBeginExp1.elems[2] = 0.0l;
+	//tauBeginExp1.elems[3] = 1.0l;
+	//tauBeginExp1.elems[4] = 0.0l;
+	//tauBeginExp1.elems[5] = 0.0l;
+	//tauBeginExp1.elems[6] = 0.0l;
 
-	B0begin2 = 1.0l;
+	//J0begin2.elems[0] = x[( 1 + 1 ) * 3];
+	//J0begin2.elems[1] = 0.0l;
+	//J0begin2.elems[2] = 0.0l;
+	//J0begin2.elems[3] = 0.0l;
+	//J0begin2.elems[4] = 1.0l;
+	//J0begin2.elems[5] = 0.0l;
+	//J0begin2.elems[6] = 0.0l;
+
+	//tauBeginSin2.elems[0] = x[( 1 + 1 ) * 3 + 1];
+	//tauBeginSin2.elems[1] = 0.0l;
+	//tauBeginSin2.elems[2] = 0.0l;
+	//tauBeginSin2.elems[3] = 0.0l;
+	//tauBeginSin2.elems[4] = 0.0l;
+	//tauBeginSin2.elems[5] = 1.0l;
+	//tauBeginSin2.elems[6] = 0.0l;
+
+	//tauBeginExp2.elems[0] = x[( 1 + 1 ) * 3 + 2];
+	//tauBeginExp2.elems[1] = 0.0l;
+	//tauBeginExp2.elems[2] = 0.0l;
+	//tauBeginExp2.elems[3] = 0.0l;
+	//tauBeginExp2.elems[4] = 0.0l;
+	//tauBeginExp2.elems[5] = 0.0l;
+	//tauBeginExp2.elems[6] = 1.0l;
+
+	HPD<N_PRES, GRAD_SIZE_SECOND> B0begin2 = 1.0l;
 
 	Solver<HPD<N_PRES, GRAD_SIZE_SECOND> > solver_second;
 
@@ -504,7 +650,7 @@ double calcValGradTausDet( double* g, double* x, long n )
 	N_PRES mechLoad = GlobalP02;
 	N_PRES mechTaus = GlobalTauP2;
 
-	solver_second.setTask( J0begin1, tauBeginSin1, tauBeginExp1, J0begin2, tauBeginSin2, tauBeginExp2,
+	solver_second.setTask( currentExpSin, currentParams[0],
 									B0begin2, stressCentered, mechRad, mechLoad, mechTaus );
 
 	HPD<N_PRES, GRAD_SIZE_SECOND> sum = 0.0;
@@ -583,42 +729,56 @@ double calcValTaus( double* x, long n )
 		cout << x[i] << endl;
 	}
 	cout << " ====\n";
-
-	ofstream of( "ineq_check.txt", ofstream::app );
-	of << "calcValTaus\n";
-	double lb = 0.001;
-	if( x[1] < lb || x[4] < lb || x[7] < lb || x[10] < lb )
+	
+	vector<vector<N_PRES> > currentParams;
+	currentParams.resize( GlobalParams.getNumberOfScenarios(), vector<N_PRES>( GlobalParams.getNumberOfCurrentParams(), 0.0 ) );
+	int firstStageParamNum = -1;
+	if( GlobalParams.getCurrentType() == currentExpSin )
 	{
-		of << "ineq tauSin >= " << lb << " violated\n\n";
-		for( int i = 0; i < GRAD_SIZE_FULL; ++i )
+		firstStageParamNum = 3;
+	}
+	else if( GlobalParams.getCurrentType() == currentPieceLin )
+	{
+		N_PRES dT = CHAR_TIME / GlobalParams.getNumberOfCurrentParams();
+		firstStageParamNum = (int)( SWITCH_TIME / dT );
+	}
+	else
+	{
+		cout << "ERROR: we do not support other current types yet\n";
+	}
+
+	for( int scen = 0; scen < GlobalParams.getNumberOfScenarios(); ++scen )
+	{
+		for( int i = 0; i < firstStageParamNum; ++i )
 		{
-			of << x[i] << endl;
+			currentParams[scen][i] = x[i];
 		}
-		of << "----------------------\n\n";
+		for( int i = firstStageParamNum; i < GlobalParams.getNumberOfCurrentParams(); ++i )
+		{
+			currentParams[scen][i] = x[scen * ( GlobalParams.getNumberOfCurrentParams() - firstStageParamNum ) + i];
+		}
 	}
-	of.close();
 
-	N_PRES J0begin;
-	N_PRES tauBeginSin;
-	N_PRES tauBeginExp;
+	//N_PRES J0begin;
+	//N_PRES tauBeginSin;
+	//N_PRES tauBeginExp;
 
-	N_PRES J0begin2[SCEN_NUMBER];
-	N_PRES tauBeginSin2[SCEN_NUMBER];
-	N_PRES tauBeginExp2[SCEN_NUMBER];
+	//N_PRES J0begin2[SCEN_NUMBER];
+	//N_PRES tauBeginSin2[SCEN_NUMBER];
+	//N_PRES tauBeginExp2[SCEN_NUMBER];
 
-	N_PRES B0begin;
+	//J0begin = x[0];
+	//tauBeginSin = x[1];
+	//tauBeginExp = x[2];
 
-	J0begin = x[0];
-	tauBeginSin = x[1];
-	tauBeginExp = x[2];
+	//for( int i = 0; i < SCEN_NUMBER; ++i )
+	//{
+	//	J0begin2[i] = x[( i + 1 ) * 3];
+	//	tauBeginSin2[i] = x[( i + 1 ) * 3 + 1];
+	//	tauBeginExp2[i] = x[( i + 1 ) * 3 + 2];
+	//}
 
-	for( int i = 0; i < SCEN_NUMBER; ++i )
-	{
-		J0begin2[i] = x[( i + 1 ) * 3];
-		tauBeginSin2[i] = x[( i + 1 ) * 3 + 1];
-		tauBeginExp2[i] = x[( i + 1 ) * 3 + 2];
-	}
-	B0begin = 1.0l;
+	N_PRES B0begin = 1.0l;
 
 	Solver<N_PRES> solver[SCEN_NUMBER];
 
@@ -636,7 +796,7 @@ double calcValTaus( double* x, long n )
 	{
 		funcVal1[scen] = 0.0l;
 		funcVal2[scen] = 0.0l;
-		solver[scen].setTask( J0begin, tauBeginSin, tauBeginExp, J0begin2[scen], tauBeginSin2[scen], tauBeginExp2[scen],
+		solver[scen].setTask( currentExpSin, currentParams[scen],
 								B0begin, stressCentered, GlobalParams.getStressParams( scen, 0 ), mechLoad[scen], mechTaus[scen] );
 		N_PRES sum = 0.0;
 
@@ -709,25 +869,58 @@ double calcValTausDet( double* x, long n )
 	}
 	cout << " ====\n";
 
-	N_PRES J0begin;
-	N_PRES tauBeginSin;
-	N_PRES tauBeginExp;
+	if( GlobalParams.getNumberOfScenarios() != 1 )
+	{
+		cout << "ERROR: the number of scenarios is != 1 in the deterministic case\n";
+		return -1.0;
+	}
 
-	N_PRES J0begin2;
-	N_PRES tauBeginSin2;
-	N_PRES tauBeginExp2;
+	vector<vector<N_PRES> > currentParams;
+	currentParams.resize( GlobalParams.getNumberOfScenarios(), vector<N_PRES>( GlobalParams.getNumberOfCurrentParams(), 0.0 ) );
+	int firstStageParamNum = -1;
+	if( GlobalParams.getCurrentType() == currentExpSin )
+	{
+		firstStageParamNum = 3;
+	}
+	else if( GlobalParams.getCurrentType() == currentPieceLin )
+	{
+		N_PRES dT = CHAR_TIME / GlobalParams.getNumberOfCurrentParams();
+		firstStageParamNum = (int)( SWITCH_TIME / dT );
+	}
+	else
+	{
+		cout << "ERROR: we do not support other current types yet\n";
+	}
 
-	N_PRES B0begin;
+	for( int scen = 0; scen < GlobalParams.getNumberOfScenarios(); ++scen )
+	{
+		for( int i = 0; i < firstStageParamNum; ++i )
+		{
+			currentParams[scen][i] = x[i];
+		}
+		for( int i = firstStageParamNum; i < GlobalParams.getNumberOfCurrentParams(); ++i )
+		{
+			currentParams[scen][i] = x[scen * ( GlobalParams.getNumberOfCurrentParams() - firstStageParamNum ) + i];
+		}
+	}
 
-	J0begin = x[0];
-	tauBeginSin = x[1];
-	tauBeginExp = x[2];
+	//N_PRES J0begin;
+	//N_PRES tauBeginSin;
+	//N_PRES tauBeginExp;
 
-	J0begin2 = x[( 1 + 1 ) * 3];
-	tauBeginSin2 = x[( 1 + 1 ) * 3 + 1];
-	tauBeginExp2 = x[( 1 + 1 ) * 3 + 2];
+	//N_PRES J0begin2;
+	//N_PRES tauBeginSin2;
+	//N_PRES tauBeginExp2;
 
-	B0begin = 1.0l;
+	//J0begin = x[0];
+	//tauBeginSin = x[1];
+	//tauBeginExp = x[2];
+
+	//J0begin2 = x[( 1 + 1 ) * 3];
+	//tauBeginSin2 = x[( 1 + 1 ) * 3 + 1];
+	//tauBeginExp2 = x[( 1 + 1 ) * 3 + 2];
+
+	N_PRES B0begin = 1.0l;
 
 	Solver<N_PRES> solver;
 
@@ -743,7 +936,7 @@ double calcValTausDet( double* x, long n )
 
 	funcVal1 = 0.0l;
 	funcVal2 = 0.0l;
-	solver.setTask( J0begin, tauBeginSin, tauBeginExp, J0begin2, tauBeginSin2, tauBeginExp2,
+	solver.setTask( currentExpSin, currentParams[0],
 							B0begin, stressCentered, mechRad, mechLoad, mechTaus );
 	N_PRES sum = 0.0;
 
