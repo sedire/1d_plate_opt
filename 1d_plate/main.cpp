@@ -30,7 +30,7 @@ int main()
 	time_t hpdTime = 0;
 
 
-	/*N_PRES J0start =  0.01;
+	N_PRES J0start =  0.01;
 	N_PRES tauStart = 0.0048;
 	N_PRES tauStartExp = 0.0048;
 
@@ -44,7 +44,7 @@ int main()
 
 	N_PRES J0start_3 =  0.01;
 	N_PRES tauStart_3 = 0.0048;
-	N_PRES tauStartExp_3 = 0.0048;*/
+	N_PRES tauStartExp_3 = 0.0048;
 
 //	N_PRES J0start =  0.0168894;
 //	N_PRES tauStart = 0.0100969;
@@ -94,11 +94,11 @@ int main()
 
 /////////////////////////////////////////
 
-	//Matrix<N_PRES, GRAD_SIZE_FULL, 1> params;
-	//params << J0start, tauStart, tauStartExp, 
-	//	J0start_1, tauStart_1, tauStartExp_1,
-	//	J0start_2, tauStart_2, tauStartExp_2,
-	//	J0start_3, tauStart_3, tauStartExp_3;
+	Matrix<N_PRES, GRAD_SIZE_FULL, 1> params;
+	params << J0start, tauStart, tauStartExp, 
+		J0start_1, tauStart_1, tauStartExp_1,
+		J0start_2, tauStart_2, tauStartExp_2,
+		J0start_3, tauStart_3, tauStartExp_3;
 
 	//double x[GRAD_SIZE_FULL] = { 0.0267403, 0.0110724, 0.0213401, 
 	//							1.0, 0.00514927, 0.00271984,
@@ -134,7 +134,7 @@ int main()
 	//}
 	//cout << " ----------\n";
 
-	//optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
+	optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
 
 	cout << "\n -- Deleting the solution arrays now...\n";
 
