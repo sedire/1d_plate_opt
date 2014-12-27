@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include "plate_var_types.h"
+#include "math.h"
 
 using std::string;
 using std::vector;
@@ -21,7 +22,7 @@ public:
 	ParamSack();
 	~ParamSack();
 
-	void loadFromFile( string inputFname );
+	int loadFromFile( string inputFname );
 
 	//getters for some private members
 	N_PRES getE1();
@@ -36,15 +37,20 @@ public:
 	N_PRES getH();
 	N_PRES getA();
 
+	N_PRES getBy0();
+
 	int getNumberOfScenarios();
 
 	int getCurrentType();
 	int getNumberOfCurrentParams();
-	N_PRES getCurrentParams( int scen, int paramNum );
+	N_PRES getCurrentParams1st( int paramNum );
+	N_PRES getCurrentParams2nd( int scen, int paramNum );
+	vector<N_PRES> getCurrentParams( int scen );
 
 	int getStressType();
 	int getNumberOfStressParams();
 	N_PRES getStressParams( int scen, int paramNum );
+	vector<N_PRES> getStressParams( int scen );
 
 	N_PRES getTotalTimeT1();
 	N_PRES getSwitchTimeT0();
@@ -68,11 +74,14 @@ private:
 	N_PRES h;				//thickness of the plate
 	N_PRES a;				//width of the plate
 
+	N_PRES By0;
+
 	int numberOfScenarios;
 
 	int currentType;
-	int numberOfCurrentParams;
-	vector<vector<N_PRES> > currentParams;
+	int numberOfCurrentParams;	//number of params for the electric current (for both 1st and 2nd stages together)
+	vector<N_PRES> currentParams1st;
+	vector<vector<N_PRES> > currentParams2nd;
 
 	int stressType;
 	int numberOfStressParams;

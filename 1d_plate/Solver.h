@@ -41,8 +41,8 @@ public:
 	N_PRES* resArrDt;
 
 	void setTask( int _currentType, const vector<PL_NUM>& _currentParams,
-				PL_NUM _By0, int _stressType, PL_NUM _rad, PL_NUM _p0, PL_NUM _tauP );
-	void setMechLoad( int _stressType, PL_NUM _rad, PL_NUM _p0, PL_NUM _tauP );
+				PL_NUM _By0, int _stressType, /*PL_NUM _rad, PL_NUM _p0, PL_NUM _tauP*/ const vector<N_PRES>& _stressParams );
+	void setMechLoad( int _stressType, /*PL_NUM _rad, PL_NUM _p0, PL_NUM _tauP*/ const vector<N_PRES>& _stressParams );
 	void setSwitchTime( N_PRES _switchTime );
 	void setResArray( N_PRES* _resArr );
 	void setResDtArray( N_PRES* _resArrDt );
@@ -100,9 +100,10 @@ private:
 	PL_NUM eps_x;
 
 	int stressType;
-	PL_NUM  p0;				//constant mechanical load
-	PL_NUM tauP;
-	PL_NUM rad;
+	vector<N_PRES> stressParams;
+	//PL_NUM rad;
+	//PL_NUM  p0;				//constant mechanical load
+	//PL_NUM tauP;
 
 	int currentType;
 	vector<PL_NUM> currentParams;	//TODO: put all the params of the current here
@@ -257,10 +258,11 @@ SolverPar inline Solver<N_PRES>::saveParamsToStruct()
 	saveTo.tauSin_1 = currentParams[4];
 	saveTo.tauExp_1 = currentParams[5];
 
+	//TODO: fix this block!!!
 	saveTo.stressType = stressType;
-	saveTo.p0 = p0;				//constant mechanical load
-	saveTo.tauP = tauP;
-	saveTo.rad = rad;
+	saveTo.rad = stressParams[0];
+	saveTo.p0 = stressParams[1];				//constant mechanical load
+	saveTo.tauP = stressParams[2];
 
 	saveTo.beta = beta;
 
@@ -324,12 +326,14 @@ time_t Solver<PL_NUM>::getOrthoBTime()
 }
 
 template<class PL_NUM>
-void Solver<PL_NUM>::setMechLoad( int _stressType, PL_NUM _rad, PL_NUM _p0, PL_NUM _tauP )
+void Solver<PL_NUM>::setMechLoad( int _stressType, const vector<N_PRES>& _stressParams )
 {
 	stressType = _stressType;
-	p0 = _p0;
-	tauP = _tauP;
-	rad = _rad;//0.0021 / 100.0 * 10.0;
+	stressParams.resize( _stressParams.size(), 0.0 );
+	for( int i = 0; i < stressParams.size(); ++i )
+	{
+		stressParams[i] = _stressParams[i];
+	}
 }
 
 template<class PL_NUM>
@@ -342,7 +346,7 @@ template<class PL_NUM>
 void Solver<PL_NUM>::setTask( int _currentType, const vector<PL_NUM>& _currentParams, 
 							/*PL_NUM _J0, PL_NUM _tauSin, PL_NUM _tauExp,
 							PL_NUM _J0_1, PL_NUM _tauSin_1, PL_NUM _tauExp_1,*/
-							PL_NUM _By0, int _stressType, PL_NUM _rad, PL_NUM _p0, PL_NUM _tauP )
+							PL_NUM _By0, int _stressType, const vector<N_PRES>& _stressParams )
 {
 	totalTime1 = 0;
 	totalTime = 0;
@@ -355,9 +359,9 @@ void Solver<PL_NUM>::setTask( int _currentType, const vector<PL_NUM>& _currentPa
 	of1.close();
 
 //material properties
-	E1 = GlobalParams.getE1();			//Young's modulus
+	E1 = GlobalParams.getE1();				//Young's modulus
 	E2 = GlobalParams.getE2();				//Young's modulus
-	nu21 = GlobalParams.getNu21();						//Poisson's ratio	
+	nu21 = GlobalParams.getNu21();					//Poisson's ratio	
 	rho = GlobalParams.getRho();					//composite's density
 
 	sigma_x = GlobalParams.getSigma_x();				//electric conductivity
@@ -368,10 +372,15 @@ void Solver<PL_NUM>::setTask( int _currentType, const vector<PL_NUM>& _currentPa
 
 	eq_num = EQ_NUM;
 //other
-	setMechLoad( _stressType, _rad, _p0, _tauP );
+	setMechLoad( _stressType, _stressParams );
 
 	currentType = _currentType;
 	currentParams.resize( GlobalParams.getNumberOfCurrentParams(), 0.0 );
+	if( currentParams.size() != _currentParams.size() )
+	{
+		cout << "ERROR: something is wrong with the size of vector of current params\n";
+	}
+
 	for( int i = 0; i < currentParams.size(); ++i )
 	{
 		currentParams[i] = _currentParams[i];
@@ -639,16 +648,16 @@ void Solver<PL_NUM>::calcLinSystem( int _x, Matrix<PL_NUM, EQ_NUM, EQ_NUM, RowMa
 	PL_NUM Pimp = 0.0l;
 	if( stressType == stressCentered )
 	{
-		if( cur_t < tauP && fabs( (long double)_x * dx - a / 2.0 ) < rad )
+		if( cur_t < stressParams[2] && fabs( (long double)_x * dx - a / 2.0 ) < stressParams[0] )
 		{
 			//cout << "---- node " << _x << " is under impact\n";
-			Pimp = p0 * sqrt( 1.0l - fabs( (long double)_x * dx - a / 2.0l ) * fabs( (long double)_x * dx - a / 2.0 ) / rad / rad	) 
-				* sin( (long double)M_PI * cur_t / tauP );
+			Pimp = stressParams[1] * sqrt( 1.0l - fabs( (long double)_x * dx - a / 2.0l ) * fabs( (long double)_x * dx - a / 2.0 ) / stressParams[0] / stressParams[0]	) 
+				* sin( (long double)M_PI * cur_t / stressParams[2] );
 		}
 	}
 	else if( stressType == stressWhole )
 	{
-		Pimp = p0;
+		Pimp = stressParams[0];
 	}
 
 	(*A)( 0, 3 ) = 1.0l / h / B22;
@@ -1012,7 +1021,7 @@ template<class PL_NUM>
 void Solver<PL_NUM>::dumpCheckSol( int fNum, int dumpTheor )
 {
 	PL_NUM wTheor;
-	if( dumpTheor == 1 )
+	if( dumpTheor == 1 && stressType == stressWhole )
 	{
 		N_PRES t = cur_t;
 		int minusOne = -1;
@@ -1025,7 +1034,7 @@ void Solver<PL_NUM>::dumpCheckSol( int fNum, int dumpTheor )
 
 			sum = sum + (long double)minusOne / ( 2.0 * i + 1.0 ) / ( 2.0 * i + 1.0 ) / ( 2.0 * i + 1.0 ) / ( 2.0 * i + 1.0 ) / ( 2.0 * i + 1.0 ) * cos( omg * t );
 		}
-		wTheor = - p0 * a * a * a * a / h / h / h / B22 * ( 5.0l / 32.0l - 48.0l / M_PI / M_PI / M_PI / M_PI / M_PI * sum );
+		wTheor = - stressParams[0] * a * a * a * a / h / h / h / B22 * ( 5.0l / 32.0l - 48.0l / M_PI / M_PI / M_PI / M_PI / M_PI * sum );
 	}
 	stringstream ss;
 	if( fNum >= 0 )

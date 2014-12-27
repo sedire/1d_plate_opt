@@ -40,6 +40,10 @@ N_PRES ParamSack::getA()
 {
 	return a;
 }
+N_PRES ParamSack::getBy0()
+{
+	return By0;
+}
 int ParamSack::getNumberOfScenarios()
 {
 	return numberOfScenarios;
@@ -52,9 +56,27 @@ int ParamSack::getNumberOfCurrentParams()
 {
 	return numberOfCurrentParams;
 }
-N_PRES ParamSack::getCurrentParams( int scen, int paramNum )
+N_PRES ParamSack::getCurrentParams1st( int paramNum )
 {
-	return currentParams[scen][paramNum];
+	return currentParams1st[paramNum];
+}
+N_PRES ParamSack::getCurrentParams2nd( int scen, int paramNum )
+{
+	return currentParams2nd[scen][paramNum];
+}
+vector<N_PRES> ParamSack::getCurrentParams( int scen )
+{
+	vector<N_PRES> ret;
+	ret.resize( numberOfCurrentParams, 0.0 );
+	for( int i = 0; i < currentParams1st.size(); ++i )
+	{
+		ret[i] = currentParams1st[i];
+	}
+	for( int i = 0; i < currentParams2nd[scen].size(); ++i )
+	{
+		ret[currentParams1st.size() + i] = currentParams2nd[scen][i];
+	}
+	return ret;
 }
 int ParamSack::getStressType()
 {
@@ -67,6 +89,16 @@ int ParamSack::getNumberOfStressParams()
 N_PRES ParamSack::getStressParams( int scen, int paramNum )
 {
 	return stressParams[scen][paramNum];
+}
+vector<N_PRES> ParamSack::getStressParams( int scen )
+{
+	vector<N_PRES> ret;
+	ret.resize( numberOfStressParams, 0.0 );
+	for( int i = 0; i < numberOfStressParams; ++i )
+	{
+		ret[i] = stressParams[scen][i];
+	}
+	return ret;
 }
 N_PRES ParamSack::getTotalTimeT1()
 {
@@ -114,19 +146,21 @@ ParamSack::ParamSack() :
 	h( 0.0 ),				//thickness of the plate
 	a( 0.0 ),				//width of the plate
 
+	By0( -1.0 ),
+
 	currentType( -1 ),
-	numberOfCurrentParams( 0 ),
+	numberOfCurrentParams( -1 ),
 
 	stressType( -1 ),
-	numberOfStressParams( 0 ),
+	numberOfStressParams( -1 ),
 
 	totalTimeT1( 0.0 ),
 	switchTimeT0( 0.0 ),
 
 	//parameters if the numerical methods
-	nodeNumOnY( 0 ),
+	nodeNumOnY( -1 ),
 	dt( 0.0 ),
-	maxNewtonIter( 0 ),
+	maxNewtonIter( -1 ),
 	orthonormCheckEps( 0.0 ),
 	newtonEps( 0.0 ),
 	newtonAlmostZero( 0.0 )
@@ -137,7 +171,7 @@ ParamSack::~ParamSack()
 {
 }
 
-void ParamSack::loadFromFile( string inputFname )
+int ParamSack::loadFromFile( string inputFname )
 {
 	ifstream ifs( inputFname );
 	if( ifs.is_open() )
@@ -151,7 +185,7 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "E1" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -167,7 +201,7 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "E2" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -183,7 +217,7 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "nu21" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -199,7 +233,7 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "rho" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -215,7 +249,7 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "sigma_x" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -231,7 +265,7 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "mu" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -247,7 +281,7 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "eps_0" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -263,7 +297,7 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "eps_x" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -279,7 +313,7 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "h" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -295,7 +329,7 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "a" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -308,10 +342,58 @@ void ParamSack::loadFromFile( string inputFname )
 		ss.str( std::string() );
 		ss << line;
 		ss >> word;
+		if( word.compare( "totalTimeT1" ) != 0 )
+		{
+			cout << "ERROR: file " << inputFname << " has bad format\n";
+			return 1;
+		}
+		else
+		{
+			ss >> totalTimeT1;
+			cout << totalTimeT1 << endl;
+		}
+
+		getline( ifs, line );
+		ss.clear();
+		ss.str( std::string() );
+		ss << line;
+		ss >> word;
+		if( word.compare( "switchTimeT0" ) != 0 )
+		{
+			cout << "ERROR: file " << inputFname << " has bad format\n";
+			return 1;
+		}
+		else
+		{
+			ss >> switchTimeT0;
+			cout << switchTimeT0 << endl;
+		}
+
+		getline( ifs, line );
+		ss.clear();
+		ss.str( std::string() );
+		ss << line;
+		ss >> word;
+		if( word.compare( "By0" ) != 0 )
+		{
+			cout << "ERROR: file " << inputFname << " has bad format\n";
+			return 1;
+		}
+		else
+		{
+			ss >> By0;
+			cout << By0 << endl;
+		}
+
+		getline( ifs, line );
+		ss.clear();
+		ss.str( std::string() );
+		ss << line;
+		ss >> word;
 		if( word.compare( "numberOfScenarios" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -327,29 +409,25 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "currentType" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
 			string currentTypeInput;
 			ss >> currentTypeInput;
 			cout << currentTypeInput << endl;
-			if( currentTypeInput.compare( "currentConst" ) == 0 )
-			{
-				currentType = currentConst;
-			}
-			else if( currentTypeInput.compare( "currentSin" ) == 0 )
-			{
-				currentType = currentSin;
-			}
-			else if( currentTypeInput.compare( "currentExpSin" ) == 0 )
+			if( currentTypeInput.compare( "currentExpSin" ) == 0 )
 			{
 				currentType = currentExpSin;
+			}
+			else if( currentTypeInput.compare( "currentPieceLin" ) == 0 )
+			{
+				currentType = currentPieceLin;
 			}
 			else
 			{
 				cout << "ERROR: file " << inputFname << " has bad format\n";
-				return;
+				return 1;
 			}
 		}
 
@@ -361,15 +439,25 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "numberOfCurrentParams" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
 			ss >> numberOfCurrentParams;
 			cout << numberOfCurrentParams << endl;
-			currentParams.resize( numberOfScenarios + 1, vector<N_PRES>( numberOfCurrentParams, 0.0 ) );
+			if( currentType == currentExpSin && numberOfCurrentParams != 6 )
+			{
+				cout << "ERROR: wrong number of parameters for currentExpSin\n";
+				return 1;
+			}
+			else if( currentType == currentPieceLin && numberOfCurrentParams < 6 )
+			{
+				cout << "ERROR: wrong number of parameters for currentPieceLine\n";
+				return 1;
+			}
 		}
 
+		int numberOfCurrentParams1st = -1;
 		getline( ifs, line );
 		ss.clear();
 		ss.str( std::string() );
@@ -378,19 +466,36 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "currentParamsFirstStage" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
-			for( int i = 0; i < numberOfCurrentParams; ++i )
+			if( currentType == currentExpSin )
 			{
-				ss >> currentParams[0][i];
-				cout << currentParams[0][i] << endl;
+				numberOfCurrentParams1st = 3;
+			}
+			else if( currentType == currentPieceLin )
+			{
+				N_PRES dT = totalTimeT1 / numberOfCurrentParams;
+				numberOfCurrentParams1st = (int)floor( switchTimeT0 / dT );
+			}
+			else
+			{
+				cout << "ERROR: this type of current is not supported yet\n";
+				return 1;
+			}
+			currentParams1st.resize( numberOfCurrentParams1st, 0.0 );
+			for( int i = 0; i < numberOfCurrentParams1st; ++i )
+			{
+				ss >> currentParams1st[i];
+				cout << currentParams1st[i] << endl;
 			}
 		}
 
 		for( int scen = 0; scen < numberOfScenarios; ++scen )
 		{
+			int numberOfCurrentParams2nd = numberOfCurrentParams - numberOfCurrentParams1st;
+			currentParams2nd.resize( numberOfScenarios, vector<N_PRES>( numberOfCurrentParams2nd, 0.0 ) );
 			getline( ifs, line );
 			ss.clear();
 			ss.str( std::string() );
@@ -399,14 +504,14 @@ void ParamSack::loadFromFile( string inputFname )
 			if( word.compare( "currentParamsSecondStage" ) != 0 )
 			{
 				cout << "ERROR: file " << inputFname << " has bad format\n";
-				return;
+				return 1;
 			}
 			else
 			{
-				for( int i = 0; i < numberOfCurrentParams; ++i )
+				for( int i = 0; i < numberOfCurrentParams2nd; ++i )
 				{
-					ss >> currentParams[scen][i];
-					cout << currentParams[scen][i] << endl;
+					ss >> currentParams2nd[scen][i];
+					cout << currentParams2nd[scen][i] << endl;
 				}
 			}
 		}
@@ -419,7 +524,7 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "stressType" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -437,7 +542,7 @@ void ParamSack::loadFromFile( string inputFname )
 			else
 			{
 				cout << "ERROR: file " << inputFname << " has bad format\n";
-				return;
+				return 1;
 			}
 		}
 
@@ -449,12 +554,22 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "numberOfStressParams" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
 			ss >> numberOfStressParams;
 			cout << numberOfStressParams << endl;
+			if( stressType == stressWhole && numberOfStressParams != 1 )
+			{
+				cout << "ERROR: file " << inputFname << " wrong number of stress params\n";
+				return 1;
+			}
+			else if( stressType == stressCentered && numberOfStressParams != 3 )
+			{
+				cout << "ERROR: file " << inputFname << " wrong number of stress params\n";
+				return 1;
+			}
 			stressParams.resize( numberOfScenarios, vector<N_PRES>( numberOfStressParams, 0.0 ) );
 		}
 
@@ -468,7 +583,7 @@ void ParamSack::loadFromFile( string inputFname )
 			if( word.compare( "stressParams" ) != 0 )
 			{
 				cout << "ERROR: file " << inputFname << " has bad format\n";
-				return;
+				return 1;
 			}
 			else
 			{
@@ -485,42 +600,10 @@ void ParamSack::loadFromFile( string inputFname )
 		ss.str( std::string() );
 		ss << line;
 		ss >> word;
-		if( word.compare( "totalTimeT1" ) != 0 )
-		{
-			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
-		}
-		else
-		{
-			ss >> totalTimeT1;
-			cout << totalTimeT1 << endl;
-		}
-
-		getline( ifs, line );
-		ss.clear();
-		ss.str( std::string() );
-		ss << line;
-		ss >> word;
-		if( word.compare( "switchTimeT0" ) != 0 )
-		{
-			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
-		}
-		else
-		{
-			ss >> switchTimeT0;
-			cout << switchTimeT0 << endl;
-		}
-
-		getline( ifs, line );
-		ss.clear();
-		ss.str( std::string() );
-		ss << line;
-		ss >> word;
 		if( word.compare( "nodeNumOnY" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -536,7 +619,7 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "dt" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -552,7 +635,7 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "maxNewtonIter" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -568,7 +651,7 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "orthonormCheckEps" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -584,7 +667,7 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "newtonEps" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -600,7 +683,7 @@ void ParamSack::loadFromFile( string inputFname )
 		if( word.compare( "newtonAlmostZero" ) != 0 )
 		{
 			cout << "ERROR: file " << inputFname << " has bad format\n";
-			return;
+			return 1;
 		}
 		else
 		{
@@ -611,7 +694,7 @@ void ParamSack::loadFromFile( string inputFname )
 	else
 	{
 		cout << "ERROR: cannot open file " << inputFname << " to load parameter into ParamSack\n";
-		return;
+		return 1;
 	}
-	return;
+	return 0;
 }

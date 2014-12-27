@@ -28,7 +28,7 @@ double calcValGradTausAdj( double* g, double* x, long n )
 	else if( GlobalParams.getCurrentType() == currentPieceLin )
 	{
 		N_PRES dT = CHAR_TIME / GlobalParams.getNumberOfCurrentParams();
-		firstStageParamNum = (int)( SWITCH_TIME / dT );
+		firstStageParamNum = (int)floor( SWITCH_TIME / dT );
 	}
 	else
 	{
@@ -47,25 +47,7 @@ double calcValGradTausAdj( double* g, double* x, long n )
 		}
 	}
 
-	//N_PRES J0begin1;
-	//N_PRES tauBeginSin1;
-	//N_PRES tauBeginExp1;
-
-	//N_PRES J0begin2[SCEN_NUMBER];
-	//N_PRES tauBeginSin2[SCEN_NUMBER];
-	//N_PRES tauBeginExp2[SCEN_NUMBER];
-
-	//J0begin1 = x[0];
-	//tauBeginSin1 = x[1];
-	//tauBeginExp1 = x[2];
-	//for( int scen = 0; scen < SCEN_NUMBER; ++scen )
-	//{
-	//	J0begin2[scen] = x[( scen + 1 ) * 3];
-	//	tauBeginSin2[scen] = x[( scen + 1 ) * 3 + 1];
-	//	tauBeginExp2[scen] = x[( scen + 1 ) * 3 + 2];
-	//}
-
-	N_PRES B0begin2 = 1.0l;
+	N_PRES B0begin2 = GlobalParams.getBy0();
 
 	Solver<N_PRES> solver[SCEN_NUMBER];
 	AdjSolver adjSolver[SCEN_NUMBER];
@@ -74,16 +56,14 @@ double calcValGradTausAdj( double* g, double* x, long n )
 
 	N_PRES funcVal1[SCEN_NUMBER];
 	N_PRES funcVal2[SCEN_NUMBER];
-	N_PRES mechLoad[SCEN_NUMBER] = { GlobalP01, GlobalP02, GlobalP03 };
-	N_PRES mechTaus[SCEN_NUMBER] = { GlobalTauP1, GlobalTauP2, GlobalTauP3 };
 
 #pragma omp parallel for
-	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
+	for( int scen = 0; scen < GlobalParams.getNumberOfScenarios(); ++scen )
 	{
 		cout << omp_get_thread_num() << endl;
 		
-		solver[scen].setTask( currentExpSin, currentParams[scen], 
-								B0begin2, stressCentered, GlobalParams.getStressParams( scen, 0 ), mechLoad[scen], mechTaus[scen] );
+		solver[scen].setTask( GlobalParams.getCurrentType(), currentParams[scen], 
+								B0begin2, GlobalParams.getStressType(), GlobalParams.getStressParams( scen ) );
 		solver[scen].setResArray( GlobalResArrays + scen * resArrSize );
 		solver[scen].setResDtArray( GlobalResDtArrays + scen * resArrSize );
 
@@ -202,25 +182,7 @@ double calcValGradTausAdjSolid( double* g, double* x, long n )	//"Solid" means t
 		}
 	}
 
-	//N_PRES J0begin1;
-	//N_PRES tauBeginSin1;
-	//N_PRES tauBeginExp1;
-
-	//N_PRES J0begin2[SCEN_NUMBER];
-	//N_PRES tauBeginSin2[SCEN_NUMBER];
-	//N_PRES tauBeginExp2[SCEN_NUMBER];
-
-	//J0begin1 = x[0];
-	//tauBeginSin1 = x[1];
-	//tauBeginExp1 = x[2];
-	//for( int scen = 0; scen < SCEN_NUMBER; ++scen )
-	//{
-	//	J0begin2[scen] = x[( scen + 1 ) * 3];
-	//	tauBeginSin2[scen] = x[( scen + 1 ) * 3 + 1];
-	//	tauBeginExp2[scen] = x[( scen + 1 ) * 3 + 2];
-	//}
-
-	N_PRES B0begin2 = 1.0l;
+	N_PRES B0begin2 = GlobalParams.getBy0();
 
 	Solver<N_PRES> solver[SCEN_NUMBER];
 	AdjSolver adjSolver[SCEN_NUMBER];
@@ -229,16 +191,14 @@ double calcValGradTausAdjSolid( double* g, double* x, long n )	//"Solid" means t
 
 	N_PRES funcVal1[SCEN_NUMBER];
 	N_PRES funcVal2[SCEN_NUMBER];
-	N_PRES mechLoad[SCEN_NUMBER] = { GlobalP01, GlobalP02, GlobalP03 };
-	N_PRES mechTaus[SCEN_NUMBER] = { GlobalTauP1, GlobalTauP2, GlobalTauP3 };
 
 #pragma omp parallel for
 	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
 	{
 		cout << omp_get_thread_num() << endl;
 		
-		solver[scen].setTask( currentExpSin, currentParams[scen], 
-								B0begin2, stressCentered, GlobalParams.getStressParams( scen, 0 ), mechLoad[scen], mechTaus[scen] );
+		solver[scen].setTask( GlobalParams.getCurrentType(), currentParams[scen], 
+								B0begin2, GlobalParams.getStressType(), GlobalParams.getStressParams( scen ) );
 		solver[scen].setResArray( GlobalResArrays + scen * resArrSize );
 		solver[scen].setResDtArray( GlobalResDtArrays + scen * resArrSize );
 
@@ -270,7 +230,6 @@ double calcValGradTausAdjSolid( double* g, double* x, long n )	//"Solid" means t
 
 		while( adjSolver[scen].getCurTime() >= 0.0 )
 		{
-			//cout << " --- " << adjSolver[scen].getCurTime() << endl;
 			adjSolver[scen].doStep();
 			adjSolver[scen].decreaseTime();
 		}
@@ -365,68 +324,9 @@ double calcValGradTaus( double* g, double* x, long n )
 		cout << "ERROR: this type of current is not supported yet for HPD method\n";
 	}
 
-	/*HPD<N_PRES, GRAD_SIZE_SECOND> J0begin1;
-	HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginSin1;
-	HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginExp1;
+	HPD<N_PRES, GRAD_SIZE_SECOND> B0begin2 = GlobalParams.getBy0();
 
-	HPD<N_PRES, GRAD_SIZE_SECOND> J0begin2[SCEN_NUMBER];
-	HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginSin2[SCEN_NUMBER];
-	HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginExp2[SCEN_NUMBER];*/
-
-	/*J0begin1.elems[0] = x[0];
-	J0begin1.elems[1] = 1.0l;
-	J0begin1.elems[2] = 0.0l;
-	J0begin1.elems[3] = 0.0l;
-	J0begin1.elems[4] = 0.0l;
-	J0begin1.elems[5] = 0.0l;
-	J0begin1.elems[6] = 0.0l;
-
-	tauBeginSin1.elems[0] = x[1];
-	tauBeginSin1.elems[1] = 0.0l;
-	tauBeginSin1.elems[2] = 1.0l;
-	tauBeginSin1.elems[3] = 0.0l;
-	tauBeginSin1.elems[4] = 0.0l;
-	tauBeginSin1.elems[5] = 0.0l;
-	tauBeginSin1.elems[6] = 0.0l;
-
-	tauBeginExp1.elems[0] = x[2];
-	tauBeginExp1.elems[1] = 0.0l;
-	tauBeginExp1.elems[2] = 0.0l;
-	tauBeginExp1.elems[3] = 1.0l;
-	tauBeginExp1.elems[4] = 0.0l;
-	tauBeginExp1.elems[5] = 0.0l;
-	tauBeginExp1.elems[6] = 0.0l;
-
-	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
-	{
-		J0begin2[scen].elems[0] = x[( scen + 1 ) * 3];
-		J0begin2[scen].elems[1] = 0.0l;
-		J0begin2[scen].elems[2] = 0.0l;
-		J0begin2[scen].elems[3] = 0.0l;
-		J0begin2[scen].elems[4] = 1.0l;
-		J0begin2[scen].elems[5] = 0.0l;
-		J0begin2[scen].elems[6] = 0.0l;
-
-		tauBeginSin2[scen].elems[0] = x[( scen + 1 ) * 3 + 1];
-		tauBeginSin2[scen].elems[1] = 0.0l;
-		tauBeginSin2[scen].elems[2] = 0.0l;
-		tauBeginSin2[scen].elems[3] = 0.0l;
-		tauBeginSin2[scen].elems[4] = 0.0l;
-		tauBeginSin2[scen].elems[5] = 1.0l;
-		tauBeginSin2[scen].elems[6] = 0.0l;
-
-		tauBeginExp2[scen].elems[0] = x[( scen + 1 ) * 3 + 2];
-		tauBeginExp2[scen].elems[1] = 0.0l;
-		tauBeginExp2[scen].elems[2] = 0.0l;
-		tauBeginExp2[scen].elems[3] = 0.0l;
-		tauBeginExp2[scen].elems[4] = 0.0l;
-		tauBeginExp2[scen].elems[5] = 0.0l;
-		tauBeginExp2[scen].elems[6] = 1.0l;
-	}*/
-
-	HPD<N_PRES, GRAD_SIZE_SECOND> B0begin2 = 1.0l;
-
-	Solver<HPD<N_PRES, GRAD_SIZE_SECOND> > solver_second[SCEN_NUMBER];
+	Solver<HPD<N_PRES, GRAD_SIZE_SECOND> > solver[SCEN_NUMBER];
 
 	cout << "\tcalculating func and grad val\n";
 
@@ -434,42 +334,40 @@ double calcValGradTaus( double* g, double* x, long n )
 
 	HPD<N_PRES, GRAD_SIZE_SECOND> funcVal1[SCEN_NUMBER];
 	HPD<N_PRES, GRAD_SIZE_SECOND> funcVal2[SCEN_NUMBER];
-	N_PRES mechLoad[SCEN_NUMBER] = { GlobalP01, GlobalP02, GlobalP03 };
-	N_PRES mechTaus[SCEN_NUMBER] = { GlobalTauP1, GlobalTauP2, GlobalTauP3 };
 
 #pragma omp parallel for
 	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
 	{
-		solver_second[scen].setTask( currentExpSin, currentParams[scen],
-										B0begin2, stressCentered, GlobalParams.getStressParams( scen, 0 ), mechLoad[scen], mechTaus[scen] );
+		solver[scen].setTask( GlobalParams.getCurrentType(), currentParams[scen],
+										B0begin2, GlobalParams.getStressType(), GlobalParams.getStressParams( scen ) );
 
-		HPD<N_PRES, GRAD_SIZE_SECOND> sum = 0.0;
+		HPD<N_PRES, GRAD_SIZE_SECOND> sum = 0.0l;
 		funcVal1[scen] = 0.0l;
-		while( solver_second[scen].cur_t <= SWITCH_TIME )
+		while( solver[scen].cur_t <= SWITCH_TIME )
 		{
-			//sum += solver_second[scen].do_step();
-			sum = solver_second[scen].do_step();
+			//sum += solver[scen].do_step();
+			sum = solver[scen].do_step();
 			funcVal1[scen] += sum * sum;
 
-			solver_second[scen].increaseTime();
+			solver[scen].increaseTime();
 		}
 		//funcVal1[scen] = sum * dt * dy / SWITCH_TIME;
 		funcVal1[scen] /= SWITCH_TIME;
 
 		funcVal2[scen] = 0.0l;
 		sum = 0.0;
-		while( solver_second[scen].cur_t <= charTime )
+		while( solver[scen].cur_t <= charTime )
 		{
-			//sum += solver_second[scen].do_step();
-			sum = solver_second[scen].do_step();
+			//sum += solver[scen].do_step();
+			sum = solver[scen].do_step();
 			funcVal2[scen] += sum * sum; 
 
-			solver_second[scen].increaseTime();
+			solver[scen].increaseTime();
 		}
 		//funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
 		funcVal2[scen] /= ( charTime - SWITCH_TIME );
 
-		if( solver_second[scen].getMaxNewtonIterReached() == 1 )
+		if( solver[scen].getMaxNewtonIterReached() == 1 )
 		{
 			cout << " WARNING: scenario " << scen << " solver used too many newton iterations\n";
 		}
@@ -580,65 +478,9 @@ double calcValGradTausDet( double* g, double* x, long n )
 		cout << "ERROR: this type of current is not supported yet for HPD method\n";
 	}
 
-	//HPD<N_PRES, GRAD_SIZE_SECOND> J0begin1;
-	//HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginSin1;
-	//HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginExp1;
+	HPD<N_PRES, GRAD_SIZE_SECOND> B0begin2 = GlobalParams.getBy0();
 
-	//HPD<N_PRES, GRAD_SIZE_SECOND> J0begin2;
-	//HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginSin2;
-	//HPD<N_PRES, GRAD_SIZE_SECOND> tauBeginExp2;
-
-	//J0begin1.elems[0] = x[0];
-	//J0begin1.elems[1] = 1.0l;
-	//J0begin1.elems[2] = 0.0l;
-	//J0begin1.elems[3] = 0.0l;
-	//J0begin1.elems[4] = 0.0l;
-	//J0begin1.elems[5] = 0.0l;
-	//J0begin1.elems[6] = 0.0l;
-
-	//tauBeginSin1.elems[0] = x[1];
-	//tauBeginSin1.elems[1] = 0.0l;
-	//tauBeginSin1.elems[2] = 1.0l;
-	//tauBeginSin1.elems[3] = 0.0l;
-	//tauBeginSin1.elems[4] = 0.0l;
-	//tauBeginSin1.elems[5] = 0.0l;
-	//tauBeginSin1.elems[6] = 0.0l;
-
-	//tauBeginExp1.elems[0] = x[2];
-	//tauBeginExp1.elems[1] = 0.0l;
-	//tauBeginExp1.elems[2] = 0.0l;
-	//tauBeginExp1.elems[3] = 1.0l;
-	//tauBeginExp1.elems[4] = 0.0l;
-	//tauBeginExp1.elems[5] = 0.0l;
-	//tauBeginExp1.elems[6] = 0.0l;
-
-	//J0begin2.elems[0] = x[( 1 + 1 ) * 3];
-	//J0begin2.elems[1] = 0.0l;
-	//J0begin2.elems[2] = 0.0l;
-	//J0begin2.elems[3] = 0.0l;
-	//J0begin2.elems[4] = 1.0l;
-	//J0begin2.elems[5] = 0.0l;
-	//J0begin2.elems[6] = 0.0l;
-
-	//tauBeginSin2.elems[0] = x[( 1 + 1 ) * 3 + 1];
-	//tauBeginSin2.elems[1] = 0.0l;
-	//tauBeginSin2.elems[2] = 0.0l;
-	//tauBeginSin2.elems[3] = 0.0l;
-	//tauBeginSin2.elems[4] = 0.0l;
-	//tauBeginSin2.elems[5] = 1.0l;
-	//tauBeginSin2.elems[6] = 0.0l;
-
-	//tauBeginExp2.elems[0] = x[( 1 + 1 ) * 3 + 2];
-	//tauBeginExp2.elems[1] = 0.0l;
-	//tauBeginExp2.elems[2] = 0.0l;
-	//tauBeginExp2.elems[3] = 0.0l;
-	//tauBeginExp2.elems[4] = 0.0l;
-	//tauBeginExp2.elems[5] = 0.0l;
-	//tauBeginExp2.elems[6] = 1.0l;
-
-	HPD<N_PRES, GRAD_SIZE_SECOND> B0begin2 = 1.0l;
-
-	Solver<HPD<N_PRES, GRAD_SIZE_SECOND> > solver_second;
+	Solver<HPD<N_PRES, GRAD_SIZE_SECOND> > solver;
 
 	cout << "\tcalculating func and grad val\n";
 
@@ -646,36 +488,33 @@ double calcValGradTausDet( double* g, double* x, long n )
 
 	HPD<N_PRES, GRAD_SIZE_SECOND> funcVal1;
 	HPD<N_PRES, GRAD_SIZE_SECOND> funcVal2;
-	N_PRES mechRad = GlobalParams.getStressParams( 1, 0 );
-	N_PRES mechLoad = GlobalP02;
-	N_PRES mechTaus = GlobalTauP2;
 
-	solver_second.setTask( currentExpSin, currentParams[0],
-									B0begin2, stressCentered, mechRad, mechLoad, mechTaus );
+	solver.setTask( GlobalParams.getCurrentType(), currentParams[0],
+									B0begin2, GlobalParams.getStressType(), GlobalParams.getStressParams( 0 ) );
 
 	HPD<N_PRES, GRAD_SIZE_SECOND> sum = 0.0;
 	funcVal1 = 0.0l;
-	while( solver_second.cur_t <= SWITCH_TIME )
+	while( solver.cur_t <= SWITCH_TIME )
 	{
-		sum = solver_second.do_step();
+		sum = solver.do_step();
 		funcVal1 += sum * sum;
 
-		solver_second.increaseTime();
+		solver.increaseTime();
 	}
 	funcVal1 /= SWITCH_TIME;
 
 	funcVal2 = 0.0l;
 	sum = 0.0;
-	while( solver_second.cur_t <= charTime )
+	while( solver.cur_t <= charTime )
 	{
-		sum = solver_second.do_step();
+		sum = solver.do_step();
 		funcVal2 += sum * sum; 
 
-		solver_second.increaseTime();
+		solver.increaseTime();
 	}
 	funcVal2 /= ( charTime - SWITCH_TIME );
 
-	if( solver_second.getMaxNewtonIterReached() == 1 )
+	if( solver.getMaxNewtonIterReached() == 1 )
 	{
 		cout << " WARNING: solver used too many newton iterations\n";
 	}
@@ -759,26 +598,7 @@ double calcValTaus( double* x, long n )
 		}
 	}
 
-	//N_PRES J0begin;
-	//N_PRES tauBeginSin;
-	//N_PRES tauBeginExp;
-
-	//N_PRES J0begin2[SCEN_NUMBER];
-	//N_PRES tauBeginSin2[SCEN_NUMBER];
-	//N_PRES tauBeginExp2[SCEN_NUMBER];
-
-	//J0begin = x[0];
-	//tauBeginSin = x[1];
-	//tauBeginExp = x[2];
-
-	//for( int i = 0; i < SCEN_NUMBER; ++i )
-	//{
-	//	J0begin2[i] = x[( i + 1 ) * 3];
-	//	tauBeginSin2[i] = x[( i + 1 ) * 3 + 1];
-	//	tauBeginExp2[i] = x[( i + 1 ) * 3 + 2];
-	//}
-
-	N_PRES B0begin = 1.0l;
+	N_PRES B0begin = GlobalParams.getBy0();
 
 	Solver<N_PRES> solver[SCEN_NUMBER];
 
@@ -788,16 +608,14 @@ double calcValTaus( double* x, long n )
 
 	N_PRES funcVal1[SCEN_NUMBER];
 	N_PRES funcVal2[SCEN_NUMBER];
-	N_PRES mechLoad[SCEN_NUMBER] = { GlobalP01, GlobalP02, GlobalP03 };
-	N_PRES mechTaus[SCEN_NUMBER] = { GlobalTauP1, GlobalTauP2, GlobalTauP3 };
 
 #pragma omp parallel for
 	for( int scen = 0; scen < SCEN_NUMBER; ++scen )
 	{
 		funcVal1[scen] = 0.0l;
 		funcVal2[scen] = 0.0l;
-		solver[scen].setTask( currentExpSin, currentParams[scen],
-								B0begin, stressCentered, GlobalParams.getStressParams( scen, 0 ), mechLoad[scen], mechTaus[scen] );
+		solver[scen].setTask( GlobalParams.getCurrentType(), currentParams[scen],
+								B0begin, GlobalParams.getStressType(), GlobalParams.getStressParams( scen ) );
 		N_PRES sum = 0.0;
 
 		while( solver[scen].cur_t <= SWITCH_TIME )
@@ -904,23 +722,7 @@ double calcValTausDet( double* x, long n )
 		}
 	}
 
-	//N_PRES J0begin;
-	//N_PRES tauBeginSin;
-	//N_PRES tauBeginExp;
-
-	//N_PRES J0begin2;
-	//N_PRES tauBeginSin2;
-	//N_PRES tauBeginExp2;
-
-	//J0begin = x[0];
-	//tauBeginSin = x[1];
-	//tauBeginExp = x[2];
-
-	//J0begin2 = x[( 1 + 1 ) * 3];
-	//tauBeginSin2 = x[( 1 + 1 ) * 3 + 1];
-	//tauBeginExp2 = x[( 1 + 1 ) * 3 + 2];
-
-	N_PRES B0begin = 1.0l;
+	N_PRES B0begin = GlobalParams.getBy0();
 
 	Solver<N_PRES> solver;
 
@@ -930,14 +732,11 @@ double calcValTausDet( double* x, long n )
 
 	N_PRES funcVal1;
 	N_PRES funcVal2;
-	N_PRES mechRad = GlobalParams.getStressParams( 1, 0 );
-	N_PRES mechLoad = GlobalP02;
-	N_PRES mechTaus = GlobalTauP2;
 
 	funcVal1 = 0.0l;
 	funcVal2 = 0.0l;
-	solver.setTask( currentExpSin, currentParams[0],
-							B0begin, stressCentered, mechRad, mechLoad, mechTaus );
+	solver.setTask( GlobalParams.getCurrentType(), currentParams[0],
+							B0begin, GlobalParams.getStressType(), GlobalParams.getStressParams( 0 ) );
 	N_PRES sum = 0.0;
 
 	while( solver.cur_t <= SWITCH_TIME )
