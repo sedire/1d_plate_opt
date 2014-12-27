@@ -122,6 +122,9 @@ private:
 	//N_PRES al;			//some weird var for normalization. It is said that this will improve the numerical scheme. must be equal to density
 	PL_NUM beta;		//parameter at Newmark's time integration scheme
 
+	N_PRES newtonEps;
+	N_PRES newtonAlmostZero;
+
 	vector<VarVect<PL_NUM> > mesh;		//2d mesh for solution.
 	//vector<PL_NUM> nonlin_matr_A;		//matrix A for the nonlinear system at certain t and x
 	//vector<PL_NUM> nonlin_vect_f;		//vector f on right part of nonlinear system at certain t and x
@@ -390,6 +393,13 @@ void Solver<PL_NUM>::setTask( int _currentType, const vector<PL_NUM>& _currentPa
 		currentParams[0] *= J0_SCALE;
 		currentParams[3] *= J0_SCALE;
 	}
+	else if( currentType == currentPieceLin )
+	{
+		for( int i = 0; i < currentParams.size(); ++i )
+		{
+			currentParams[i] *= J0_SCALE;
+		}
+	}
 	//_tauSin != 0.0l ? tauSin = _tauSin : tauSin = 1;
 	//_tauExp != 0.0l ? tauExp = _tauExp : tauExp = 1;
 	//_tauSin_1 != 0.0l ? tauSin_1 = _tauSin_1 : tauSin_1 = 1;
@@ -416,6 +426,9 @@ void Solver<PL_NUM>::setTask( int _currentType, const vector<PL_NUM>& _currentPa
 	switchTime = SWITCH_TIME;
 
 	beta = 0.25;
+
+	newtonEps = GlobalParams.getNewtonEps();
+	newtonAlmostZero = GlobalParams.getNewtonAlmostZero();
 
 	if( rungeKutta != 0 )
 	{
@@ -978,14 +991,14 @@ int Solver<PL_NUM>::checkConv()
 	//	{
 	//		if( mesh[x].Nk[i] != 0.0l ) 
 	//		{
-	//			if( fabs( ( mesh[x].Nk1[i] - mesh[x].Nk[i] ) / mesh[x].Nk[i] ) < ALMOST_ZERO )
+	//			if( fabs( ( mesh[x].Nk1[i] - mesh[x].Nk[i] ) / mesh[x].Nk[i] ) < newtonAlmostZero )
 	//			{
 	//				return 0;
 	//			}
 	//		}
 	//		else
 	//		{
-	//			if( fabs( mesh[x].Nk1[i] ) < ALMOST_ZERO )
+	//			if( fabs( mesh[x].Nk1[i] ) < newtonAlmostZero )
 	//			{
 	//				return 0;
 	//			}
@@ -998,16 +1011,16 @@ int Solver<PL_NUM>::checkConv()
 	{
 		for( int i = 0; i < eq_num; ++i )
 		{
-			if( fabs( mesh[x].Nk[i] ) > NEWTON_ALMOST_ZERO )
+			if( fabs( mesh[x].Nk[i] ) > newtonAlmostZero )
 			{
-				if( fabs( ( mesh[x].Nk1[i] - mesh[x].Nk[i] ) / mesh[x].Nk[i] ) > NEWTON_EPS && fabs( mesh[x].Nk1[i] - mesh[x].Nk[i] ) > NEWTON_ALMOST_ZERO )
+				if( fabs( ( mesh[x].Nk1[i] - mesh[x].Nk[i] ) / mesh[x].Nk[i] ) > newtonEps && fabs( mesh[x].Nk1[i] - mesh[x].Nk[i] ) > newtonAlmostZero )
 				{
 					return 1;
 				}
 			}
 			else
 			{
-				if( fabs( mesh[x].Nk1[i] ) > NEWTON_ALMOST_ZERO )
+				if( fabs( mesh[x].Nk1[i] ) > newtonAlmostZero )
 				{
 					return 1;
 				}
