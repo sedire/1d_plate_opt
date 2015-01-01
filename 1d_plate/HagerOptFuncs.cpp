@@ -109,23 +109,48 @@ double calcValGradTausAdj( double* g, double* x, long n )
 
 	if( g != 0 )
 	{
-		g[0] = ( adjSolver[0].calcJ0DerivS() + adjSolver[1].calcJ0DerivS() + adjSolver[2].calcJ0DerivS() ) / 3.0;
+		if( GlobalParams.getCurrentType() == currentExpSin )
+		{
+			g[0] = ( adjSolver[0].calcJ0DerivS() + adjSolver[1].calcJ0DerivS() + adjSolver[2].calcJ0DerivS() ) / 3.0;
 
-		g[1] = ( adjSolver[0].calcTauSin0DerivS() + adjSolver[1].calcTauSin0DerivS() + adjSolver[2].calcTauSin0DerivS() ) / 3.0;
+			g[1] = ( adjSolver[0].calcTauSin0DerivS() + adjSolver[1].calcTauSin0DerivS() + adjSolver[2].calcTauSin0DerivS() ) / 3.0;
 
-		g[2] = ( adjSolver[0].calcTauExp0DerivS() + adjSolver[1].calcTauExp0DerivS() + adjSolver[2].calcTauExp0DerivS() ) / 3.0;
+			g[2] = ( adjSolver[0].calcTauExp0DerivS() + adjSolver[1].calcTauExp0DerivS() + adjSolver[2].calcTauExp0DerivS() ) / 3.0;
 
-		g[3] = adjSolver[0].calcJ1DerivS() / 3.0;
-		g[4] = adjSolver[0].calcTauSin1DerivS() / 3.0;
-		g[5] = adjSolver[0].calcTauExp1DerivS() / 3.0;
+			g[3] = adjSolver[0].calcJ1DerivS() / 3.0;
+			g[4] = adjSolver[0].calcTauSin1DerivS() / 3.0;
+			g[5] = adjSolver[0].calcTauExp1DerivS() / 3.0;
 
-		g[6] = adjSolver[1].calcJ1DerivS() / 3.0;
-		g[7] = adjSolver[1].calcTauSin1DerivS() / 3.0;
-		g[8] = adjSolver[1].calcTauExp1DerivS() / 3.0;
+			g[6] = adjSolver[1].calcJ1DerivS() / 3.0;
+			g[7] = adjSolver[1].calcTauSin1DerivS() / 3.0;
+			g[8] = adjSolver[1].calcTauExp1DerivS() / 3.0;
 
-		g[9] = adjSolver[2].calcJ1DerivS() / 3.0;
-		g[10] = adjSolver[2].calcTauSin1DerivS() / 3.0;
-		g[11] = adjSolver[2].calcTauExp1DerivS() / 3.0;
+			g[9] = adjSolver[2].calcJ1DerivS() / 3.0;
+			g[10] = adjSolver[2].calcTauSin1DerivS() / 3.0;
+			g[11] = adjSolver[2].calcTauExp1DerivS() / 3.0;
+		}
+		else if( GlobalParams.getCurrentType() == currentPieceLin )
+		{
+			N_PRES dT = CHAR_TIME / GlobalParams.getNumberOfCurrentParams();
+			int firstStageParamNum = (int)floor( SWITCH_TIME / dT );
+			int secondStageParamNum = GlobalParams.getNumberOfCurrentParams() - firstStageParamNum;
+			for( int i = 0; i < firstStageParamNum; ++i )
+			{
+				N_PRES sum = 0.0;
+				for( int scen = 0; scen < GlobalParams.getNumberOfScenarios(); ++scen )
+				{
+					sum += adjSolver[scen].calcPieceLinDeriv( i );
+				}
+				g[i] = sum / GlobalParams.getNumberOfScenarios();
+			}
+			for( int scen = 0; scen < GlobalParams.getNumberOfScenarios(); ++scen )
+			{
+				for( int i = firstStageParamNum; i < GlobalParams.getNumberOfCurrentParams(); ++i )
+				{
+					g[i + scen * secondStageParamNum] = adjSolver[scen].calcPieceLinDeriv( i ) / GlobalParams.getNumberOfScenarios();
+				}
+			}
+		}
 	}
 
 	ret = ( funcVal1[0] + funcVal1[1] + funcVal1[2]
@@ -620,30 +645,30 @@ double calcValTaus( double* x, long n )
 
 		while( solver[scen].cur_t <= SWITCH_TIME )
 		{
-			//sum += solver[scen].do_step();
-			sum = solver[scen].do_step();
-			funcVal1[scen] += sum * sum; 
+			sum += solver[scen].do_step();
+			//sum = solver[scen].do_step();
+			//funcVal1[scen] += sum * sum; 
 
 			solver[scen].increaseTime(); 
 
 			//solver_second.dump_check_sol( -1 );
 		}
-		//funcVal1[scen] = sum * dt * dy / SWITCH_TIME;
-		funcVal1[scen] /= SWITCH_TIME;
+		funcVal1[scen] = sum * dt * dy / SWITCH_TIME;
+		//funcVal1[scen] /= SWITCH_TIME;
 
 		sum = 0.0;
 		while( solver[scen].cur_t <= charTime )
 		{
-			//sum += solver[scen].do_step();
-			sum = solver[scen].do_step();
-			funcVal2[scen] += sum * sum;
+			sum += solver[scen].do_step();
+			//sum = solver[scen].do_step();
+			//funcVal2[scen] += sum * sum;
 
 			solver[scen].increaseTime();
 
 			//solver_second.dump_check_sol( -1 );
 		}
-		//funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
-		funcVal2[scen] /= ( charTime - SWITCH_TIME );
+		funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
+		//funcVal2[scen] /= ( charTime - SWITCH_TIME );
 
 		if( solver[scen].getMaxNewtonIterReached() == 1 )
 		{
@@ -665,10 +690,6 @@ double calcValTaus( double* x, long n )
 
 	time_t endtime = time( 0 );
 	cout << "\tdone in " << endtime - begin << endl;
-
-	cout << funcVal1[0] + funcVal2[0] << endl;
-	cout << funcVal1[1] + funcVal2[1] << endl;
-	cout << funcVal1[2] + funcVal2[2] << endl;
 
 	return ret;
 }

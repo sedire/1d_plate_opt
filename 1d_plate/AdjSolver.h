@@ -10,6 +10,7 @@
 #include "OrthoBuilder.h"
 #include <sstream>
 #include <fstream>
+#include "math.h"
 
 using std::cout;
 using std::endl;
@@ -55,6 +56,7 @@ public:
 	N_PRES calcTauExp0DerivS();
 	N_PRES calcTauExp1DerivS();
 
+	N_PRES calcPieceLinDeriv( int i );
 private:
 //parameters of the material
 	N_PRES E1;				//Young's modulus
@@ -77,19 +79,15 @@ private:
 	int curTimeStep;
 	N_PRES switchTime;
 //stress
-	N_PRES J0;
-	N_PRES J0_1;
-	N_PRES tauSin;
-	N_PRES tauSin_1;
-	N_PRES tauExp;
-	N_PRES tauExp_1;
-
-	N_PRES p0;				//constant mechanical load
-	N_PRES tauP;
-	N_PRES rad;
-
-	int stressType;
 	int currentType;
+	vector<N_PRES> currentParams;
+	//N_PRES J0;
+	//N_PRES J0_1;
+	//N_PRES tauSin;
+	//N_PRES tauSin_1;
+	//N_PRES tauExp;
+	//N_PRES tauExp_1;
+
 //Newmark params
 	N_PRES beta;
 //some other

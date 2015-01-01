@@ -254,18 +254,17 @@ SolverPar inline Solver<N_PRES>::saveParamsToStruct()
 
 	//TODO: fix this block!!!
 	saveTo.currentType = currentType;
-	saveTo.J0 = currentParams[0];
+	saveTo.currentParams.resize( currentParams.size(), 0.0 );
+	for( int i = 0; i < saveTo.currentParams.size(); ++i )
+	{
+		saveTo.currentParams[i] = currentParams[i];
+	}
+	/*saveTo.J0 = currentParams[0];
 	saveTo.tauSin = currentParams[1];
 	saveTo.tauExp = currentParams[2];
 	saveTo.J0_1 = currentParams[3];
 	saveTo.tauSin_1 = currentParams[4];
-	saveTo.tauExp_1 = currentParams[5];
-
-	//TODO: fix this block!!!
-	saveTo.stressType = stressType;
-	saveTo.rad = stressParams[0];
-	saveTo.p0 = stressParams[1];				//constant mechanical load
-	saveTo.tauP = stressParams[2];
+	saveTo.tauExp_1 = currentParams[5];*/
 
 	saveTo.beta = beta;
 
@@ -973,13 +972,13 @@ PL_NUM Solver<PL_NUM>::do_step()
 
 	copyToResArr();
 
-	//PL_NUM sum = 0.0l;
-	//for( int y = 0; y < Km; ++y )
-	//{
-	//	sum += mesh[y].Nk1[1] * mesh[y].Nk1[1];
-	//}
-	//return sum;
-	return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
+	PL_NUM sum = 0.0l;
+	for( int y = 0; y < Km; ++y )
+	{
+		sum += mesh[y].Nk1[1] * mesh[y].Nk1[1];
+	}
+	return sum;
+	//return mesh[ ( Km - 1 ) / 2 ].Nk1[1];
 }
 
 template<class PL_NUM>

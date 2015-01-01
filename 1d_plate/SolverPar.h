@@ -2,6 +2,9 @@
 #define _PLATE_1D_SOLVERPAR_ 1
 
 #include "plate_var_types.h"
+#include <vector>
+
+using std::vector;
 
 struct SolverPar
 {
@@ -21,19 +24,15 @@ struct SolverPar
 	int Km;
 	N_PRES dx;
 //stress
-	N_PRES J0;
-	N_PRES J0_1;
-	N_PRES tauSin;
-	N_PRES tauSin_1;
-	N_PRES tauExp;
-	N_PRES tauExp_1;
-
-	N_PRES  p0;				//constant mechanical load
-	N_PRES tauP;
-	N_PRES rad;
-
-	int stressType;
 	int currentType;
+	vector<N_PRES> currentParams;
+	//N_PRES J0;
+	//N_PRES J0_1;
+	//N_PRES tauSin;
+	//N_PRES tauSin_1;
+	//N_PRES tauExp;
+	//N_PRES tauExp_1;
+
 //Newmark params
 	N_PRES beta;
 //some other
