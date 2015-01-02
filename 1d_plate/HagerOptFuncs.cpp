@@ -11,16 +11,12 @@ double calcValGradTausAdj( double* g, double* x, long n )
 	N_PRES dy = 0.1524 / ( NODES_Y - 1 );
 	int resArrSize = ( ( int )( CHAR_TIME / DELTA_T  + 1 ) ) * NODES_Y * EQ_NUM;
 
-	cout << "try to calc at\n";
-	for( int i = 0; i < GRAD_SIZE_FULL; ++i )
-	{
-		cout << x[i] << endl;
-	}
-	cout << " ====\n";
-
 	vector<vector<N_PRES> > currentParams;
 	currentParams.resize( GlobalParams.getNumberOfScenarios(), vector<N_PRES>( GlobalParams.getNumberOfCurrentParams(), 0.0 ) );
+
 	int firstStageParamNum = -1;
+	int secondStageParamNum = -1;
+	int xSize = -1;
 	if( GlobalParams.getCurrentType() == currentExpSin )
 	{
 		firstStageParamNum = 3;
@@ -34,6 +30,16 @@ double calcValGradTausAdj( double* g, double* x, long n )
 	{
 		cout << "ERROR: we do not support other current types yet\n";
 	}
+	secondStageParamNum = GlobalParams.getNumberOfCurrentParams() - firstStageParamNum;
+	xSize = firstStageParamNum + GlobalParams.getNumberOfScenarios() * secondStageParamNum;
+
+	cout << "try to calc at\n";
+	for( int i = 0; i < xSize; ++i )
+	{
+		cout << x[i] << endl;
+	}
+	cout << " ====\n";
+
 
 	for( int scen = 0; scen < GlobalParams.getNumberOfScenarios(); ++scen )
 	{
@@ -586,17 +592,13 @@ double calcValTaus( double* x, long n )
 	time_t begin = time( 0 );
 	N_PRES dt = DELTA_T;
 	N_PRES dy = 0.1524 / ( NODES_Y - 1 );
-
-	cout << "try to calc at\n";
-	for( int i = 0; i < GRAD_SIZE_FULL; ++i )
-	{
-		cout << x[i] << endl;
-	}
-	cout << " ====\n";
 	
 	vector<vector<N_PRES> > currentParams;
 	currentParams.resize( GlobalParams.getNumberOfScenarios(), vector<N_PRES>( GlobalParams.getNumberOfCurrentParams(), 0.0 ) );
+
 	int firstStageParamNum = -1;
+	int secondStageParamNum = -1;
+	int xSize = -1;
 	if( GlobalParams.getCurrentType() == currentExpSin )
 	{
 		firstStageParamNum = 3;
@@ -604,12 +606,21 @@ double calcValTaus( double* x, long n )
 	else if( GlobalParams.getCurrentType() == currentPieceLin )
 	{
 		N_PRES dT = CHAR_TIME / GlobalParams.getNumberOfCurrentParams();
-		firstStageParamNum = (int)( SWITCH_TIME / dT );
+		firstStageParamNum = (int)floor( SWITCH_TIME / dT );
 	}
 	else
 	{
 		cout << "ERROR: we do not support other current types yet\n";
 	}
+	secondStageParamNum = GlobalParams.getNumberOfCurrentParams() - firstStageParamNum;
+	xSize = firstStageParamNum + GlobalParams.getNumberOfScenarios() * secondStageParamNum;
+
+	cout << "try to calc at\n";
+	for( int i = 0; i < xSize; ++i )
+	{
+		cout << x[i] << endl;
+	}
+	cout << " ====\n";
 
 	for( int scen = 0; scen < GlobalParams.getNumberOfScenarios(); ++scen )
 	{

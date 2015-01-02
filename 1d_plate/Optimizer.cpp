@@ -52,11 +52,11 @@ void optimizeASAPiece()
     asaParm.PrintParms = TRUE;
     asaParm.PrintLevel = 3;
 
-	asa_cg( x, lo, hi, GRAD_SIZE_FULL, NULL, &cgParm, &asaParm, threshold, calcValASA_Taus, calcGradASAPiece, calc1stOrdOptInfoASAPiece, 0, 0 );
+	asa_cg( x, lo, hi, xSize, NULL, &cgParm, &asaParm, threshold, calcValASA_Taus, calcGradASAPiece, calc1stOrdOptInfoASAPiece, 0, 0 );
 
 	cout << "\n\n===============\nASA optimization complete. X is:\n";
 	ofstream of( "solution.txt" );
-	for( int i = 0; i < GRAD_SIZE_FULL; ++i )
+	for( int i = 0; i < xSize; ++i )
 	{
 		of << x[i] << endl;
 		cout << x[i] << endl;
