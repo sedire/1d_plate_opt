@@ -35,6 +35,7 @@ double calc1stOrdOptInfoASA_Taus( asa_objective* asa );
 double calcValASA_Taus( asa_objective* asa );
 void calcGradASA_Taus( asa_objective* asa );
 
-
+double calc1stOrdOptInfoASAPiece( asa_objective* asa );
+void calcGradASAPiece( asa_objective* asa );
 
 #endif

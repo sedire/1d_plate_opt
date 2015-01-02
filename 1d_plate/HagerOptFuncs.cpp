@@ -811,3 +811,17 @@ void calcGradASA_Taus( asa_objective* asa )
 	cout << "\tcalc 1st order CG_DES Grad\n";
 	calcValGradTaus( asa->g, asa->x, asa->n );
 }
+
+double calc1stOrdOptInfoASAPiece( asa_objective* asa )
+{
+	cout << "\tcalc 1st order CG_DES Both\n";
+	double ret = calcValGradTausAdj( asa->g, asa->x, asa->n );
+	return ret;
+}
+
+void calcGradASAPiece( asa_objective* asa )
+{
+	cout << "\tcalc 1st order CG_DES Grad\n";
+	calcValGradTausAdj( asa->g, asa->x, asa->n );
+}
+

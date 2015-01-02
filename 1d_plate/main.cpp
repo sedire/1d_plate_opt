@@ -27,9 +27,6 @@ int main()
 	{
 		omp_set_num_threads( THREAD_NUM );
 
-		time_t adjTime = 0;
-		time_t hpdTime = 0;
-
 		//////////////////////////////////////
 		//Solver<N_PRES>* solver = new Solver<N_PRES>();
 		//solver->setTask( GlobalParams.getCurrentType(), GlobalParams.getCurrentParams( 0 ), GlobalParams.getBy0(), 
@@ -114,9 +111,9 @@ int main()
 		//double val2 = calcValTaus( x2, 0 );
 		//cout << " finite diff " << ( val2 - val1 ) / 2.0 / dtt << endl;
 
-		//optimizeASA_Taus<HPD<N_PRES, GRAD_SIZE> >( params );
+		optimizeASAPiece();
 
-		int resArrSize = ( ( int )( CHAR_TIME / DELTA_T  + 1 ) ) * NODES_Y * EQ_NUM;
+		/*int resArrSize = ( ( int )( CHAR_TIME / DELTA_T  + 1 ) ) * NODES_Y * EQ_NUM;
 		double gAdj[26];
 		double x[26] = { 2.0, -2.0, 
 							-0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -150,7 +147,7 @@ int main()
 			cout << " finite diff " << ( val2 - val1 ) / 2.0 / dJJ << endl;
 			ofstream of ( "finDiffDeriv.txt", ofstream::app );
 			of << ( val2 - val1 ) / 2.0 / dJJ << endl;
-		}
+		}*/
 		//ofstream of( "adjDeriv.txt" );
 		//for( int i = 0; i < 26; ++i )
 		//{

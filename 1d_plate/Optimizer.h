@@ -9,11 +9,14 @@
 #include "Solver.h"
 #include "asa_user.h"
 #include "HagerOptFuncs.h"
+#include "ParamSack.h"
 
 using namespace Eigen;
 using std::cout;
 using std::endl;
 using std::ofstream;
+
+extern ParamSack GlobalParams;
 
 //double calc1stOrdOptInfoCG_DES( double* g, double* x, long n );
 
@@ -69,5 +72,7 @@ void optimizeASA_Taus( const Matrix<N_PRES, GRAD_SIZE_FULL, 1>& params )
 	delete[] lo;
 	delete[] hi;
 }
+
+void optimizeASAPiece();
 
 #endif
