@@ -51,6 +51,7 @@ public:
 
 	PL_NUM do_step();
 	void dumpCheckSol( int fNum, int dumpTheor );
+	void dumpSolIntegral();
 	void dumpWholeSol( int var );
 	void dumpSolAll( int fNum );
 
@@ -1066,6 +1067,25 @@ void Solver<PL_NUM>::dumpCheckSol( int fNum, int dumpTheor )
 	}
 
 	of1 << endl;
+	of1.close();
+}
+
+template<class PL_NUM>
+void Solver<PL_NUM>::dumpSolIntegral()
+{
+	N_PRES sum = 0.0l;
+	for( int y = 0; y < Km; ++y )
+	{
+		sum += mesh[y].Nk1[1] * mesh[y].Nk1[1];
+	}
+	//sum *= dx;
+
+	stringstream ss;
+	ss << "test_sol.txt";
+
+	ofstream of1( ss.str(), ofstream::app );
+	of1 << cur_t << " ; " << sum << endl;
+
 	of1.close();
 }
 

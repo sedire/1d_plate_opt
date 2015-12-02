@@ -376,27 +376,27 @@ double calcValGradTaus( double* g, double* x, long n )
 		funcVal1[scen] = 0.0l;
 		while( solver[scen].cur_t <= SWITCH_TIME )
 		{
-			//sum += solver[scen].do_step();
-			sum = solver[scen].do_step();
-			funcVal1[scen] += sum * sum;
+			sum += solver[scen].do_step();
+			//sum = solver[scen].do_step();
+			//funcVal1[scen] += sum * sum;
 
 			solver[scen].increaseTime();
 		}
-		//funcVal1[scen] = sum * dt * dy / SWITCH_TIME;
-		funcVal1[scen] /= SWITCH_TIME;
+		funcVal1[scen] = sum * dt * dy / SWITCH_TIME;
+		//funcVal1[scen] /= SWITCH_TIME;
 
 		funcVal2[scen] = 0.0l;
 		sum = 0.0;
 		while( solver[scen].cur_t <= charTime )
 		{
-			//sum += solver[scen].do_step();
-			sum = solver[scen].do_step();
-			funcVal2[scen] += sum * sum; 
+			sum += solver[scen].do_step();
+			//sum = solver[scen].do_step();
+			//funcVal2[scen] += sum * sum; 
 
 			solver[scen].increaseTime();
 		}
-		//funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
-		funcVal2[scen] /= ( charTime - SWITCH_TIME );
+		funcVal2[scen] = sum * dt * dy / ( charTime - SWITCH_TIME );
+		//funcVal2[scen] /= ( charTime - SWITCH_TIME );
 
 		if( solver[scen].getMaxNewtonIterReached() == 1 )
 		{

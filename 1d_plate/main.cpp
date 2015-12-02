@@ -27,7 +27,7 @@ int main()
 	{
 		omp_set_num_threads( THREAD_NUM );
 
-		//////////////////////////////////////
+		////////////////////////////////////////
 		//Solver<N_PRES>* solver = new Solver<N_PRES>();
 		//solver->setTask( GlobalParams.getCurrentType(), GlobalParams.getCurrentParams( 0 ), GlobalParams.getBy0(), 
 		//				GlobalParams.getStressType(), GlobalParams.getStressParams( 0 ) );
@@ -37,7 +37,8 @@ int main()
 		//{
 		//	cout << solver->cur_t << endl;
 		//	solver->do_step();
-		//	solver->dumpCheckSol( -1, 0 );
+		//	solver->dumpSolIntegral();
+		//	//solver->dumpCheckSol( -1, 0 );
 		//	//solver->dumpWholeSol( 1 );
 	
 		//	solver->increaseTime();
@@ -58,11 +59,56 @@ int main()
 
 	/////////////////////////////////////////
 
-		/*Matrix<N_PRES, GRAD_SIZE_FULL, 1> params;
-		params << GlobalParams.getCurrentParams1st( 0 ), GlobalParams.getCurrentParams1st( 1 ), GlobalParams.getCurrentParams1st( 2 ), 
-			GlobalParams.getCurrentParams2nd( 0, 0 ), GlobalParams.getCurrentParams2nd( 0, 1 ), GlobalParams.getCurrentParams2nd( 0, 2 ),
-			GlobalParams.getCurrentParams2nd( 1, 0 ), GlobalParams.getCurrentParams2nd( 1, 1 ), GlobalParams.getCurrentParams2nd( 1, 2 ),
-			GlobalParams.getCurrentParams2nd( 2, 0 ), GlobalParams.getCurrentParams2nd( 2, 1 ), GlobalParams.getCurrentParams2nd( 2, 2 );*/
+		/*double alphaStep = 1e-2;
+		double beta[GRAD_SIZE_FULL];
+		beta[0] = 1e-2;
+		beta[1] = 1e-4;
+		beta[2] = 1e-4;
+
+		beta[3] = -1e-2;
+		beta[4] = 1e-4;
+		beta[5] = 1e-4;
+
+		beta[6] = 1e-2;
+		beta[7] = 1e-4;
+		beta[8] = 1e-4;
+
+		beta[9] = -1e-2;
+		beta[10] = 1e-4;
+		beta[11] = 1e-4;
+
+		double xStart[GRAD_SIZE_FULL];
+		xStart[0] = 0.0250578;
+		xStart[1] = 0.0111564;
+		xStart[2] = 0.0196501;
+		xStart[3] = 1;
+		xStart[4] = 0.00515453;
+		xStart[5] = 0.00267568;
+		xStart[6] = 0.010188;
+		xStart[7] = 0.00907185;
+		xStart[8] = 1e-005;
+		xStart[9] = 1;
+		xStart[10] = 0.00371065;
+		xStart[11] = 0.0030765;
+
+		for( int i = 0; i < 100; ++i )
+		{
+			for( int j = 0; j < GRAD_SIZE_FULL; ++j )
+			{
+				xStart[j] += alphaStep * beta[j];
+			}
+			double fVal = calcValTaus( xStart, 0 );
+			ofstream of1( "beta_test.txt", ofstream::out | ofstream::app );
+			of1 << i + 1 << " ; " << fVal << endl;
+			of1.close();
+		}*/
+
+		//------------->>
+		//Matrix<N_PRES, GRAD_SIZE_FULL, 1> params;
+		//params << GlobalParams.getCurrentParams1st( 0 ), GlobalParams.getCurrentParams1st( 1 ), GlobalParams.getCurrentParams1st( 2 ), 
+		//	GlobalParams.getCurrentParams2nd( 0, 0 ), GlobalParams.getCurrentParams2nd( 0, 1 ), GlobalParams.getCurrentParams2nd( 0, 2 ),
+		//	GlobalParams.getCurrentParams2nd( 1, 0 ), GlobalParams.getCurrentParams2nd( 1, 1 ), GlobalParams.getCurrentParams2nd( 1, 2 ),
+		//	GlobalParams.getCurrentParams2nd( 2, 0 ), GlobalParams.getCurrentParams2nd( 2, 1 ), GlobalParams.getCurrentParams2nd( 2, 2 );
 
 		//double x[GRAD_SIZE_FULL] = { 0.0267403, 0.0110724, 0.0213401, 
 		//							1.0, 0.00514927, 0.00271984,
@@ -111,7 +157,8 @@ int main()
 		//double val2 = calcValTaus( x2, 0 );
 		//cout << " finite diff " << ( val2 - val1 ) / 2.0 / dtt << endl;
 
-		optimizeASAPiece();
+		optimizeASA_Taus();
+		//optimizeASAPiece();
 
 		/*int resArrSize = ( ( int )( CHAR_TIME / DELTA_T  + 1 ) ) * NODES_Y * EQ_NUM;
 		double gAdj[26];
